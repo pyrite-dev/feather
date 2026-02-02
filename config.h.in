@@ -7,6 +7,9 @@
 #define HAS_SSL
 #define HAS_POLL
 
+/* this decides buffer size for config file and HTTP */
+#define BUFFER_SIZE 1024
+
 /* /!\ DO NOT EDIT BELOW THIS LINE /!\ */
 
 /* WSA is missing poll */

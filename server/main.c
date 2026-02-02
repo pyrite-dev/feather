@@ -1,8 +1,12 @@
 #include <fhttpd.h>
 
+char* argv0;
+
 int main(int argc, char** argv) {
 	int	    i;
-	const char* conf = PREFIX "/etc/feather.conf";
+	const char* conf = PREFIX "/etc/fhttpd.conf";
+
+	argv0 = argv[0];
 
 	for(i = 1; i < argc; i++) {
 		if(strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "-h") == 0) {
@@ -28,5 +32,9 @@ int main(int argc, char** argv) {
 				return 1;
 			}
 		}
+	}
+
+	if(!config_parse(conf)) {
+		return 1;
 	}
 }

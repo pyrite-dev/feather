@@ -2,8 +2,8 @@
 #define __FPR_H__
 
 typedef unsigned char fpr_bool;
-#define FPR_FALSE 0
-#define FPR_TRUE 1
+#define fpr_false 0
+#define fpr_true 1
 
 typedef unsigned char  fpr_uint8_t;
 typedef unsigned short fpr_uint16_t;
@@ -121,6 +121,7 @@ fpr_uint16_t fpr_htons(fpr_uint16_t host16);
 
 /* string.c */
 char* fpr_strdup(const char* str);
+char* fpr_strvacat_alloc(const char* a, ...);
 
 /* wildcard.c */
 fpr_bool fpr_wildcard(const char* wildcard, const char* target);

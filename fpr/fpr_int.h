@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdarg.h>
 #if !defined(_WIN32)
 #include <unistd.h>
 #endif
