@@ -6,18 +6,8 @@
 #define HAS_IPV6
 #define HAS_SSL
 #define HAS_POLL
-#define IS_MODERN_UNIX
 
 /* /!\ DO NOT EDIT BELOW THIS LINE /!\ */
-
-#if (defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__)) && !defined(IS_MODERN_UNIX)
-#define IS_MODERN_UNIX
-#endif
-
-/* modern UNIXes have poll, as far as i know */
-#if defined(IS_MODERN_UNIX) && !defined(HAS_POLL)
-#define HAS_POLL
-#endif
 
 /* WSA is missing poll */
 #if defined(_WIN32) && defined(HAS_POLL)

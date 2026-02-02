@@ -3,7 +3,7 @@ include ../config.mk
 .PHONY: all clean
 .SUFFIXES: .c $(O)
 
-OBJS = poll$(O) file$(O) socket$(O)
+OBJS = poll$(O) file$(O) socket$(O) arpa$(O)
 OBJS += wildcard$(O)
 
 all: $(LIB)fpr$(A)

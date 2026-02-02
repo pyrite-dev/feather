@@ -3,6 +3,15 @@
 
 #include "../config.h"
 
+/* generic section */
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <ctype.h>
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
 /* socket section */
 #if defined(_WIN32)
 #include <winsock2.h>
@@ -17,15 +26,6 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#endif
-
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
-
-#if !defined(_WIN32)
-#include <unistd.h>
 #endif
 
 #endif

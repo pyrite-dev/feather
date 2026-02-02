@@ -18,7 +18,7 @@ void fpr_socket_init(void) {
 #endif
 }
 
-void fpr_socket(int domain, int type, int protocol) {
+int fpr_socket(int domain, int type, int protocol) {
 	int d = PF_UNSPEC, t = 0, p = 0;
 	int s;
 
@@ -47,6 +47,8 @@ void fpr_socket(int domain, int type, int protocol) {
 #if defined(_WIN32)
 	if(s < INVALID_SOCKET) s = -1;
 #endif
+
+	return s;
 }
 
 /* we ignore flags for now */
@@ -58,6 +60,75 @@ int fpr_send(int s, const void* msg, int len, int flags) {
 	return send(s, msg, len, 0);
 }
 
+int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
+	int st = -1;
+
+	if(name->sa_family == FPR_AF_INET && namelen == sizeof(struct fpr_sockaddr_in)) {
+		struct fpr_sockaddr_in* addr = (struct fpr_sockaddr_in*)name;
+		struct sockaddr_in	addr4;
+
+		addr4.sin_family      = AF_INET;
+		addr4.sin_addr.s_addr = addr->sin_addr.u.addr32[0];
+		addr4.sin_port	      = addr->sin_port;
+
+		st = bind(s, (struct sockaddr*)&addr4, sizeof(addr4));
+	} else if(name->sa_family == FPR_AF_INET6 && namelen == sizeof(struct fpr_sockaddr_in6)) {
+#if defined(HAS_IPV6)
+		struct fpr_sockaddr_in6* addr = (struct fpr_sockaddr_in6*)name;
+		struct sockaddr_in6	 addr6;
+
+		addr6.sin6_family = AF_INET6;
+		memcpy(addr6.sin6_addr.s6_addr, &addr->sin6_addr.u.addr8, 16);
+		addr6.sin6_port = addr->sin6_port;
+
+		st = bind(s, (struct sockaddr*)&addr6, sizeof(addr6));
+#else
+		st = -1;
+#endif
+	}
+
+	return st;
+}
+
+int fpr_listen(int s, int backlog) {
+	return listen(s, backlog);
+}
+
+int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
+	unsigned char	 buffer[128];
+	int		 len = 128;
+	struct sockaddr* sa  = (struct sockaddr*)buffer;
+	int		 r;
+
+	r = accept(s, sa, &len);
+
+	if(r < 0) return r;
+
+	if(sa->sa_family == AF_INET) {
+		struct fpr_sockaddr_in* taddr = (struct fpr_sockaddr_in*)addr;
+		struct sockaddr_in*	addr4 = (struct sockaddr_in*)buffer;
+
+		taddr->sin_family	    = FPR_AF_INET;
+		taddr->sin_addr.u.addr32[0] = addr4->sin_addr.s_addr;
+		taddr->sin_port		    = addr4->sin_port;
+
+		*addrlen = sizeof(*taddr);
+	} else if(sa->sa_family == AF_INET6) {
+#if defined(HAS_IPV6)
+		struct fpr_sockaddr_in6* taddr = (struct fpr_sockaddr_in6*)addr;
+		struct sockaddr_in6*	 addr6 = (struct sockaddr_in6*)buffer;
+
+		taddr->sin6_family = FPR_AF_INET6;
+		memcpy(taddr->sin6_addr.u.addr32, addr6->sin6_addr.s6_addr, 16);
+		taddr->sin6_port = addr6->sin6_port;
+
+		*addrlen = sizeof(*taddr);
+#endif
+	}
+
+	return r;
+}
+
 void fpr_socket_close(int d) {
 #if defined(_WIN32)
 	closesocket(d);
@@ -65,3 +136,9 @@ void fpr_socket_close(int d) {
 	close(d);
 #endif
 }
+
+struct fpr_in_addr FPR_INADDR_ANY = {
+    {0, 0, 0, 0}};
+
+struct fpr_in6_addr FPR_IN6ADDR_ANY = {
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
