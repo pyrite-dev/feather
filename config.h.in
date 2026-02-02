@@ -12,4 +12,8 @@
 #define HAS_POLL
 #endif
 
+#if defined(_WIN32) && define(HAS_POLL)
+#undef HAS_POLL
+#endif
+
 #endif

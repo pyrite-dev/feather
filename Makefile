@@ -1,6 +1,9 @@
-.PHONY: all pre distclean clean fpr server
+.PHONY: all format pre distclean clean fpr server
 
 all: pre fpr server
+
+format:
+	clang-format --verbose -i `find fpr server -name "*.c" -or -name "*.h"`
 
 pre:
 	@ST=0 ; \

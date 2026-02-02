@@ -8,7 +8,7 @@ OBJS = poll$(O)
 all: $(LIB)fpr$(A)
 
 .c$(O):
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(INCDIR) ../fpr -c -o $@ $<
 
 $(LIB)fpr$(A): $(OBJS)
 	$(AR) rcs $@ $(OBJS)
