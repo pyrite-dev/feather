@@ -57,7 +57,6 @@ int fpr_poll(struct fpr_pollfd* fds, int nfds, int timeout) {
 		if(FD_ISSET(fds[i].fd, &wfds)) fds[i].revents |= POLLOUT;
 	}
 
-	if(st > 0) st = 1;
 	return st;
 #endif
 }
