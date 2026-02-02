@@ -8,7 +8,7 @@ OBJS = main$(O)
 all: fhttpd$(E)
 
 .c$(O):
-	$(CC) $(CFLAGS) $(INCDIR) ../fpr -c -o $@ $<
+	$(CC) $(CFLAGS) $(INCDIR) ../fpr $(INCDIR) . -c -o $@ $<
 
 fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(LINK) ../fpr/$(LIB)fpr$(A)
