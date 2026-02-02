@@ -64,6 +64,14 @@ static fpr_bool parse(const char* path) {
 
 								fail = 1;
 							}
+						} else if(strcmp(arg[0], "ForceLog") == 0) {
+							if(arg_len(arg) == 2) {
+								fprintf(stderr, "%s: %s: %s", argv0, path, arg[1]);
+							} else {
+								fprintf(stderr, "%s: %s: ForceLog takes 1 argument\n", argv0, path);
+
+								fail = 1;
+							}
 						}
 					}
 					arg_free(arg);
