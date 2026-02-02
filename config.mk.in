@@ -1,0 +1,16 @@
+CC 	= cc
+CFLAGS	=
+LDFLAGS =
+LIBS	=
+
+# Prefix for library
+LIB	= lib
+
+# Extension for archive
+A	= .a
+
+# Extension for object
+O	= .o
+
+# Extension for executable
+E	=
