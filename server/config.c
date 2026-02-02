@@ -31,6 +31,7 @@ static fpr_bool parse(const char* path) {
 			if(buffer[i] == '\n') {
 				char* line = linebuf;
 				int   j;
+				int   fail = 0;
 
 				while((*line) != 0 && ((*line) == '\t' || (*line) == ' ')) line++;
 
@@ -42,19 +43,38 @@ static fpr_bool parse(const char* path) {
 					}
 				}
 
-				if(strlen(line) > 0) {
+				if(strlen(line) > 0 && line[0] != '#') {
+					char** arg;
+					int    dir = 1;
 					if(line[0] == '<' && line[strlen(line) - 1] == '>') {
+						dir		       = 0;
+						line[strlen(line) - 1] = 0;
+
+						arg = arg_parse(line + 1);
 					} else {
-						char** n = arg_parse(line);
-						for(j = 0; j < arg_len(n); j++) printf("[%s]\n", n[j]);
-						arg_free(n);
+						arg = arg_parse(line);
 					}
+					if(dir) {
+						if(strcmp(arg[0], "ServerRoot") == 0) {
+							if(arg_len(arg) == 2) {
+								free(serverroot);
+								serverroot = fpr_strdup(arg[1]);
+							} else {
+								fprintf(stderr, "%s: %s: ServerRoot takes 1 argument\n", argv0, path);
+
+								fail = 1;
+							}
+						}
+					}
+					arg_free(arg);
 				}
 
 				linebuf[0] = 0;
+
+				if(fail) goto cleanup;
 			} else if(buffer[i] != '\r') {
 				if(strlen(linebuf) == LINE_SIZE) {
-					fprintf(stderr, "%s: %s: too long line; sorry\n", argv0, path);
+					fprintf(stderr, "%s: %s: line too long; sorry\n", argv0, path);
 					goto cleanup;
 				}
 
