@@ -1,0 +1,15 @@
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
+
+#define PREFIX "/usr/fhttpd"
+
+#define HAS_SSL
+#define HAS_POLL
+
+/* /!\ DO NOT EDIT BELOW THIS LINE /!\ */
+
+#if defined(__NetBSD__) && !defined(HAS_POLL)
+#define HAS_POLL
+#endif
+
+#endif

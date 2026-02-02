@@ -1,2 +1,8 @@
 /config.h
 /config.mk
+/server/fhttpd
+*.exe
+*.a
+*.so
+*.dll
+*.o

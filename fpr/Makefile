@@ -1,10 +1,17 @@
 include ../config.mk
 
 .PHONY: all clean
+.SUFFIXES: .c $(O)
+
+OBJS = poll$(O)
 
 all: $(LIB)fpr$(A)
 
-$(LIB)fpr$(A):
+.c$(O):
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(LIB)fpr$(A): $(OBJS)
+	$(AR) rcs $@ $(OBJS)
 
 clean:
 	rm -f *$(A) *$(O)

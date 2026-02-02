@@ -1,7 +1,14 @@
+AR	= ar
 CC 	= cc
 CFLAGS	=
 LDFLAGS =
 LIBS	=
+
+# Compiler flag to include directory
+INCDIR	= -I
+
+# Compiler flag to link library
+LINK	=
 
 # Prefix for library
 LIB	= lib
