@@ -1,4 +1,4 @@
-.PHONY: all format pre distclean clean fpr server
+.PHONY: all format pre distclean clean fpr server install
 
 all: pre fpr server
 
@@ -27,6 +27,9 @@ fpr: pre
 
 server: pre fpr
 	cd server ; $(MAKE)
+
+install: server
+	cd server ; $(MAKE) install
 
 clean:
 	-cd fpr ; $(MAKE) clean

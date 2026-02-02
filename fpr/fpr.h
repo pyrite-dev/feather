@@ -119,6 +119,9 @@ void fpr_socket_close(int d);
 /* arpa.c */
 fpr_uint16_t fpr_htons(fpr_uint16_t host16);
 
+/* string.c */
+char* fpr_strdup(const char* str);
+
 /* wildcard.c */
 fpr_bool fpr_wildcard(const char* wildcard, const char* target);
 

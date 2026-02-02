@@ -4,7 +4,7 @@
 FPR_FILE* fpr_fopen(const char* path, const char* mode) {
 #if defined(_WIN32)
 #else
-	return (FILE*)fopen(path, mode);
+	return (FPR_FILE*)fopen(path, mode);
 #endif
 }
 

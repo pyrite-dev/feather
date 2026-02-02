@@ -1,3 +1,6 @@
+DESTDIR	=
+PREFIX	= /usr/fhttpd
+
 AR	= ar
 CC 	= cc
 CFLAGS	=
