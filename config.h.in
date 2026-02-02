@@ -10,6 +10,9 @@
 /* this decides buffer size for config file and HTTP */
 #define BUFFER_SIZE 1024
 
+/* this decides how long line can be in config file */
+#define LINE_SIZE BUFFER_SIZE
+
 /* /!\ DO NOT EDIT BELOW THIS LINE /!\ */
 
 /* WSA is missing poll */

@@ -3,12 +3,12 @@ include ../config.mk
 .PHONY: all clean install
 .SUFFIXES: .c $(O)
 
-OBJS = main$(O) config$(O) util$(O)
+OBJS = main$(O) config$(O) path$(O) arg$(O) stb_ds$(O)
 
 all: fhttpd$(E)
 
 .c$(O):
-	$(CC) $(CFLAGS) $(INCDIR) ../fpr $(INCDIR) . -c -o $@ $<
+	$(CC) $(CFLAGS) $(INCDIR) ../fpr $(INCDIR) . $(INCDIR) ../external/stb -c -o $@ $<
 
 fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(LINK) ../fpr/$(LIB)fpr$(A)

@@ -13,6 +13,11 @@
 #define VERSION "0.0.0"
 #define SERVER "Feather/" VERSION
 
+typedef struct config config_t;
+
+struct config {
+};
+
 /* main.c */
 extern char* argv0;
 
@@ -22,7 +27,12 @@ extern char* serverroot;
 void	 config_init(void);
 fpr_bool config_parse(const char* path);
 
-/* util.c */
+/* path.c */
 char* path_transform(const char* path);
+
+/* arg.c */
+char** arg_parse(const char* str);
+void   arg_free(char** args);
+int    arg_len(char** args);
 
 #endif
