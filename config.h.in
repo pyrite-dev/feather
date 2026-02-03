@@ -19,12 +19,17 @@
 /* this decides how long line can be in config file */
 #define LINE_SIZE BUFFER_SIZE
 
-/* /!\ DO NOT EDIT BELOW THIS LINE /!\ */
+/*
+ * /!\ DO NOT CHANGE LINES BELOW THIS LINE /!\
+ * /!\     UNLESS YOU ARE A MAINTAINER     /!\
+ */
 
-#ifdef _WIN32
+/* Windows */
+#if defined(_WIN32)
 #define HAS_IPV6
 #endif
 
+/* NetBSD/OpenBSD/FreeBSD/Linux */
 #if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__)
 #define HAS_IPV6
 #define HAS_POLL

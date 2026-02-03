@@ -11,6 +11,7 @@
 #include <stdarg.h>
 #if !defined(_WIN32)
 #include <unistd.h>
+#include <dlfcn.h>
 #endif
 
 /* socket section */
@@ -28,6 +29,11 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
+
+/* windows.h wants to be the last one included */
+#if defined(_WIN32)
+#include <windows.h>
 #endif
 
 #endif
