@@ -16,7 +16,7 @@ pre:
 		if [ -f "mk/ostype/`uname -s`.mk" ]; then \
 			cp mk/config.mk.in config.mk ; \
 			echo >> config.mk ; \
-			echo "### Added by Makefile" >> config.mk ; \
+			echo "# Automatically added platform-dependent flags" >> config.mk ; \
 			cat mk/ostype/`uname -s`.mk >> config.mk ; \
 		else \
 			cp mk/config.mk.in config.mk ; \
