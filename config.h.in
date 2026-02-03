@@ -3,9 +3,15 @@
 
 #define PREFIX "/usr/fhttpd"
 
-#define HAS_IPV6
+/* SSL support */
 #define HAS_SSL
-#define HAS_POLL
+
+/* change them if your platform is not supported
+ * ... and send us patch for your platform :)
+ */
+#undef HAS_IPV6
+#undef HAS_POLL
+#undef HAS_FORK
 
 /* this decides buffer size for config file and HTTP */
 #define BUFFER_SIZE 1024
@@ -15,9 +21,14 @@
 
 /* /!\ DO NOT EDIT BELOW THIS LINE /!\ */
 
-/* WSA is missing poll */
-#if defined(_WIN32) && defined(HAS_POLL)
-#undef HAS_POLL
+#ifdef _WIN32
+#define HAS_IPV6
+#endif
+
+#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__)
+#define HAS_IPV6
+#define HAS_POLL
+#define HAS_FORK
 #endif
 
 #endif

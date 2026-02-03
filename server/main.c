@@ -4,7 +4,11 @@ char* argv0;
 
 int main(int argc, char** argv) {
 	int	    i;
-	const char* conf = PREFIX "/etc/fhttpd.conf";
+	const char* conf      = PREFIX "/etc/fhttpd.conf";
+	fpr_bool    daemonize = fpr_true;
+#ifdef HAS_FORK
+	pid_t pid;
+#endif
 
 	argv0 = argv[0];
 
@@ -32,6 +36,7 @@ int main(int argc, char** argv) {
 				return 1;
 			}
 		} else if(strcmp(argv[i], "-d") == 0) {
+			daemonize = fpr_false;
 		} else {
 			fprintf(stderr, "%s: %s -- unknown option\n", argv[0], argv[i]);
 			return 1;
@@ -45,6 +50,20 @@ int main(int argc, char** argv) {
 	}
 
 	log_init();
+	if(!daemonize) log_nofile();
+
+#ifdef HAS_FORK
+	if(daemonize && (pid = fork()) != 0) {
+		FPR_FILE* f = fpr_fopen(config_pidfile, "w");
+		char	  buf[512];
+		sprintf(buf, "%ld", (long)pid);
+
+		fpr_fwrite(buf, 1, strlen(buf), f);
+		fpr_fclose(f);
+
+		return 0;
+	}
+#endif
 
 	log_srv("HTTPd is on the air");
 }

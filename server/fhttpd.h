@@ -11,6 +11,9 @@
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #define VERSION "0.0.0"
 #define SERVER "Feather/" VERSION
@@ -49,5 +52,6 @@ int    arg_len(char** args);
 /* log.c */
 void log_init(void);
 void log_srv(const char* fmt, ...);
+void log_nofile(void);
 
 #endif

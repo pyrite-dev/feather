@@ -49,3 +49,8 @@ void log_srv(const char* fmt, ...) {
 		fpr_fwrite(nl, 1, strlen(nl), log_file);
 	}
 }
+
+void log_nofile(void) {
+	if(log_file != NULL) fpr_fclose(log_file);
+	log_file = NULL;
+}
