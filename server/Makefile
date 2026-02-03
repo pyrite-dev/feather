@@ -12,7 +12,7 @@ all: fhttpd$(E)
 	$(CC) $(CFLAGS) $(INCDIR) ../fpr $(INCDIR) . $(INCDIR) ../external/stb -c -o $@ $<
 
 fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(LINK) ../fpr/$(LIB)fpr$(A)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(SSL) $(LINK) ../fpr/$(LIB)fpr$(A)
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
@@ -20,6 +20,9 @@ install: all
 	cp fhttpd$(E) $(DESTDIR)$(PREFIX)/bin/
 	if [ ! -f "$(DESTDIR)$(PREFIX)/etc/fhttpd.conf" ]; then \
 		cp fhttpd.conf $(DESTDIR)$(PREFIX)/etc/ ; \
+	fi
+	if [ ! -d "$(DESTDIR)$(PREFIX)/www" ]; then \
+		cp -r ../www $(DESTDIR)$(PREFIX)/www ; \
 	fi
 
 clean:

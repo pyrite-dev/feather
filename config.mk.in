@@ -5,7 +5,9 @@ AR	= ar
 CC 	= cc
 CFLAGS	=
 LDFLAGS =
-LIBS	= -lssl -lcrypto
+LIBS	=
+
+SSL	= -lssl -lcrypto
 
 # Compiler flag to include directory
 INCDIR	= -I

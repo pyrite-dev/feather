@@ -1,8 +1,40 @@
 #include <fhttpd.h>
 
-char* config_serverroot = NULL;
-char* config_pidfile	= NULL;
-char* config_logfile	= NULL;
+#include <stb_ds.h>
+
+char*	  config_serverroot = NULL;
+char*	  config_pidfile    = NULL;
+char*	  config_logfile    = NULL;
+config_t* config_root	    = NULL;
+
+static config_t* config_current = NULL;
+
+static void recursive_free(config_t* config) {
+	if(config != NULL) {
+		int i;
+		for(i = 0; i < arrlen(config->children); i++) {
+			recursive_free(config->children[i]);
+		}
+		arrfree(config->children);
+
+		if(config->name != NULL) free(config->name);
+		if(config->docroot != NULL) free(config->docroot);
+
+		free(config);
+	}
+}
+
+static config_t* new_config(config_t* parent, const char* name) {
+	config_t* config = malloc(sizeof(*config));
+	memset(config, 0, sizeof(*config));
+
+	config->parent = parent;
+	if(name != NULL) config->name = fpr_strdup(name);
+
+	if(parent != NULL) arrput(parent->children, config);
+
+	return config;
+}
 
 #define ALLOC_PROP(var, val) \
 	if(var != NULL) free(var); \
@@ -11,6 +43,11 @@ void config_init(void) {
 	ALLOC_PROP(config_serverroot, PREFIX);
 	ALLOC_PROP(config_pidfile, "/var/run/fhttpd.pid");
 	ALLOC_PROP(config_logfile, "/var/log/fhttpd.log");
+
+	recursive_free(config_root);
+
+	config_root    = new_config(NULL, NULL);
+	config_current = config_root;
 }
 #undef ALLOC_PROP
 
@@ -73,12 +110,40 @@ static fpr_bool parse(const char* path) {
 						arg = arg_parse(line);
 					}
 					if(dir) {
-						IF_PROP(arg, "ServerRoot", config_serverroot)
-						else IF_PROP(arg, "PIDFile", config_pidfile) else IF_PROP(arg, "LogFile", config_logfile) else if(strcmp(arg[0], "ForceLog") == 0) {
+						IF_PROP(arg, "ServerRoot", config_serverroot)	 /**/
+						else IF_PROP(arg, "PIDFile", config_pidfile)	 /**/
+						    else IF_PROP(arg, "LogFile", config_logfile) /**/
+						    else if(strcmp(arg[0], "ForceLog") == 0) {
 							if(arg_len(arg) == 2) {
 								fprintf(stderr, "%s: %s: %s", argv0, path, arg[1]);
 							} else {
 								fprintf(stderr, "%s: %s: ForceLog takes 1 argument\n", argv0, path);
+
+								fail = 1;
+							}
+						}
+					} else {
+						if(arg[0][0] == '/') {
+							if(config_current->name != NULL && strcmp(config_current->name, arg[0] + 1) == 0) {
+								config_current = config_current->parent;
+								if(config_current == NULL) {
+									fprintf(stderr, "%s: %s: Closing tag does not match\n", argv0, path);
+
+									fail = 1;
+								}
+							} else {
+								fprintf(stderr, "%s: %s: Closing tag does not match\n", argv0, path);
+
+								fail = 1;
+							}
+						} else if(strcmp(arg[0], "VirtualHost") == 0) {
+							if(arg_len(arg) > 1) {
+								config_current = new_config(config_current, arg[0]);
+
+								for(j = 1; j < arg_len(arg); j++) {
+								}
+							} else {
+								fprintf(stderr, "%s: %s: VirtualHost takes 1 argument or more\n", argv0, path);
 
 								fail = 1;
 							}

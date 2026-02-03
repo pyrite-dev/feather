@@ -18,15 +18,22 @@
 typedef struct config config_t;
 
 struct config {
+	char* name;
+
+	char* docroot;
+
+	config_t*  parent;
+	config_t** children;
 };
 
 /* main.c */
 extern char* argv0;
 
 /* config.c */
-extern char* config_serverroot;
-extern char* config_pidfile;
-extern char* config_logfile;
+extern char*	 config_serverroot;
+extern char*	 config_pidfile;
+extern char*	 config_logfile;
+extern config_t* config_root;
 
 void	 config_init(void);
 fpr_bool config_parse(const char* path);
