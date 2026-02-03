@@ -110,8 +110,8 @@ int	  fpr_fwrite(const void* ptr, int size, int nmemb, FPR_FILE* stream);
 void	  fpr_fclose(FPR_FILE* stream);
 
 /* socket.c */
-extern struct fpr_in_addr  FPR_INADDR_ANY;
-extern struct fpr_in6_addr FPR_IN6ADDR_ANY;
+extern struct fpr_in_addr  fpr_inaddr_any;
+extern struct fpr_in6_addr fpr_in6addr_any;
 
 void fpr_socket_init(void);
 int  fpr_socket(int domain, int type, int protocol);
@@ -121,6 +121,7 @@ int  fpr_bind(int s, const struct fpr_sockaddr* name, int namelen);
 int  fpr_listen(int s, int backlog);
 int  fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen);
 void fpr_socket_close(int d);
+void fpr_socket_uninit(void);
 
 /* arpa.c */
 fpr_uint16_t fpr_htons(fpr_uint16_t host16);

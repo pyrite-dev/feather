@@ -54,3 +54,8 @@ void log_nofile(void) {
 	if(log_file != NULL) fpr_fclose(log_file);
 	log_file = NULL;
 }
+
+void log_close(void) {
+	if(log_file != NULL) fpr_fclose(log_file);
+	log_file = NULL;
+}

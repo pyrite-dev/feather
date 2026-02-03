@@ -18,6 +18,13 @@ void fpr_socket_init(void) {
 #endif
 }
 
+void fpr_socket_uninit(void) {
+#if defined(_WIN32)
+	WSACleanup();
+#else
+#endif
+}
+
 int fpr_socket(int domain, int type, int protocol) {
 	int d = PF_UNSPEC, t = 0, p = 0;
 	int s;
@@ -37,9 +44,9 @@ int fpr_socket(int domain, int type, int protocol) {
 	}
 
 	if(protocol == FPR_IPPROTO_TCP) {
-		t = IPPROTO_TCP;
+		p = IPPROTO_TCP;
 	} else if(protocol == FPR_IPPROTO_UDP) {
-		t = IPPROTO_UDP;
+		p = IPPROTO_UDP;
 	}
 
 	s = socket(d, t, p);
@@ -137,8 +144,8 @@ void fpr_socket_close(int d) {
 #endif
 }
 
-struct fpr_in_addr FPR_INADDR_ANY = {
+struct fpr_in_addr fpr_inaddr_any = {
     {0, 0, 0, 0}};
 
-struct fpr_in6_addr FPR_IN6ADDR_ANY = {
+struct fpr_in6_addr fpr_in6addr_any = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};

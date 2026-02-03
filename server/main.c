@@ -52,6 +52,12 @@ int main(int argc, char** argv) {
 	log_init();
 	if(!daemonize) log_nofile();
 
+	log_srv("This is Feather HTTPd, version %s", VERSION);
+
+	if(!server_init()) {
+		return 1;
+	}
+
 #ifdef HAS_FORK
 	if(daemonize && (pid = fork()) != 0) {
 		FPR_FILE* f = fpr_fopen(config_pidfile, "w");
@@ -66,4 +72,8 @@ int main(int argc, char** argv) {
 #endif
 
 	log_srv("HTTPd is on the air");
+
+	server_close();
+	config_close();
+	log_close();
 }

@@ -6,6 +6,7 @@ char*	  config_serverroot = NULL;
 char*	  config_pidfile    = NULL;
 char*	  config_logfile    = NULL;
 config_t* config_root	    = NULL;
+port_t*	  config_ports	    = NULL;
 
 static config_t* config_current = NULL;
 
@@ -45,11 +46,30 @@ void config_init(void) {
 	ALLOC_PROP(config_logfile, "/var/log/fhttpd.log");
 
 	recursive_free(config_root);
-
 	config_root    = new_config(NULL, NULL);
 	config_current = config_root;
+
+	if(config_ports != NULL) arrfree(config_ports);
+	config_ports = NULL;
 }
 #undef ALLOC_PROP
+
+#define FREE_PROP(var) \
+	if(var != NULL) { \
+		free(var); \
+		var = NULL; \
+	}
+void config_close(void) {
+	FREE_PROP(config_serverroot);
+	FREE_PROP(config_pidfile);
+	FREE_PROP(config_logfile);
+
+	recursive_free(config_root);
+
+	if(config_ports != NULL) arrfree(config_ports);
+	config_ports = NULL;
+}
+#undef FREE_PROP
 
 #define IF_PROP(arg, direc, var) \
 	if(strcmp(arg[0], direc) == 0) { \
@@ -118,6 +138,20 @@ static fpr_bool parse(const char* path) {
 								fprintf(stderr, "%s: %s: %s", argv0, path, arg[1]);
 							} else {
 								fprintf(stderr, "%s: %s: ForceLog takes 1 argument\n", argv0, path);
+
+								fail = 1;
+							}
+						}
+						else if(strcmp(arg[0], "Listen") == 0) {
+							if(arg_len(arg) == 2) {
+								port_t p;
+								p.port = atoi(arg[1]);
+								p.ssl  = fpr_false;
+								p.fd   = -1;
+
+								arrput(config_ports, p);
+							} else {
+								fprintf(stderr, "%s: %s: Listen takes 1 argument\n", argv0, path);
 
 								fail = 1;
 							}
