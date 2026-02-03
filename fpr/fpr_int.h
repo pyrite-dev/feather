@@ -16,6 +16,7 @@
 /* socket section */
 #if defined(_WIN32)
 #include <winsock2.h>
+#include <ws2ipdef.h>
 #else
 #if defined(HAS_POLL)
 #include <poll.h>

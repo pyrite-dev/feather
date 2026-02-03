@@ -41,4 +41,8 @@ int main(int argc, char** argv) {
 	if(!config_parse(conf)) {
 		return 1;
 	}
+
+	log_init();
+
+	log_srv("HTTPd is on the air");
 }

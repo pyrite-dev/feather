@@ -9,6 +9,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <stdarg.h>
 
 #define VERSION "0.0.0"
 #define SERVER "Feather/" VERSION
@@ -36,5 +38,9 @@ char* path_transform(const char* path);
 char** arg_parse(const char* str);
 void   arg_free(char** args);
 int    arg_len(char** args);
+
+/* log.c */
+void log_init(void);
+void log_srv(const char* fmt, ...);
 
 #endif

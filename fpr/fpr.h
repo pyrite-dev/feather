@@ -1,6 +1,12 @@
 #ifndef __FPR_H__
 #define __FPR_H__
 
+#ifdef _WIN32
+#define fpr_newline "\r\n"
+#else
+#define fpr_newline "\n"
+#endif
+
 typedef unsigned char fpr_bool;
 #define fpr_false 0
 #define fpr_true 1
