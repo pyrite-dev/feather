@@ -14,7 +14,7 @@ pre:
 	fi ; \
 	if [ ! -f "config.mk" ]; then \
 		if [ -f "mk/ostype/`uname -s`.mk" ]; then \
-			cp mk/config.mk.in > config.mk ; \
+			cp mk/config.mk.in config.mk ; \
 			echo >> config.mk ; \
 			echo "# Added by Makefile" >> config.mk ; \
 			echo >> config.mk ; \
