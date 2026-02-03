@@ -12,5 +12,5 @@ char* path_transform(const char* path) {
 		return fpr_strdup(path);
 	}
 
-	return fpr_strvacat_alloc(serverroot, "/", path, NULL);
+	return fpr_strvacat_alloc(config_serverroot, "/", path, NULL);
 }

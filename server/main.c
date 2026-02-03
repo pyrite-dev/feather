@@ -31,6 +31,10 @@ int main(int argc, char** argv) {
 				fprintf(stderr, "%s: -C needs argument\n", argv[0]);
 				return 1;
 			}
+		} else if(strcmp(argv[i], "-d") == 0) {
+		} else {
+			fprintf(stderr, "%s: %s -- unknown option\n", argv[0], argv[i]);
+			return 1;
 		}
 	}
 

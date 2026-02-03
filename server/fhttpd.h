@@ -22,7 +22,9 @@ struct config {
 extern char* argv0;
 
 /* config.c */
-extern char* serverroot;
+extern char* config_serverroot;
+extern char* config_pidfile;
+extern char* config_logfile;
 
 void	 config_init(void);
 fpr_bool config_parse(const char* path);

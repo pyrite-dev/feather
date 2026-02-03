@@ -1,12 +1,30 @@
 #include <fhttpd.h>
 
-char* serverroot = NULL;
+char* config_serverroot = NULL;
+char* config_pidfile	= NULL;
+char* config_logfile	= NULL;
 
+#define ALLOC_PROP(var, val) \
+	if(var != NULL) free(var); \
+	var = fpr_strdup(val);
 void config_init(void) {
-	if(serverroot != NULL) free(serverroot);
-	serverroot = fpr_strdup(PREFIX);
+	ALLOC_PROP(config_serverroot, PREFIX);
+	ALLOC_PROP(config_pidfile, "/var/run/fhttpd.pid");
+	ALLOC_PROP(config_logfile, "/var/log/fhttpd.log");
 }
+#undef ALLOC_PROP
 
+#define IF_PROP(arg, direc, var) \
+	if(strcmp(arg[0], direc) == 0) { \
+		if(arg_len(arg) == 2) { \
+			free(var); \
+			var = fpr_strdup(arg[1]); \
+		} else { \
+			fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, direc); \
+\
+			fail = 1; \
+		} \
+	}
 static fpr_bool parse(const char* path) {
 	FPR_FILE* fp;
 	char	  buffer[BUFFER_SIZE];
@@ -55,16 +73,8 @@ static fpr_bool parse(const char* path) {
 						arg = arg_parse(line);
 					}
 					if(dir) {
-						if(strcmp(arg[0], "ServerRoot") == 0) {
-							if(arg_len(arg) == 2) {
-								free(serverroot);
-								serverroot = fpr_strdup(arg[1]);
-							} else {
-								fprintf(stderr, "%s: %s: ServerRoot takes 1 argument\n", argv0, path);
-
-								fail = 1;
-							}
-						} else if(strcmp(arg[0], "ForceLog") == 0) {
+						IF_PROP(arg, "ServerRoot", config_serverroot)
+						else IF_PROP(arg, "PIDFile", config_pidfile) else IF_PROP(arg, "LogFile", config_logfile) else if(strcmp(arg[0], "ForceLog") == 0) {
 							if(arg_len(arg) == 2) {
 								fprintf(stderr, "%s: %s: %s", argv0, path, arg[1]);
 							} else {
