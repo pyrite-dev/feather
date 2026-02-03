@@ -17,7 +17,6 @@ pre:
 			cp mk/config.mk.in config.mk ; \
 			echo >> config.mk ; \
 			echo "### Added by Makefile" >> config.mk ; \
-			echo >> config.mk ; \
 			cat mk/ostype/`uname -s`.mk >> config.mk ; \
 		else \
 			cp mk/config.mk.in config.mk ; \
