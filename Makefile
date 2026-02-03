@@ -13,7 +13,7 @@ pre:
 		ST=1 ; \
 	fi ; \
 	if [ ! -f "config.mk" ]; then \
-		if [ -f "ostype/`uname -s`" ]; then \
+		if [ -f "ostype/`uname -s`.mk" ]; then \
 			cat config.mk.in ostype/`uname -s`.mk > config.mk ; \
 		else \
 			cp config.mk.in config.mk ; \
