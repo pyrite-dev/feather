@@ -13,10 +13,14 @@ pre:
 		ST=1 ; \
 	fi ; \
 	if [ ! -f "config.mk" ]; then \
-		if [ -f "ostype/`uname -s`.mk" ]; then \
-			cat config.mk.in ostype/`uname -s`.mk > config.mk ; \
+		if [ -f "mk/ostype/`uname -s`.mk" ]; then \
+			cp mk/config.mk.in > config.mk ; \
+			echo >> config.mk ; \
+			echo "# Added by Makefile" >> config.mk ; \
+			echo >> config.mk ; \
+			cat mk/ostype/`uname -s`.mk >> config.mk ; \
 		else \
-			cp config.mk.in config.mk ; \
+			cp mk/config.mk.in config.mk ; \
 		fi ; \
 		echo "Copied config.mk.in to config.mk" ; \
 		ST=1 ; \
