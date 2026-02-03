@@ -132,7 +132,7 @@ char* fpr_strvacat_alloc(const char* a, ...);
 /* dlfcn.c */
 void* fpr_dlopen(const char* path);
 void* fpr_dlsym(void* handle, const char* symbol);
-int fpr_dlclose(void* handle);
+int   fpr_dlclose(void* handle);
 
 /* wildcard.c */
 fpr_bool fpr_wildcard(const char* wildcard, const char* target);
