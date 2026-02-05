@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 			printf("-V -h       : Version/help information\n");
 			return 0;
 		} else if(strcmp(argv[i], "-C") == 0) {
-			if((conf = argv[i + 1]) == NULL) {
+			if((conf = argv[++i]) == NULL) {
 				fprintf(stderr, "%s: -C needs argument\n", argv[0]);
 				return 1;
 			}
