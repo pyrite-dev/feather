@@ -104,7 +104,7 @@ struct fpr_sockddr_storage {
 
 struct fpr_sockaddr_un {
 	unsigned short sun_family;
-	char sun_path[104];
+	char	       sun_path[104];
 };
 
 /* poll.c */

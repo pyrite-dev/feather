@@ -153,11 +153,11 @@ static fpr_bool parse(const char* path) {
 								p.fd   = -1;
 
 #if !defined(HAS_SSL)
-								if(p.ssl){
+								if(p.ssl) {
 									fprintf(stderr, "%s: %s: HTTPd is missing SSL/TLS support\n", argv0, path);
 
 									fail = 1;
-								}else
+								} else
 #endif
 								{
 									arrput(config_ports, p);

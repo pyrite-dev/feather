@@ -35,7 +35,7 @@ int fpr_socket(int domain, int type, int protocol) {
 #if defined(PF_INET6)
 		d = PF_INET6;
 #endif
-	}else if(domain == FPR_PF_UNIX){
+	} else if(domain == FPR_PF_UNIX) {
 #if defined(PF_UNIX)
 		d = PF_UNIX;
 #endif
@@ -99,7 +99,7 @@ int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
 	} else if(name->sa_family == FPR_AF_UNIX && namelen == sizeof(struct fpr_sockaddr_un)) {
 #if defined(HAS_UNIX_SOCKET)
 		struct fpr_sockaddr_un* addr = (struct fpr_sockaddr_un*)name;
-		struct sockaddr_un	 addru;
+		struct sockaddr_un	addru;
 
 		addru.sun_family = AF_UNIX;
 		strcpy(addru.sun_path, addr->sun_path);
@@ -150,7 +150,7 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 	} else if(sa->sa_family == AF_UNIX) {
 #if defined(HAS_UNIX_SOCKET)
 		struct fpr_sockaddr_un* taddr = (struct fpr_sockaddr_un*)addr;
-		struct sockaddr_un*	 addru = (struct sockaddr_un*)buffer;
+		struct sockaddr_un*	addru = (struct sockaddr_un*)buffer;
 
 		taddr->sun_family = FPR_AF_UNIX;
 		strcpy(taddr->sun_path, addru->sun_path);
