@@ -6,13 +6,13 @@ include ../config.mk
 OBJS = poll$(O) file$(O) socket$(O) arpa$(O) string$(O) dlfcn$(O)
 OBJS += wildcard$(O)
 
-all: $(LIB)fpr$(A)
+all: $(LIB)fpr$(SO)
 
 .c$(O):
 	$(CC) $(CFLAGS) $(PIC) $(INCDIR) ../fpr -c -o $@ $<
 
-$(LIB)fpr$(A): $(OBJS)
-	$(AR) rcs $@ $(OBJS)
+$(LIB)fpr$(SO): $(OBJS)
+	$(CC) $(LDFLAGS) $(SHARED) -o $@ $(OBJS) $(LIBS)
 
 clean:
-	rm -f *$(A) *$(O)
+	rm -f *$(SO) *$(O)

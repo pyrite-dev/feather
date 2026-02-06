@@ -25,14 +25,20 @@ SHARED	= -shared
 # Compiler flag to include directory
 INCDIR	= -I
 
+# Linker flag to include directory
+LIBDIR =  -L
+
 # Compiler flag to link library
-LINK	=
+LINK	= -l
 
 # Prefix for library
 LIB	= lib
 
 # Extension for archive
 A	= .a
+
+# Extension for DSO
+SO	= .so
 
 # Extension for object
 O	= .o

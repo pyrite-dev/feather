@@ -7,9 +7,16 @@ void log_init(void) {
 }
 
 void log_srv(const char* fmt, ...) {
+	va_list va;
+
+	va_start(va, fmt);
+	log_vasrv(fmt, va);
+	va_end(va);
+}
+
+void log_vasrv(const char* fmt, va_list va) {
 	char	    buf[LINE_SIZE + 1];
 	char	    out[LINE_SIZE + 64 + 1];
-	va_list	    va;
 	time_t	    t	  = time(NULL);
 	struct tm*  tm	  = gmtime(&t);
 	const char* day[] = {
@@ -34,9 +41,7 @@ void log_srv(const char* fmt, ...) {
 	    "Nov",
 	    "Dec"};
 
-	va_start(va, fmt);
 	vsprintf(buf, fmt, va);
-	va_end(va);
 
 	sprintf(out, "[%s %s %.2d %02d:%02d:%02d UTC] %s", day[tm->tm_wday], mon[tm->tm_mon], tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, buf);
 

@@ -4,6 +4,7 @@
 #include "../config.h"
 
 #include <fpr.h>
+#include <fr.h>
 
 #include <stdio.h>
 #include <stddef.h>
@@ -65,10 +66,13 @@ int    arg_len(char** args);
 /* log.c */
 void log_init(void);
 void log_srv(const char* fmt, ...);
+void log_vasrv(const char* fmt, va_list va);
 void log_nofile(void);
 void log_close(void);
 
 /* server.c */
+extern fr_server_context_t server_context;
+
 fpr_bool server_init(void);
 void	 server_close(void);
 void	 server_loop(void);

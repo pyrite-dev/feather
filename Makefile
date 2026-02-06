@@ -1,6 +1,7 @@
-.PHONY: all format pre distclean clean fpr server module install
+.PHONY: all format pre distclean clean install
+.PHONY: fpr server module lib
 
-all: pre fpr server module
+all: pre fpr server module lib
 
 format:
 	clang-format --verbose -i `find fpr server -name "*.c" -or -name "*.h"`
@@ -30,13 +31,16 @@ pre:
 	exit $$ST
 
 fpr: pre
-	cd fpr ; $(MAKE)
+	cd $@ ; $(MAKE)
 
-server: pre fpr module
-	cd server ; $(MAKE)
+server: pre fpr lib module
+	cd $@ ; $(MAKE)
 
-module: pre fpr
-	cd module ; $(MAKE)
+module: pre fpr lib
+	cd $@ ; $(MAKE)
+
+lib: pre fpr
+	cd $@ ; $(MAKE)
 
 install: server module
 	cd server ; $(MAKE) install
@@ -45,6 +49,7 @@ clean:
 	-cd fpr ; $(MAKE) clean
 	-cd server ; $(MAKE) clean
 	-cd module ; $(MAKE) clean
+	-cd lib ; $(MAKE) clean
 
 distclean: clean
 	rm -f config.h config.mk
