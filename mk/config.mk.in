@@ -10,7 +10,7 @@ MODULES =
 AR	= ar
 CC 	= cc
 CFLAGS	=
-LDFLAGS =
+LDFLAGS = -Wl,-R$(PREFIX)/lib
 LIBS	=
 
 # Compiler flag for Position Independent Code

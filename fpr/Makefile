@@ -1,6 +1,6 @@
 include ../config.mk
 
-.PHONY: all clean
+.PHONY: all install clean
 .SUFFIXES: .c $(O)
 
 OBJS = poll$(O) file$(O) socket$(O) arpa$(O) string$(O) dlfcn$(O)
@@ -13,6 +13,12 @@ all: $(LIB)fpr$(SO)
 
 $(LIB)fpr$(SO): $(OBJS)
 	$(CC) $(LDFLAGS) $(SHARED) -o $@ $(OBJS) $(LIBS)
+
+install:
+	mkdir -p $(PREFIX)/bin
+	mkdir -p $(PREFIX)/lib
+	-cp *.dll $(PREFIX)/bin/
+	-cp *.a *.so $(PREFIX)/lib/
 
 clean:
 	rm -f *$(SO) *$(O)

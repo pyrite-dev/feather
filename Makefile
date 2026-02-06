@@ -43,7 +43,10 @@ lib: pre fpr
 	cd $@ ; $(MAKE)
 
 install: server module
+	cd fpr ; $(MAKE) install
 	cd server ; $(MAKE) install
+	cd module ; $(MAKE) install
+	cd lib ; $(MAKE) install
 
 clean:
 	-cd fpr ; $(MAKE) clean
