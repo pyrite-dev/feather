@@ -9,7 +9,7 @@ OBJS += wildcard$(O)
 all: $(LIB)fpr$(A)
 
 .c$(O):
-	$(CC) $(CFLAGS) $(INCDIR) ../fpr -c -o $@ $<
+	$(CC) $(CFLAGS) $(PIC) $(INCDIR) ../fpr -c -o $@ $<
 
 $(LIB)fpr$(A): $(OBJS)
 	$(AR) rcs $@ $(OBJS)

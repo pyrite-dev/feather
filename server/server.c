@@ -2,8 +2,15 @@
 
 #include <stb_ds.h>
 
+#define LOAD(x) extern struct fr_module* x;
+MODULES
+#undef LOAD
+
 fpr_bool server_init(void) {
 	int i;
+#define LOAD(x) x,
+	struct fr_module* modules[] = {MODULES NULL};
+#undef LOAD
 
 	fpr_socket_init();
 

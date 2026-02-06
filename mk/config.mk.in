@@ -1,14 +1,26 @@
 DESTDIR	=
 PREFIX	= /usr/fhttpd
 
+# Modules to embed
+EMBED	= dso
+
+# DSO modules to compile
+MODULES = 
+
 AR	= ar
 CC 	= cc
 CFLAGS	=
 LDFLAGS =
 LIBS	=
 
-# SSL library
+# Compiler flag for Position Independent Code
+PIC	= -fPIC
+
+# Linker flag for SSL library
 SSL	= -lssl -lcrypto
+
+# Linker flag for dynamic library
+SHARED	= -shared
 
 # Compiler flag to include directory
 INCDIR	= -I

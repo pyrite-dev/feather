@@ -19,6 +19,10 @@
 /* this decides how long line can be in config file */
 #define LINE_SIZE BUFFER_SIZE
 
+/* Modules to embed - also edit config.mk */
+#define MODULES \
+	LOAD(dso_module)
+
 /*
  * /!\ DO NOT CHANGE LINES BELOW THIS LINE /!\
  * /!\     UNLESS YOU ARE A MAINTAINER     /!\
