@@ -46,3 +46,34 @@ void server_close(void) {
 		}
 	}
 }
+
+void server_loop(void) {
+	int		   srv_count = 0;
+	struct fpr_pollfd* pfd	     = NULL;
+
+	while(1) {
+		fpr_bool changed = fpr_false;
+
+		if(pfd != NULL) {
+			int s = fpr_poll(pfd, arrlen(pfd), 100);
+		}
+
+		if(srv_count != arrlen(config_ports)) {
+			srv_count = arrlen(config_ports);
+			changed	  = fpr_true;
+		}
+
+		if(changed) {
+			int i;
+
+			arrfree(pfd);
+			for(i = 0; i < srv_count; i++) {
+				struct fpr_pollfd fd;
+
+				fd.fd	  = config_ports[i].fd;
+				fd.events = FPR_POLLIN | FPR_POLLPRI;
+			}
+		}
+	}
+	arrfree(pfd);
+}

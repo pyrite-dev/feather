@@ -71,5 +71,6 @@ void log_close(void);
 /* server.c */
 fpr_bool server_init(void);
 void	 server_close(void);
+void	 server_loop(void);
 
 #endif

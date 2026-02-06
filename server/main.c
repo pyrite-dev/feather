@@ -73,6 +73,8 @@ int main(int argc, char** argv) {
 
 	log_srv("HTTPd is on the air");
 
+	server_loop();
+
 	server_close();
 	config_close();
 	log_close();
