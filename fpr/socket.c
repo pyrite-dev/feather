@@ -35,6 +35,10 @@ int fpr_socket(int domain, int type, int protocol) {
 #if defined(PF_INET6)
 		d = PF_INET6;
 #endif
+	}else if(domain == FPR_PF_UNIX){
+#if defined(PF_UNIX)
+		d = PF_UNIX;
+#endif
 	}
 
 	if(type == FPR_SOCK_STREAM) {
@@ -92,6 +96,18 @@ int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
 #else
 		st = -1;
 #endif
+	} else if(name->sa_family == FPR_AF_UNIX && namelen == sizeof(struct fpr_sockaddr_un)) {
+#if defined(HAS_UNIX_SOCKET)
+		struct fpr_sockaddr_un* addr = (struct fpr_sockaddr_un*)name;
+		struct sockaddr_un	 addru;
+
+		addru.sun_family = AF_UNIX;
+		strcpy(addru.sun_path, addr->sun_path);
+
+		st = bind(s, (struct sockaddr*)&addru, sizeof(addru));
+#else
+		st = -1;
+#endif
 	}
 
 	return st;
@@ -128,6 +144,16 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 		taddr->sin6_family = FPR_AF_INET6;
 		memcpy(taddr->sin6_addr.u.addr32, addr6->sin6_addr.s6_addr, 16);
 		taddr->sin6_port = addr6->sin6_port;
+
+		*addrlen = sizeof(*taddr);
+#endif
+	} else if(sa->sa_family == AF_UNIX) {
+#if defined(HAS_UNIX_SOCKET)
+		struct fpr_sockaddr_un* taddr = (struct fpr_sockaddr_un*)addr;
+		struct sockaddr_un*	 addru = (struct sockaddr_un*)buffer;
+
+		taddr->sun_family = FPR_AF_UNIX;
+		strcpy(taddr->sun_path, addru->sun_path);
 
 		*addrlen = sizeof(*taddr);
 #endif

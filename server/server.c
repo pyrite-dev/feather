@@ -42,9 +42,9 @@ fpr_bool server_init(void) {
 			log_srv("Listening to port %d", config_ports[i].port);
 		}
 	}
-	
+
 	fr_server_init(&server_context);
-	for(i = 0; modules[i] != NULL; i++){
+	for(i = 0; modules[i] != NULL; i++) {
 		fr_server_load_module(&server_context, modules[i]);
 	}
 
@@ -65,6 +65,10 @@ void server_close(void) {
 	fpr_socket_uninit();
 }
 
+typedef struct client {
+	int key;
+} client_t;
+
 void server_loop(void) {
 	int		   srv_count = 0;
 	struct fpr_pollfd* pfd	     = NULL;
@@ -75,11 +79,18 @@ void server_loop(void) {
 		if(pfd != NULL) {
 			int s = fpr_poll(pfd, arrlen(pfd), 100);
 
-			if(s > 0){
+			if(s > 0) {
 				int i;
 
-				for(i = 0; i < arrlen(pfd); i++){
+				/* server sockets */
+				for(i = 0; i < srv_count; i++) {
 				}
+
+#if !defined(MULTITHREAD)
+				/* client sockets */
+				for(i = srv_count; i < arrlen(pfd); i++) {
+				}
+#endif
 			}
 		}
 
@@ -97,6 +108,8 @@ void server_loop(void) {
 
 				fd.fd	  = config_ports[i].fd;
 				fd.events = FPR_POLLIN | FPR_POLLPRI;
+
+				arrput(pfd, fd);
 			}
 		}
 	}

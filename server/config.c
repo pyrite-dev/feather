@@ -82,6 +82,9 @@ void config_close(void) {
 			fail = 1; \
 		} \
 	}
+
+#define ELSEIF_PROP(arg, direc, var) else IF_PROP(arg, direc, var)
+
 static fpr_bool parse(const char* path) {
 	FPR_FILE* fp;
 	char	  buffer[BUFFER_SIZE];
@@ -130,10 +133,11 @@ static fpr_bool parse(const char* path) {
 						arg = arg_parse(line);
 					}
 					if(dir) {
-						IF_PROP(arg, "ServerRoot", config_serverroot)	 /**/
-						else IF_PROP(arg, "PIDFile", config_pidfile)	 /**/
-						    else IF_PROP(arg, "LogFile", config_logfile) /**/
-						    else if(strcmp(arg[0], "ForceLog") == 0) {
+						IF_PROP(arg, "ServerRoot", config_serverroot) /**/
+						ELSEIF_PROP(arg, "PIDFile", config_pidfile)   /**/
+						ELSEIF_PROP(arg, "LogFile", config_logfile)   /**/
+
+						if(strcmp(arg[0], "ForceLog") == 0) {
 							if(arg_len(arg) == 2) {
 								fprintf(stderr, "%s: %s: %s", argv0, path, arg[1]);
 							} else {
@@ -141,17 +145,25 @@ static fpr_bool parse(const char* path) {
 
 								fail = 1;
 							}
-						}
-						else if(strcmp(arg[0], "Listen") == 0) {
+						} else if(strcmp(arg[0], "Listen") == 0 || strcmp(arg[0], "ListenSSL") == 0) {
 							if(arg_len(arg) == 2) {
 								port_t p;
 								p.port = atoi(arg[1]);
-								p.ssl  = fpr_false;
+								p.ssl  = strcmp(arg[0], "ListenSSL") == 0;
 								p.fd   = -1;
 
-								arrput(config_ports, p);
+#if !defined(HAS_SSL)
+								if(p.ssl){
+									fprintf(stderr, "%s: %s: HTTPd is missing SSL/TLS support\n", argv0, path);
+
+									fail = 1;
+								}else
+#endif
+								{
+									arrput(config_ports, p);
+								}
 							} else {
-								fprintf(stderr, "%s: %s: Listen takes 1 argument\n", argv0, path);
+								fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, arg[0]);
 
 								fail = 1;
 							}

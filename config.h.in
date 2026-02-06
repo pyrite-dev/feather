@@ -12,6 +12,7 @@
 #undef HAS_IPV6
 #undef HAS_POLL
 #undef HAS_FORK
+#undef HAS_UNIX_SOCKET
 
 /* this decides buffer size for config file and HTTP */
 #define BUFFER_SIZE 1024
@@ -38,6 +39,7 @@
 #define HAS_IPV6
 #define HAS_POLL
 #define HAS_FORK
+#define HAS_UNIX_SOCKET
 #endif
 
 #endif

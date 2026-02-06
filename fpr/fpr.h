@@ -39,13 +39,15 @@ typedef void FPR_FILE;
 enum fpr_socket_protocol {
 	FPR_PF_UNSPEC = 0,
 	FPR_PF_INET,
-	FPR_PF_INET6
+	FPR_PF_INET6,
+	FPR_PF_UNIX
 };
 
 enum fpr_socket_address {
 	FPR_AF_UNSPEC = 0,
 	FPR_AF_INET,
-	FPR_AF_INET6
+	FPR_AF_INET6,
+	FPR_AF_UNIX
 };
 
 enum fpr_socket_type {
@@ -98,6 +100,11 @@ struct fpr_sockaddr_in6 {
 struct fpr_sockddr_storage {
 	unsigned short ss_family;
 	char	       ss_pad[128];
+};
+
+struct fpr_sockaddr_un {
+	unsigned short sun_family;
+	char sun_path[104];
 };
 
 /* poll.c */
