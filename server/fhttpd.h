@@ -23,8 +23,10 @@
 #define VERSION "0.0.0"
 #define SERVER "Feather/" VERSION
 
-typedef struct config config_t;
-typedef struct port   port_t;
+typedef struct config	config_t;
+typedef struct port	port_t;
+typedef struct client	client_t;
+typedef struct clientkv clientkv_t;
 
 struct config {
 	char* name;
@@ -39,6 +41,20 @@ struct port {
 	int	 port;
 	fpr_bool ssl;
 	int	 fd;
+};
+
+struct client {
+	struct fpr_sockaddr_storage address;
+#if defined(HAS_SSL)
+	SSL_CTX* ctx;
+	SSL* ssl;
+#endif
+	time_t last;
+};
+
+struct clientkv {
+	int	 key;
+	client_t value;
 };
 
 /* main.c */
@@ -72,6 +88,9 @@ void log_close(void);
 
 /* server.c */
 extern fr_server_context_t server_context;
+#if !defined(MULTITHREAD)
+extern clientkv_t* server_clients;
+#endif
 
 fpr_bool server_init(void);
 void	 server_close(void);

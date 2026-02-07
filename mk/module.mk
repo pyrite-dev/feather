@@ -16,7 +16,7 @@ mod_$(MODULE)$(SO): $(OBJS) ../fpr/$(LIB)fpr$(A)
 
 install:
 	mkdir -p $(PREFIX)/lib/fhttpd
-	-cp *.so *.so $(PREFIX)/lib/fhttpd/
+	-cp *.so *.dll $(PREFIX)/lib/fhttpd/
 
 clean:
 	rm -f *.o mod_$(MODULE)$(A) mod_$(MODULE)$(SO)

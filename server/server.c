@@ -4,6 +4,10 @@
 
 fr_server_context_t server_context;
 
+#if !defined(MULTITHREAD)
+clientkv_t* server_clients = NULL;
+#endif
+
 #define LOAD(x) extern fr_module_t* x;
 MODULES
 #undef LOAD
@@ -58,19 +62,24 @@ void server_close(void) {
 	for(i = 0; i < arrlen(config_ports); i++) {
 		if(config_ports[i].fd != -1) {
 			fpr_socket_close(config_ports[i].fd);
+			config_ports[i].fd = -1;
 		}
 	}
-	arrfree(config_ports);
+
+#if !defined(MULTITHREAD)
+	for(i = 0; i < hmlen(server_clients); i++) {
+		fpr_socket_close(config_ports[i].fd);
+	}
+	arrfree(server_clients);
+	server_clients = NULL;
+#endif
 
 	fpr_socket_uninit();
 }
 
-typedef struct client {
-	int key;
-} client_t;
-
 void server_loop(void) {
 	int		   srv_count = 0;
+	int		   cli_count = 0;
 	struct fpr_pollfd* pfd	     = NULL;
 
 	while(1) {
@@ -78,24 +87,62 @@ void server_loop(void) {
 
 		if(pfd != NULL) {
 			int s = fpr_poll(pfd, arrlen(pfd), 100);
+			int i;
 
 			if(s > 0) {
-				int i;
-
 				/* server sockets */
 				for(i = 0; i < srv_count; i++) {
+					if(pfd[i].revents & FPR_POLLIN) {
+						client_t c;
+						int	 l = sizeof(c.address);
+						int	 fd;
+
+						memset(&c, 0, sizeof(c));
+						fd = fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c.address, &l);
+						c.last = time(NULL);
+
+						hmput(server_clients, fd, c);
+					}
 				}
 
 #if !defined(MULTITHREAD)
 				/* client sockets */
 				for(i = srv_count; i < arrlen(pfd); i++) {
+					if(pfd[i].revents & FPR_POLLIN) {
+						unsigned char buf[BUFFER_SIZE];
+						int	      len = fpr_recv(pfd[i].fd, buf, BUFFER_SIZE, 0);
+
+						if(len <= 0){
+							hmdel(server_clients, pfd[i].fd);
+						}else{
+							/* handle data */
+							int ind = hmgeti(server_clients, pfd[i].fd);
+
+							server_clients[ind].value.last = time(NULL);
+						}
+					}
 				}
 #endif
 			}
+#if !defined(MULTITHREAD)
+			for(i = srv_count; i < arrlen(pfd); i++) {
+				int ind = hmgeti(server_clients, pfd[i].fd);
+
+				if((time(NULL) - server_clients[ind].value.last) >= 10){
+					fpr_socket_close(pfd[i].fd);
+					hmdel(server_clients, pfd[i].fd);
+				}
+			}
+#endif
 		}
 
 		if(srv_count != arrlen(config_ports)) {
 			srv_count = arrlen(config_ports);
+			changed	  = fpr_true;
+		}
+
+		if(cli_count != hmlen(server_clients)) {
+			cli_count = arrlen(server_clients);
 			changed	  = fpr_true;
 		}
 
@@ -111,6 +158,17 @@ void server_loop(void) {
 
 				arrput(pfd, fd);
 			}
+
+#if !defined(MULTITHREAD)
+			for(i = 0; i < hmlen(server_clients); i++) {
+				struct fpr_pollfd fd;
+
+				fd.fd	  = server_clients[i].key;
+				fd.events = FPR_POLLIN | FPR_POLLPRI;
+
+				arrput(pfd, fd);
+			}
+#endif
 		}
 	}
 	arrfree(pfd);

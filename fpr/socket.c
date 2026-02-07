@@ -118,8 +118,8 @@ int fpr_listen(int s, int backlog) {
 }
 
 int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
-	unsigned char	 buffer[128];
-	int		 len = 128;
+	unsigned char	 buffer[256];
+	int		 len = 256;
 	struct sockaddr* sa  = (struct sockaddr*)buffer;
 	int		 r;
 

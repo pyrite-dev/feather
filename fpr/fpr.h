@@ -97,7 +97,7 @@ struct fpr_sockaddr_in6 {
 	struct fpr_in6_addr sin6_addr;
 };
 
-struct fpr_sockddr_storage {
+struct fpr_sockaddr_storage {
 	unsigned short ss_family;
 	char	       ss_pad[128];
 };
