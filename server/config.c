@@ -23,7 +23,14 @@ static void recursive_free(config_t* config) {
 		}
 		shfree(config->kv);
 
-		if(config->name != NULL) free(config->name);
+		if(config->name != NULL) {
+			if(strcmp(config->name, "VirtualHost") == 0) {
+				for(i = 0; i < arrlen(config->section.vhost.entry); i++) free(config->section.vhost.entry[i]);
+				arrfree(config->section.vhost.entry);
+			}
+
+			free(config->name);
+		}
 
 		free(config);
 	}
@@ -94,10 +101,11 @@ void config_close(void) {
 #define IF_KV(arg, direc) \
 	if(strcmp(arg[0], direc) == 0) { \
 		if(arg_len(arg) == 2) { \
+			char* v = fpr_strdup(arg[1]); \
 			if(shgeti(config_current->kv, arg[0]) != -1) { \
 				free(shget(config_current->kv, arg[0])); \
 			} \
-			shput(config_current->kv, arg[0], arg[1]); \
+			shput(config_current->kv, arg[0], v); \
 		} else { \
 			fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, direc); \
 \
@@ -160,7 +168,7 @@ static fpr_bool parse(const char* path) {
 						ELSEIF_PROP(arg, "LogFile", config_logfile)   /**/
 
 						IF_KV(arg, "DocumentRoot")	     /**/
-						ELSEIF_KV(arg, "SSLKeyFile")	     /**/
+						ELSEIF_KV(arg, "SSLPrivateKeyFile")  /**/
 						ELSEIF_KV(arg, "SSLCertificateFile") /**/
 
 						if(strcmp(arg[0], "ForceLog") == 0) {
@@ -212,7 +220,11 @@ static fpr_bool parse(const char* path) {
 							if(arg_len(arg) > 1) {
 								config_current = new_config(config_current, arg[0]);
 
+								config_current->section.vhost.entry = NULL;
 								for(j = 1; j < arg_len(arg); j++) {
+									char* s = fpr_strdup(arg[j]);
+
+									arrput(config_current->section.vhost.entry, s);
 								}
 							} else {
 								fprintf(stderr, "%s: %s: VirtualHost takes 1 argument or more\n", argv0, path);
@@ -247,4 +259,30 @@ cleanup:;
 
 fpr_bool config_parse(const char* path) {
 	return parse(path);
+}
+
+config_t* config_vhost_match(const char* host, int port, fpr_bool (*match_call)(config_t* config)) {
+	char* n = malloc(strlen(host) + 7);
+	int   i;
+
+	sprintf(n, "%s:%d", host, port);
+
+	for(i = 0; i < arrlen(config_root->children); i++) {
+		config_t* c = config_root->children[i];
+		if(strcmp(c->name, "VirtualHost") == 0) {
+			int j;
+
+			for(j = 0; j < arrlen(c->section.vhost.entry); j++) {
+				if((fpr_wildcard(c->section.vhost.entry[j], n) || fpr_wildcard(c->section.vhost.entry[j], host)) && (match_call == NULL || match_call(c))) {
+					free(n);
+
+					return c;
+				}
+			}
+		}
+	}
+
+	free(n);
+
+	return NULL;
 }

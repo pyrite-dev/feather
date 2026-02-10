@@ -28,16 +28,28 @@ enum client_state {
 	CS_CONNECTED
 };
 
-typedef struct config	config_t;
-typedef struct port	port_t;
-typedef struct client	client_t;
-typedef struct clientkv clientkv_t;
-typedef struct stringkv stringkv_t;
+typedef union config_section_union  config_section_union_t;
+typedef struct config_section_vhost config_section_vhost_t;
+typedef struct config		    config_t;
+typedef struct port		    port_t;
+typedef struct client		    client_t;
+typedef struct clientkv		    clientkv_t;
+typedef struct stringkv		    stringkv_t;
+
+struct config_section_vhost {
+	char** entry;
+};
+
+union config_section_union {
+	config_section_vhost_t vhost;
+};
 
 struct config {
 	char* name;
 
 	stringkv_t* kv;
+
+	config_section_union_t section;
 
 	config_t*  parent;
 	config_t** children;
@@ -79,9 +91,10 @@ extern char*	 config_logfile;
 extern config_t* config_root;
 extern port_t*	 config_ports;
 
-void	 config_init(void);
-fpr_bool config_parse(const char* path);
-void	 config_close(void);
+void	  config_init(void);
+fpr_bool  config_parse(const char* path);
+void	  config_close(void);
+config_t* config_vhost_match(const char* host, int port, fpr_bool (*match_call)(config_t* config));
 
 /* path.c */
 char* path_transform(const char* path);
