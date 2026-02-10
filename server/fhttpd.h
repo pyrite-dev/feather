@@ -23,6 +23,11 @@
 #define VERSION "0.0.0"
 #define SERVER "Feather/" VERSION
 
+enum client_state {
+	CS_WANT_SSL = 0,
+	CS_CONNECTED
+};
+
 typedef struct config	config_t;
 typedef struct port	port_t;
 typedef struct client	client_t;
@@ -47,9 +52,10 @@ struct client {
 	struct fpr_sockaddr_storage address;
 #if defined(HAS_SSL)
 	SSL_CTX* ctx;
-	SSL* ssl;
+	SSL*	 ssl;
 #endif
 	time_t last;
+	int    state;
 };
 
 struct clientkv {
@@ -95,5 +101,10 @@ extern clientkv_t* server_clients;
 fpr_bool server_init(void);
 void	 server_close(void);
 void	 server_loop(void);
+
+/* ssl.c */
+#if defined(HAS_SSL)
+SSL_CTX* ssl_create_context(int port);
+#endif
 
 #endif

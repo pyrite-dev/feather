@@ -77,6 +77,28 @@ void server_close(void) {
 	fpr_socket_uninit();
 }
 
+void kill_client(int fd) {
+	int ind = hmgeti(server_clients, fd);
+
+#if defined(HAS_SSL)
+	if(server_clients[ind].value.ssl != NULL) {
+		if(server_clients[ind].value.state > CS_WANT_SSL) {
+			/* if it's larger than CS_WANT_SSL, client should be shut down using SSL_shutdown - probably */
+			SSL_shutdown(server_clients[ind].value.ssl);
+		}
+
+		SSL_free(server_clients[ind].value.ssl);
+	}
+
+	if(server_clients[ind].value.ctx != NULL) {
+		SSL_CTX_free(server_clients[ind].value.ctx);
+	}
+#endif
+
+	fpr_socket_close(fd);
+	hmdel(server_clients, fd);
+}
+
 void server_loop(void) {
 	int		   srv_count = 0;
 	int		   cli_count = 0;
@@ -96,10 +118,20 @@ void server_loop(void) {
 						client_t c;
 						int	 l = sizeof(c.address);
 						int	 fd;
+						int	 j;
 
 						memset(&c, 0, sizeof(c));
-						fd = fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c.address, &l);
-						c.last = time(NULL);
+						fd	= fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c.address, &l);
+						c.last	= time(NULL);
+						c.state = config_ports[i].ssl ? CS_WANT_SSL : CS_CONNECTED;
+#if defined(HAS_SSL)
+						if(config_ports[i].ssl) {
+							c.ctx = ssl_create_context(config_ports[i].port);
+							c.ssl = SSL_new(c.ctx);
+
+							SSL_set_fd(c.ssl, fd);
+						}
+#endif
 
 						hmput(server_clients, fd, c);
 					}
@@ -109,16 +141,39 @@ void server_loop(void) {
 				/* client sockets */
 				for(i = srv_count; i < arrlen(pfd); i++) {
 					if(pfd[i].revents & FPR_POLLIN) {
-						unsigned char buf[BUFFER_SIZE];
-						int	      len = fpr_recv(pfd[i].fd, buf, BUFFER_SIZE, 0);
+						int ind = hmgeti(server_clients, pfd[i].fd);
 
-						if(len <= 0){
-							hmdel(server_clients, pfd[i].fd);
-						}else{
-							/* handle data */
-							int ind = hmgeti(server_clients, pfd[i].fd);
+#if defined(HAS_SSL)
+						/* probably handshake */
+						if(server_clients[ind].value.state == CS_WANT_SSL) {
+							if(SSL_accept(server_clients[ind].value.ssl) > 0) {
+								server_clients[ind].value.state = CS_CONNECTED;
+							} else {
+								kill_client(pfd[i].fd);
+							}
+						} else
+#endif
+						{
+							int	      len;
+							unsigned char buf[BUFFER_SIZE];
 
-							server_clients[ind].value.last = time(NULL);
+#if defined(HAS_SSL)
+							if(server_clients[ind].value.ssl != NULL) {
+								len = SSL_read(server_clients[ind].value.ssl, buf, BUFFER_SIZE);
+							} else
+#endif
+							{
+								len = fpr_recv(pfd[i].fd, buf, BUFFER_SIZE, 0);
+							}
+
+							if(len <= 0) {
+								kill_client(pfd[i].fd);
+							} else {
+								/* handle data */
+								int ind = hmgeti(server_clients, pfd[i].fd);
+
+								server_clients[ind].value.last = time(NULL);
+							}
 						}
 					}
 				}
@@ -128,9 +183,8 @@ void server_loop(void) {
 			for(i = srv_count; i < arrlen(pfd); i++) {
 				int ind = hmgeti(server_clients, pfd[i].fd);
 
-				if((time(NULL) - server_clients[ind].value.last) >= 10){
-					fpr_socket_close(pfd[i].fd);
-					hmdel(server_clients, pfd[i].fd);
+				if((time(NULL) - server_clients[ind].value.last) >= 10) {
+					kill_client(pfd[i].fd);
 				}
 			}
 #endif

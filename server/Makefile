@@ -3,7 +3,7 @@ include ../config.mk
 .PHONY: all clean install
 .SUFFIXES: .c $(O)
 
-OBJS = main$(O) config$(O) path$(O) arg$(O) log$(O) server$(O)
+OBJS = main$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O)
 OBJS += stb_ds$(O)
 
 all: fhttpd$(E)
