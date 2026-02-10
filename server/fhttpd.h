@@ -32,11 +32,12 @@ typedef struct config	config_t;
 typedef struct port	port_t;
 typedef struct client	client_t;
 typedef struct clientkv clientkv_t;
+typedef struct stringkv stringkv_t;
 
 struct config {
 	char* name;
 
-	char* docroot;
+	stringkv_t* kv;
 
 	config_t*  parent;
 	config_t** children;
@@ -61,6 +62,11 @@ struct client {
 struct clientkv {
 	int	 key;
 	client_t value;
+};
+
+struct stringkv {
+	char* key;
+	char* value;
 };
 
 /* main.c */
@@ -101,6 +107,8 @@ extern clientkv_t* server_clients;
 fpr_bool server_init(void);
 void	 server_close(void);
 void	 server_loop(void);
+int	 server_read(int fd, void* buffer, int len);
+int	 server_write(int fd, void* buffer, int len);
 
 /* ssl.c */
 #if defined(HAS_SSL)

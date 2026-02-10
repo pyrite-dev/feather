@@ -142,6 +142,9 @@ void* fpr_dlopen(const char* path);
 void* fpr_dlsym(void* handle, const char* symbol);
 int   fpr_dlclose(void* handle);
 
+/* unistd.c */
+int fpr_gethostname(char* name, int namelen);
+
 /* wildcard.c */
 fpr_bool fpr_wildcard(const char* wildcard, const char* target);
 

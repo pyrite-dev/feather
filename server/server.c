@@ -43,7 +43,7 @@ fpr_bool server_init(void) {
 				return fpr_false;
 			}
 
-			log_srv("Listening to port %d", config_ports[i].port);
+			log_srv("Listening to port %d%s", config_ports[i].port, config_ports[i].ssl ? " (SSL)" : "");
 		}
 	}
 
@@ -97,6 +97,32 @@ void kill_client(int fd) {
 
 	fpr_socket_close(fd);
 	hmdel(server_clients, fd);
+}
+
+int server_read(int fd, void* buffer, int len) {
+#if defined(HAS_SSL)
+	int ind = hmgeti(server_clients, fd);
+
+	if(server_clients[ind].value.ssl != NULL) {
+		return SSL_read(server_clients[ind].value.ssl, buffer, len);
+	} else
+#endif
+	{
+		return fpr_recv(fd, buffer, len, 0);
+	}
+}
+
+int server_write(int fd, void* buffer, int len) {
+#if defined(HAS_SSL)
+	int ind = hmgeti(server_clients, fd);
+
+	if(server_clients[ind].value.ssl != NULL) {
+		return SSL_write(server_clients[ind].value.ssl, buffer, len);
+	} else
+#endif
+	{
+		return fpr_send(fd, buffer, len, 0);
+	}
 }
 
 void server_loop(void) {
@@ -157,14 +183,7 @@ void server_loop(void) {
 							int	      len;
 							unsigned char buf[BUFFER_SIZE];
 
-#if defined(HAS_SSL)
-							if(server_clients[ind].value.ssl != NULL) {
-								len = SSL_read(server_clients[ind].value.ssl, buf, BUFFER_SIZE);
-							} else
-#endif
-							{
-								len = fpr_recv(pfd[i].fd, buf, BUFFER_SIZE, 0);
-							}
+							len = server_read(pfd[i].fd, buf, BUFFER_SIZE);
 
 							if(len <= 0) {
 								kill_client(pfd[i].fd);

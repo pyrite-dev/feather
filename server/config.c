@@ -18,8 +18,12 @@ static void recursive_free(config_t* config) {
 		}
 		arrfree(config->children);
 
+		for(i = 0; i < shlen(config->kv); i++) {
+			free(config->kv[i].value);
+		}
+		shfree(config->kv);
+
 		if(config->name != NULL) free(config->name);
-		if(config->docroot != NULL) free(config->docroot);
 
 		free(config);
 	}
@@ -28,6 +32,8 @@ static void recursive_free(config_t* config) {
 static config_t* new_config(config_t* parent, const char* name) {
 	config_t* config = malloc(sizeof(*config));
 	memset(config, 0, sizeof(*config));
+
+	sh_new_strdup(config->kv);
 
 	config->parent = parent;
 	if(name != NULL) config->name = fpr_strdup(name);
@@ -85,6 +91,22 @@ void config_close(void) {
 
 #define ELSEIF_PROP(arg, direc, var) else IF_PROP(arg, direc, var)
 
+#define IF_KV(arg, direc) \
+	if(strcmp(arg[0], direc) == 0) { \
+		if(arg_len(arg) == 2) { \
+			if(shgeti(config_current->kv, arg[0]) != -1) { \
+				free(shget(config_current->kv, arg[0])); \
+			} \
+			shput(config_current->kv, arg[0], arg[1]); \
+		} else { \
+			fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, direc); \
+\
+			fail = 1; \
+		} \
+	}
+
+#define ELSEIF_KV(arg, direc) else IF_KV(arg, direc)
+
 static fpr_bool parse(const char* path) {
 	FPR_FILE* fp;
 	char	  buffer[BUFFER_SIZE];
@@ -136,6 +158,10 @@ static fpr_bool parse(const char* path) {
 						IF_PROP(arg, "ServerRoot", config_serverroot) /**/
 						ELSEIF_PROP(arg, "PIDFile", config_pidfile)   /**/
 						ELSEIF_PROP(arg, "LogFile", config_logfile)   /**/
+
+						IF_KV(arg, "DocumentRoot")	     /**/
+						ELSEIF_KV(arg, "SSLKeyFile")	     /**/
+						ELSEIF_KV(arg, "SSLCertificateFile") /**/
 
 						if(strcmp(arg[0], "ForceLog") == 0) {
 							if(arg_len(arg) == 2) {
