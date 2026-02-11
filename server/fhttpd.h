@@ -12,6 +12,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
+#include <ctype.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -26,7 +27,10 @@
 enum client_state {
 	CS_WANT_SSL = 0,
 	CS_CONNECTED,
-	CS_GOT_METHOD
+	CS_GOT_METHOD,
+	CS_GOT_PATH,
+	CS_GOT_VERSION,
+	CS_GOT_HEADER
 };
 
 typedef union config_section_union  config_section_union_t;
@@ -71,7 +75,13 @@ struct client {
 	time_t last;
 	int    state;
 
-	char method[MAX_METHOD_LENGTH + 1];
+	int port;
+
+	char	    method[MAX_METHOD_LENGTH + 1];
+	char	    path[MAX_PATH_LENGTH + 1];
+	char	    version[MAX_VERSION_LENGTH + 1];
+	char	    header[LINE_SIZE + 1]; /* do not access this unless you know what this is ... */
+	stringkv_t* headers;
 };
 
 struct clientkv {
@@ -91,6 +101,7 @@ extern char* argv0;
 extern char*	 config_serverroot;
 extern char*	 config_pidfile;
 extern char*	 config_logfile;
+extern char*	 config_mimefile;
 extern config_t* config_root;
 extern port_t*	 config_ports;
 
@@ -133,5 +144,12 @@ SSL_CTX* ssl_create_context(int port);
 
 /* http.c */
 fpr_bool http_got(client_t* c, void* buffer, int size);
+void	 http_req(client_t* c);
+
+/* mime.c */
+extern stringkv_t* mime_types;
+
+void mime_parse(void);
+void mime_close(void);
 
 #endif

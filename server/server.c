@@ -13,7 +13,7 @@ MODULES
 #undef LOAD
 
 fpr_bool server_init(void) {
-	int i = 0;
+	int		   i	   = 0;
 	struct fr_module** modules = NULL;
 
 #define LOAD(x) i++;
@@ -21,7 +21,7 @@ fpr_bool server_init(void) {
 #undef LOAD
 
 	modules = malloc(sizeof(*modules) * (i + 1));
-	i = 0;
+	i	= 0;
 
 #define LOAD(x) modules[i++] = x;
 	MODULES
@@ -90,6 +90,7 @@ void server_close(void) {
 
 void kill_client(int fd) {
 	int ind = hmgeti(server_clients, fd);
+	int j;
 
 #if defined(HAS_SSL)
 	if(server_clients[ind].value.ssl != NULL) {
@@ -105,6 +106,11 @@ void kill_client(int fd) {
 		SSL_CTX_free(server_clients[ind].value.ctx);
 	}
 #endif
+
+	for(j = 0; j < shlen(server_clients[ind].value.headers); j++) {
+		if(server_clients[ind].value.headers[j].value != NULL) free(server_clients[ind].value.headers[j].value);
+	}
+	shfree(server_clients[ind].value.headers);
 
 	fpr_socket_close(fd);
 	hmdel(server_clients, fd);
@@ -161,6 +167,9 @@ void server_loop(void) {
 						fd	= fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c.address, &l);
 						c.last	= time(NULL);
 						c.state = config_ports[i].ssl ? CS_WANT_SSL : CS_CONNECTED;
+
+						c.port = config_ports[i].port;
+
 #if defined(HAS_SSL)
 						if(config_ports[i].ssl) {
 							c.ctx = ssl_create_context(config_ports[i].port);

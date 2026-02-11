@@ -3,7 +3,7 @@ include ../config.mk
 .PHONY: all clean install
 .SUFFIXES: .c $(O)
 
-OBJS = main$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O)
+OBJS = main$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) mime$(O)
 OBJS += stb_ds$(O)
 
 all: fhttpd$(E)
@@ -19,7 +19,10 @@ install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/etc
 	cp fhttpd$(E) $(DESTDIR)$(PREFIX)/bin/
 	if [ ! -f "$(DESTDIR)$(PREFIX)/etc/fhttpd.conf" ]; then \
-		cp fhttpd.conf $(DESTDIR)$(PREFIX)/etc/ ; \
+		cp ../config/fhttpd.conf $(DESTDIR)$(PREFIX)/etc/ ; \
+	fi
+	if [ ! -f "$(DESTDIR)$(PREFIX)/etc/mime.types" ]; then \
+		cp ../config/mime.types $(DESTDIR)$(PREFIX)/etc/ ; \
 	fi
 	if [ ! -d "$(DESTDIR)$(PREFIX)/www" ]; then \
 		cp -r ../www $(DESTDIR)$(PREFIX)/www ; \

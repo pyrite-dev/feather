@@ -5,6 +5,7 @@
 char*	  config_serverroot = NULL;
 char*	  config_pidfile    = NULL;
 char*	  config_logfile    = NULL;
+char*	  config_mimefile   = NULL;
 config_t* config_root	    = NULL;
 port_t*	  config_ports	    = NULL;
 
@@ -57,6 +58,7 @@ void config_init(void) {
 	ALLOC_PROP(config_serverroot, PREFIX);
 	ALLOC_PROP(config_pidfile, "/var/run/fhttpd.pid");
 	ALLOC_PROP(config_logfile, "/var/log/fhttpd.log");
+	ALLOC_PROP(config_mimefile, PREFIX "/etc/mime.types");
 
 	recursive_free(config_root);
 	config_root    = new_config(NULL, NULL);
@@ -166,6 +168,7 @@ static fpr_bool parse(const char* path) {
 						IF_PROP(arg, "ServerRoot", config_serverroot) /**/
 						ELSEIF_PROP(arg, "PIDFile", config_pidfile)   /**/
 						ELSEIF_PROP(arg, "LogFile", config_logfile)   /**/
+						ELSEIF_PROP(arg, "MIMEFile", config_mimefile) /**/
 
 						IF_KV(arg, "DocumentRoot")	     /**/
 						ELSEIF_KV(arg, "SSLPrivateKeyFile")  /**/
@@ -258,7 +261,11 @@ cleanup:;
 }
 
 fpr_bool config_parse(const char* path) {
-	return parse(path);
+	int st = parse(path);
+
+	mime_parse();
+
+	return st;
 }
 
 config_t* config_vhost_match(const char* host, int port, fpr_bool (*match_call)(config_t* config)) {
