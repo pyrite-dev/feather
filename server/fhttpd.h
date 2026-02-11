@@ -4,8 +4,18 @@
 #include "../config.h"
 
 #include <fpr.h>
-#include <fr.h>
 
+enum fr_module_version {
+	FR_MODULE_00 = 0
+};
+
+typedef struct fr_module fr_module_t;
+
+struct fr_module {
+	int version;
+};
+
+#if defined(_FHTTPD)
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -127,7 +137,6 @@ void log_nofile(void);
 void log_close(void);
 
 /* server.c */
-extern fr_server_context_t server_context;
 #if !defined(MULTITHREAD)
 extern clientkv_t* server_clients;
 #endif
@@ -152,5 +161,6 @@ extern stringkv_t* mime_types;
 
 void mime_parse(void);
 void mime_close(void);
+#endif
 
 #endif

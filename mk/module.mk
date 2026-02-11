@@ -9,10 +9,10 @@ mod_$(MODULE)$(A): $(OBJS)
 	$(AR) rcs $@ $(OBJS)
 
 mod_$(MODULE)$(SO): $(OBJS) ../fpr/$(LIB)fpr$(A)
-	$(CC) $(LDFLAGS) $(RPATH) $(SHARED) $(LIBDIR) ../../fpr $(LIBDIR) ../../lib -o $@ $(OBJS) ../../fpr/ $(LINK) fpr $(LINK) fr
+	$(CC) $(LDFLAGS) $(RPATH) $(SHARED) $(LIBDIR)../../fpr -o $@ $(OBJS)../../fpr/ $(LINK) fpr
 
 .c$(O):
-	$(CC) $(CFLAGS) $(PIC) $(INCDIR) ../../fpr $(INCDIR) ../../lib -c -o $@ $<
+	$(CC) $(CFLAGS) $(PIC) $(INCDIR)../../fpr $(INCDIR)../../server -c -o $@ $<
 
 install:
 	mkdir -p $(PREFIX)/lib/fhttpd

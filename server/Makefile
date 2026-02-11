@@ -9,10 +9,10 @@ OBJS += stb_ds$(O)
 all: fhttpd$(E)
 
 .c$(O):
-	$(CC) $(CFLAGS) $(INCDIR) ../fpr $(INCDIR) ../lib $(INCDIR) . $(INCDIR) ../external/stb -c -o $@ $<
+	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../fpr $(INCDIR)../lib $(INCDIR). $(INCDIR)../external/stb -c -o $@ $<
 
-fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(SO) ../lib/$(LIB)fr$(SO)
-	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR) ../fpr $(LIBDIR) ../lib -o $@ $(OBJS) $(LIBS) $(SSL) $(LINK) fpr $(LINK) fr `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done`
+fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(SO)
+	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../lib -o $@ $(OBJS) $(LIBS) $(SSL) $(LINK) fpr `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done`
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin

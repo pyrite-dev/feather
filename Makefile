@@ -1,7 +1,7 @@
 .PHONY: all format pre distclean clean install
-.PHONY: fpr server module lib
+.PHONY: fpr server module
 
-all: pre fpr server module lib
+all: pre fpr server module
 
 TARGET = `uname -s`
 
@@ -35,26 +35,21 @@ pre:
 fpr: pre
 	cd $@ ; $(MAKE)
 
-server: pre fpr lib module
+server: pre fpr module
 	cd $@ ; $(MAKE)
 
-module: pre fpr lib
-	cd $@ ; $(MAKE)
-
-lib: pre fpr
+module: pre fpr
 	cd $@ ; $(MAKE)
 
 install: server module
 	cd fpr ; $(MAKE) install
 	cd server ; $(MAKE) install
 	cd module ; $(MAKE) install
-	cd lib ; $(MAKE) install
 
 clean:
 	-cd fpr ; $(MAKE) clean
 	-cd server ; $(MAKE) clean
 	-cd module ; $(MAKE) clean
-	-cd lib ; $(MAKE) clean
 
 distclean: clean
 	rm -f config.h config.mk

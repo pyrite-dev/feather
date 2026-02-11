@@ -2,8 +2,6 @@
 
 #include <stb_ds.h>
 
-fr_server_context_t server_context;
-
 #if !defined(MULTITHREAD)
 clientkv_t* server_clients = NULL;
 #endif
@@ -57,9 +55,7 @@ fpr_bool server_init(void) {
 		}
 	}
 
-	fr_server_init(&server_context);
 	for(i = 0; modules[i] != NULL; i++) {
-		fr_server_load_module(&server_context, modules[i]);
 	}
 	free(modules);
 
@@ -69,7 +65,6 @@ fpr_bool server_init(void) {
 void server_close(void) {
 	int i;
 
-	fr_server_uninit(&server_context);
 	for(i = 0; i < arrlen(config_ports); i++) {
 		if(config_ports[i].fd != -1) {
 			fpr_socket_close(config_ports[i].fd);
