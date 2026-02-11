@@ -2,7 +2,7 @@
 
 #include <stb_ds.h>
 
-stringkv_t* mime_types = NULL;
+fr_stringkv_t* mime_types = NULL;
 
 void mime_parse(void) {
 	char*	  p = path_transform(config_mimefile);

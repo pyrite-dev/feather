@@ -9,10 +9,24 @@ enum fr_module_version {
 	FR_MODULE_00 = 0
 };
 
-typedef struct fr_module fr_module_t;
+typedef struct fr_module   fr_module_t;
+typedef struct fr_stringkv fr_stringkv_t;
+typedef struct fr_request  fr_request_t;
+
+struct fr_stringkv {
+	char* key;
+	char* value;
+};
 
 struct fr_module {
 	int version;
+};
+
+struct fr_request {
+	char	       method[MAX_METHOD_LENGTH + 1];
+	char	       path[MAX_PATH_LENGTH + 1];
+	char	       version[MAX_VERSION_LENGTH + 1];
+	fr_stringkv_t* headers;
 };
 
 #if defined(_FHTTPD)
@@ -50,7 +64,6 @@ typedef struct config		    config_t;
 typedef struct port		    port_t;
 typedef struct client		    client_t;
 typedef struct clientkv		    clientkv_t;
-typedef struct stringkv		    stringkv_t;
 
 struct config_section_vhost {
 	char** entry;
@@ -63,7 +76,7 @@ union config_section_union {
 struct config {
 	char* name;
 
-	stringkv_t* kv;
+	fr_stringkv_t* kv;
 
 	config_section_union_t section;
 
@@ -88,21 +101,13 @@ struct client {
 
 	int port;
 
-	char	    method[MAX_METHOD_LENGTH + 1];
-	char	    path[MAX_PATH_LENGTH + 1];
-	char	    version[MAX_VERSION_LENGTH + 1];
-	char	    header[LINE_SIZE + 1]; /* do not access this unless you know what this is ... */
-	stringkv_t* headers;
+	fr_request_t request;
+	char	     header[LINE_SIZE + 1]; /* do not access this unless you know what this is ... */
 };
 
 struct clientkv {
 	int	 key;
 	client_t value;
-};
-
-struct stringkv {
-	char* key;
-	char* value;
 };
 
 /* main.c */
@@ -157,7 +162,7 @@ fpr_bool http_got(client_t* c, void* buffer, int size);
 void	 http_req(client_t* c);
 
 /* mime.c */
-extern stringkv_t* mime_types;
+extern fr_stringkv_t* mime_types;
 
 void mime_parse(void);
 void mime_close(void);
