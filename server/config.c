@@ -42,6 +42,7 @@ static config_t* new_config(config_t* parent, const char* name) {
 	memset(config, 0, sizeof(*config));
 
 	sh_new_strdup(config->kv);
+	shdefault(config->kv, NULL);
 
 	config->parent = parent;
 	if(name != NULL) config->name = fpr_strdup(name);

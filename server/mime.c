@@ -11,6 +11,7 @@ void mime_parse(void) {
 
 	mime_close();
 	sh_new_strdup(mime_types);
+	shdefault(mime_types, NULL);
 
 	if((f = fpr_fopen(p, "r")) != NULL) {
 		char buffer[BUFFER_SIZE];
@@ -25,6 +26,29 @@ void mime_parse(void) {
 			for(i = 0; i < s; i++) {
 				if(buffer[i] == '\n') {
 					if(line[0] != '#') {
+						int j;
+
+						for(j = 0; line[j] != 0 && line[j] != ' ' && line[j] != '\t'; j++);
+						if(line[j] != 0) {
+							char* s;
+
+							line[j++] = 0;
+							for(; line[j] != 0 && (line[j] == ' ' || line[j] == '\t'); j++);
+
+							s = line + j;
+							while(1) {
+								char* f = s;
+								char* m = fpr_strdup(line);
+
+								s = strchr(s, ' ');
+								if(s != NULL) s[0] = 0;
+
+								shput(mime_types, f, m);
+
+								if(s == NULL) break;
+								s++;
+							}
+						}
 					}
 
 					line[0] = 0;
