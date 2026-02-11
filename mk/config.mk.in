@@ -10,11 +10,14 @@ MODULES =
 AR	= ar
 CC 	= cc
 CFLAGS	=
-LDFLAGS = -Wl,-R$(PREFIX)/lib
+LDFLAGS =
 LIBS	=
 
 # Compiler flag for Position Independent Code
 PIC	= -fPIC
+
+# Linker flag for rpath
+RPATH	= -Wl,-R$(PREFIX)/lib
 
 # Linker flag for SSL library
 SSL	= -lssl -lcrypto

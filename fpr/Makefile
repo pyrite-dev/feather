@@ -12,7 +12,7 @@ all: $(LIB)fpr$(SO)
 	$(CC) $(CFLAGS) $(PIC) $(INCDIR) ../fpr -c -o $@ $<
 
 $(LIB)fpr$(SO): $(OBJS)
-	$(CC) $(LDFLAGS) $(SHARED) -o $@ $(OBJS) $(LIBS)
+	$(CC) $(LDFLAGS) $(RPATH) $(SHARED) -o $@ $(OBJS) $(LIBS)
 
 install:
 	mkdir -p $(PREFIX)/bin

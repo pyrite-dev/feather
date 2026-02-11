@@ -11,7 +11,7 @@ all: $(LIB)fr$(SO)
 	$(CC) $(CFLAGS) $(PIC) $(INCDIR) ../fpr $(INCDIR) ../lib $(INCDIR) ../external/stb -c -o $@ $<
 
 $(LIB)fr$(SO): $(OBJS) ../fpr/$(LIB)fpr$(SO)
-	$(CC) $(LDFLAGS) $(SHARED) $(LIBDIR) ../fpr  -o $@ $(OBJS) $(LIBS) $(LINK) fpr
+	$(CC) $(LDFLAGS) $(RPATH) $(SHARED) $(LIBDIR) ../fpr  -o $@ $(OBJS) $(LIBS) $(LINK) fpr
 
 install:
 	mkdir -p $(PREFIX)/bin

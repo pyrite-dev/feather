@@ -3,6 +3,8 @@
 
 all: pre fpr server module lib
 
+TARGET = `uname -s`
+
 format:
 	clang-format --verbose -i `find fpr server -name "*.c" -or -name "*.h"`
 
@@ -14,11 +16,11 @@ pre:
 		ST=1 ; \
 	fi ; \
 	if [ ! -f "config.mk" ]; then \
-		if [ -f "mk/ostype/`uname -s`.mk" ]; then \
+		if [ -f "mk/ostype/$(TARGET).mk" ]; then \
 			cp mk/config.mk.in config.mk ; \
 			echo >> config.mk ; \
 			echo "# Automatically added platform-dependent flags" >> config.mk ; \
-			cat mk/ostype/`uname -s`.mk >> config.mk ; \
+			cat mk/ostype/$(TARGET).mk >> config.mk ; \
 		else \
 			cp mk/config.mk.in config.mk ; \
 		fi ; \
