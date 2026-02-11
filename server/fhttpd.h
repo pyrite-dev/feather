@@ -25,7 +25,8 @@
 
 enum client_state {
 	CS_WANT_SSL = 0,
-	CS_CONNECTED
+	CS_CONNECTED,
+	CS_GOT_METHOD
 };
 
 typedef union config_section_union  config_section_union_t;
@@ -69,6 +70,8 @@ struct client {
 #endif
 	time_t last;
 	int    state;
+
+	char method[MAX_METHOD_LENGTH + 1];
 };
 
 struct clientkv {
@@ -127,5 +130,8 @@ int	 server_write(int fd, void* buffer, int len);
 #if defined(HAS_SSL)
 SSL_CTX* ssl_create_context(int port);
 #endif
+
+/* http.c */
+fpr_bool http_got(client_t* c, void* buffer, int size);
 
 #endif

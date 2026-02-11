@@ -19,8 +19,8 @@ void* fpr_dlsym(void* handle, const char* symbol) {
 
 int fpr_dlclose(void* handle) {
 #if defined(_WIN32)
-	FreeLibrary(handle);
+	return FreeLibrary(handle) ? 0 : 1;
 #else
-	dlclose(handle);
+	return dlclose(handle);
 #endif
 }

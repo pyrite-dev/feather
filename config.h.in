@@ -20,6 +20,9 @@
 /* this decides how long line can be in config file */
 #define LINE_SIZE BUFFER_SIZE
 
+/* max length stuff - this includes NULL terminator! */
+#define MAX_METHOD_LENGTH 256
+
 /* Modules to embed - also edit config.mk */
 #define MODULES \
 	LOAD(dso_module)

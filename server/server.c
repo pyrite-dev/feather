@@ -13,10 +13,20 @@ MODULES
 #undef LOAD
 
 fpr_bool server_init(void) {
-	int i;
-#define LOAD(x) x,
-	struct fr_module* modules[] = {MODULES NULL};
+	int i = 0;
+	struct fr_module** modules = NULL;
+
+#define LOAD(x) i++;
+	MODULES
 #undef LOAD
+
+	modules = malloc(sizeof(*modules) * (i + 1));
+	i = 0;
+
+#define LOAD(x) modules[i++] = x;
+	MODULES
+#undef LOAD
+	modules[i] = NULL;
 
 	fpr_socket_init();
 
@@ -51,6 +61,7 @@ fpr_bool server_init(void) {
 	for(i = 0; modules[i] != NULL; i++) {
 		fr_server_load_module(&server_context, modules[i]);
 	}
+	free(modules);
 
 	return fpr_true;
 }
@@ -190,6 +201,8 @@ void server_loop(void) {
 							} else {
 								/* handle data */
 								int ind = hmgeti(server_clients, pfd[i].fd);
+
+								http_got(&server_clients[ind].value, buf, len);
 
 								server_clients[ind].value.last = time(NULL);
 							}

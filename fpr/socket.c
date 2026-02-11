@@ -15,6 +15,7 @@ void fpr_socket_init(void) {
 
 	WSAStartup(MAKEWORD(2, 0), &wsa);
 #else
+	signal(SIGPIPE, SIG_IGN);
 #endif
 }
 

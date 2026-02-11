@@ -53,8 +53,8 @@ int fpr_poll(struct fpr_pollfd* fds, int nfds, int timeout) {
 	st = select(FD_SETSIZE, &rfds, &wfds, NULL, &tv);
 
 	for(i = 0; i < nfds; i++) {
-		if(FD_ISSET(fds[i].fd, &rfds)) fds[i].revents |= POLLIN;
-		if(FD_ISSET(fds[i].fd, &wfds)) fds[i].revents |= POLLOUT;
+		if(FD_ISSET(fds[i].fd, &rfds)) fds[i].revents |= FPR_POLLIN;
+		if(FD_ISSET(fds[i].fd, &wfds)) fds[i].revents |= FPR_POLLOUT;
 	}
 
 	return st;

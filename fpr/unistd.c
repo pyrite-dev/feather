@@ -2,5 +2,5 @@
 #include <fpr_int.h>
 
 int fpr_gethostname(char* name, int namelen) {
-	gethostname(name, namelen);
+	return gethostname(name, namelen);
 }

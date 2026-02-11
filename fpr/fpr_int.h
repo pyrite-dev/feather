@@ -12,6 +12,7 @@
 #if !defined(_WIN32)
 #include <unistd.h>
 #include <dlfcn.h>
+#include <signal.h>
 #endif
 
 /* socket section */
