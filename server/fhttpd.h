@@ -19,6 +19,7 @@
 
 #ifdef HAS_SSL
 #include <openssl/ssl.h>
+#include <openssl/opensslv.h>
 #endif
 
 #define VERSION "0.0.0"

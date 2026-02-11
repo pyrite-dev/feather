@@ -52,13 +52,19 @@ int main(int argc, char** argv) {
 	log_init();
 	if(!daemonize) log_nofile();
 
-	log_srv("This is Feather HTTPd%s, version %s",
+	log_srv("This is Feather HTTPd%s, version %s%s",
 #if defined(MULTITHREAD)
 		" (multithread)",
 #else
 		"",
 #endif
-		VERSION);
+		VERSION,
+#if defined(HAS_SSL)
+		" (with " OPENSSL_VERSION_TEXT ")"
+#else
+		""
+#endif
+	);
 
 	if(!server_init()) {
 		return 1;
