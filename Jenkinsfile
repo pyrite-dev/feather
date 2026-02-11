@@ -10,7 +10,8 @@ pipeline {
 						label "built-in"
 					}
 					steps {
-						sh("make clean")
+						sh("make distclean")
+						sh("make || true")
 						sh("make -j4")
 					}
 				}
