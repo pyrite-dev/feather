@@ -20,7 +20,7 @@ FPR_FILE* fpr_fopen(const char* path, const char* mode) {
 		dis = OPEN_ALWAYS;
 	}
 
-	return (FPR_FILE*)CreateFile(path, ac, 0, NULL, dis, fl, NULL);
+	return (FPR_FILE*)CreateFile(path, ac, FILE_SHARE_READ, NULL, dis, fl, NULL);
 #else
 	return (FPR_FILE*)fopen(path, mode);
 #endif
