@@ -2,6 +2,19 @@
 
 #include <stb_ds.h>
 
+void http_init(client_t* c) {
+	sh_new_strdup(c->request.headers);
+	shdefault(c->request.headers, NULL);
+}
+
+void http_end(client_t* c) {
+	int i;
+	for(i = 0; i < shlen(c->request.headers); i++) {
+		if(c->request.headers[i].value != NULL) free(c->request.headers[i].value);
+	}
+	shfree(c->request.headers);
+}
+
 fpr_bool http_got(client_t* c, void* buffer, int size) {
 	int   i;
 	char* buf = buffer;
@@ -19,27 +32,60 @@ fpr_bool http_got(client_t* c, void* buffer, int size) {
 			}
 		} else if(c->state == CS_GOT_METHOD) {
 			if(buf[i] == ' ') {
+				c->state = CS_GOT_QUERY;
+			} else if(buf[i] == '?') {
 				c->state = CS_GOT_PATH;
 			} else {
 				if(strlen(c->request.path) == MAX_PATH_LENGTH) {
 					return fpr_false;
 				} else {
-					c->request.path[strlen(c->request.path)] = buf[i];
+					c->request.path[strlen(c->request.path)] = buf[i] == '\\' ? '/' : buf[i];
 				}
 			}
-		} else if(c->state == CS_GOT_PATH) {
-			if(buf[i] == '\n') {
-				if(strcmp(c->request.version, "HTTP/1.1") == 0 || strcmp(c->request.version, "HTTP/1.1") == 0) {
-					int j;
 
-					c->state = CS_GOT_VERSION;
+			if(c->state != CS_GOT_METHOD) {
+				/* poor but effective way to prevent path traversal
+				 * and windows' reserved name :)
+				 */
+				const char* reserved[] = {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", NULL};
+				int	    j;
 
-					for(j = 0; j < shlen(c->request.headers); j++) {
-						if(c->request.headers[j].value != NULL) free(c->request.headers[j].value);
+				if(c->request.path[0] != '/') return fpr_false;
+				if(strlen(c->request.path) >= 4 && strstr(c->request.path, "/../") != NULL) return fpr_false;
+				if(strlen(c->request.path) >= 3 && strcmp(c->request.path + strlen(c->request.path) - 3, "/..") == 0) return fpr_false;
+
+				for(j = 0; reserved[j] != NULL; j++) {
+					char*	 p   = fpr_strvacat_alloc("/", reserved[j], NULL);
+					char*	 ps  = fpr_strvacat_alloc("/", reserved[j], "/", NULL);
+					fpr_bool pm  = (strlen(c->request.path) >= strlen(p) && strcmp(c->request.path + strlen(c->request.path) - strlen(p), p) == 0);
+					fpr_bool psm = (strlen(c->request.path) >= strlen(ps) && strstr(c->request.path, ps) != NULL);
+
+					if(pm || psm) {
+						free(p);
+						free(ps);
+						break;
 					}
-					shfree(c->request.headers);
-					sh_new_strdup(c->request.headers);
-					shdefault(c->request.headers, NULL);
+
+					free(p);
+					free(ps);
+				}
+
+				if(reserved[j] != NULL) return fpr_false;
+			}
+		} else if(c->state == CS_GOT_PATH) {
+			if(buf[i] == ' ') {
+				c->state = CS_GOT_QUERY;
+			} else {
+				if(strlen(c->request.query) == MAX_QUERY_LENGTH) {
+					return fpr_false;
+				} else {
+					c->request.query[strlen(c->request.query)] = buf[i];
+				}
+			}
+		} else if(c->state == CS_GOT_QUERY) {
+			if(buf[i] == '\n') {
+				if(strcmp(c->request.version, "HTTP/1.0") == 0 || strcmp(c->request.version, "HTTP/1.1") == 0) {
+					c->state = CS_GOT_VERSION;
 				} else {
 					return fpr_false;
 				}
@@ -64,10 +110,6 @@ fpr_bool http_got(client_t* c, void* buffer, int size) {
 
 						for(v = t + 1; v[0] != 0 && v[0] == ' '; v++);
 					} else {
-						for(j = 0; j < shlen(c->request.headers); j++) {
-							if(c->request.headers[j].value != NULL) free(c->request.headers[j].value);
-						}
-						shfree(c->request.headers);
 						return fpr_false;
 					}
 

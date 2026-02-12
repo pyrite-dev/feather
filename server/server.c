@@ -66,6 +66,8 @@ void kill_client(int fd) {
 	int ind = hmgeti(server_clients, fd);
 	int j;
 
+	http_end(&server_clients[ind].value);
+
 #if defined(HAS_SSL)
 	if(server_clients[ind].value.ssl != NULL) {
 		if(server_clients[ind].value.state > CS_WANT_SSL) {
@@ -152,6 +154,8 @@ void server_loop(void) {
 							SSL_set_fd(c.ssl, fd);
 						}
 #endif
+
+						http_init(&c);
 
 						hmput(server_clients, fd, c);
 					}

@@ -31,6 +31,7 @@ struct fr_module {
 struct fr_request {
 	char	       method[MAX_METHOD_LENGTH + 1];
 	char	       path[MAX_PATH_LENGTH + 1];
+	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];
 	fr_stringkv_t* headers;
 };
@@ -89,6 +90,7 @@ enum client_state {
 	CS_CONNECTED,
 	CS_GOT_METHOD,
 	CS_GOT_PATH,
+	CS_GOT_QUERY, /* also applies to case where query does not exist */
 	CS_GOT_VERSION,
 	CS_GOT_HEADER
 };
@@ -172,6 +174,8 @@ SSL_CTX* ssl_create_context(int port);
 #endif
 
 /* http.c */
+void	 http_init(client_t* c);
+void	 http_end(client_t* c);
 fpr_bool http_got(client_t* c, void* buffer, int size);
 void	 http_req(client_t* c);
 
