@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 			printf("Feather HTTPd %s\n", SERVER);
 			printf("Copyright (C) 2026       Pyrite development team\n");
 			printf("\n");
-			printf("Documentation online at http://nishi.boats/feather\n");
+			printf("Documentation online at http://moomoo.nishi.boats\n");
 			printf("\n");
 			printf("Compiled in Options:\n");
 #ifdef HAS_SSL
