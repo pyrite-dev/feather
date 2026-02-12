@@ -8,6 +8,7 @@ EMBED	= dso
 MODULES = 
 
 AR	= ar
+ARFLAGS	= rcs
 CC 	= cc
 CFLAGS	=
 LDFLAGS =
@@ -32,7 +33,10 @@ RPATH	= -Wl,-R$(PREFIX)/lib
 LIBDIR =  -L
 
 # Linker flag for SSL library
-SSL	= -lssl -lcrypto
+SSL	= $(LINK)ssl $(LINK)crypto
+
+# Linker flag for FPR
+FPR	= $(LINK)fpr
 
 # Linker flag for dynamic library
 SHARED	= -shared

@@ -1,3 +1,4 @@
+MODE = fpr
 include ../config.mk
 
 .PHONY: all install clean
@@ -6,13 +7,13 @@ include ../config.mk
 OBJS = poll$(O) file$(O) socket$(O) arpa$(O) string$(O) dlfcn$(O) unistd$(O)
 OBJS += wildcard$(O)
 
-all: $(LIB)fpr$(SO)
+all: $(LIB)fpr$(A)
 
 .c$(O):
 	$(CC) $(CFLAGS) $(PIC) $(INCDIR) ../fpr -c -o $@ $<
 
-$(LIB)fpr$(SO): $(OBJS)
-	$(CC) $(LDFLAGS) $(RPATH) $(SHARED) -o $@ $(OBJS) $(LIBS)
+$(LIB)fpr$(A): $(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJS)
 
 install:
 	mkdir -p $(PREFIX)/bin
@@ -21,4 +22,4 @@ install:
 	-cp *.a *.so $(PREFIX)/lib/
 
 clean:
-	rm -f *$(SO) *$(O)
+	rm -f *$(A) *$(O)

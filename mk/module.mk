@@ -1,3 +1,4 @@
+MODE = module
 include ../../config.mk
 
 .PHONY: install clean
@@ -6,11 +7,11 @@ include ../../config.mk
 OBJS += mod_$(MODULE)$(O)
 
 mod_$(MODULE)$(A): $(OBJS)
-	$(AR) rcs $@ $(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJS)
 	touch ../../server/.relink
 
 mod_$(MODULE)$(SO): $(OBJS) ../fpr/$(LIB)fpr$(A)
-	$(CC) $(LDFLAGS) $(RPATH) $(SHARED) $(LIBDIR)../../fpr -o $@ $(OBJS)../../fpr/ $(LINK) fpr
+	$(CC) $(LDFLAGS) $(RPATH) $(SHARED) $(LIBDIR)../../fpr -o $@ $(OBJS)../../fpr/ $(FPR)
 
 .c$(O):
 	$(CC) $(CFLAGS) $(PIC) $(INCDIR)../../fpr $(INCDIR)../../server $(INCDIR)../../external/stb -c -o $@ $<

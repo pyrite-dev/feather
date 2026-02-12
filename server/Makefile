@@ -1,3 +1,4 @@
+MODE = server
 include ../config.mk
 
 .PHONY: all clean install
@@ -9,13 +10,13 @@ OBJS += stb_ds$(O)
 all: fhttpd$(E)
 
 .c$(O):
-	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../fpr $(INCDIR)../lib $(INCDIR). $(INCDIR)../external/stb -c -o $@ $<
+	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../fpr $(INCDIR). $(INCDIR)../external/stb -c -o $@ $<
 
 .relink:
 	touch $@
 
-fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(SO) .relink
-	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../lib -o $@ $(OBJS) $(LIBS) $(SSL) $(LINK) fpr `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done`
+fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) .relink
+	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr -o $@ $(OBJS) $(LIBS) $(SSL) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR)
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
