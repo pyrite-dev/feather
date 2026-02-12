@@ -4,13 +4,13 @@
 
 #if defined(HAS_SSL)
 static int sni_callback(SSL* s, int* al, void* arg) {
-	const char* str = SSL_get_servername(s, TLSEXT_NAMETYPE_host_name);
-	char*	    host;
-	size_t	    port = (size_t)arg;
-	config_t*   c;
-	int	    st = SSL_TLSEXT_ERR_ALERT_FATAL;
-	const char* tk = "SSLPrivateKeyFile";
-	const char* tc = "SSLCertificateFile";
+	const char*  str = SSL_get_servername(s, TLSEXT_NAMETYPE_host_name);
+	char*	     host;
+	size_t	     port = (size_t)arg;
+	fr_config_t* c;
+	int	     st = SSL_TLSEXT_ERR_ALERT_FATAL;
+	const char*  tk = "SSLPrivateKeyFile";
+	const char*  tc = "SSLCertificateFile";
 
 	if(str == NULL) {
 		char tmp[4096];
@@ -24,7 +24,7 @@ static int sni_callback(SSL* s, int* al, void* arg) {
 		strcpy(host, str);
 	}
 
-	if((c = config_vhost_match(host, port, NULL)) == NULL) c = config_root;
+	if((c = config_vhost_match(host, port)) == NULL) c = config_root;
 	if(shgeti(c->kv, tk) == -1 || shgeti(c->kv, tc) == -1) c = config_root;
 
 	if(shgeti(c->kv, tk) != -1 && shgeti(c->kv, tc) != -1) {

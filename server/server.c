@@ -6,25 +6,8 @@
 clientkv_t* server_clients = NULL;
 #endif
 
-#define LOAD(x) extern fr_module_t* x;
-MODULES
-#undef LOAD
-
 fpr_bool server_init(void) {
-	int		   i	   = 0;
-	struct fr_module** modules = NULL;
-
-#define LOAD(x) i++;
-	MODULES
-#undef LOAD
-
-	modules = malloc(sizeof(*modules) * (i + 1));
-	i	= 0;
-
-#define LOAD(x) modules[i++] = x;
-	MODULES
-#undef LOAD
-	modules[i] = NULL;
+	int i;
 
 	fpr_socket_init();
 
@@ -54,10 +37,6 @@ fpr_bool server_init(void) {
 			log_srv("Listening to port %d%s", config_ports[i].port, config_ports[i].ssl ? " (SSL)" : "");
 		}
 	}
-
-	for(i = 0; modules[i] != NULL; i++) {
-	}
-	free(modules);
 
 	return fpr_true;
 }

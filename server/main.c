@@ -45,6 +45,8 @@ int main(int argc, char** argv) {
 
 	config_init();
 
+	module_init();
+
 	if(!config_parse(conf)) {
 		return 1;
 	}
