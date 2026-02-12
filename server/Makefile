@@ -16,13 +16,13 @@ fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(SO)
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	mkdir -p $(DESTDIR)$(PREFIX)/etc
+	mkdir -p $(DESTDIR)$(PREFIX)/etc/fhttpd
 	cp fhttpd$(E) $(DESTDIR)$(PREFIX)/bin/
-	if [ ! -f "$(DESTDIR)$(PREFIX)/etc/fhttpd.conf" ]; then \
-		cp ../config/fhttpd.conf $(DESTDIR)$(PREFIX)/etc/ ; \
+	if [ ! -f "$(DESTDIR)$(PREFIX)/etc/fhttpd/fhttpd.conf" ]; then \
+		cp ../config/fhttpd.conf $(DESTDIR)$(PREFIX)/etc/fhttpd/ ; \
 	fi
-	if [ ! -f "$(DESTDIR)$(PREFIX)/etc/mime.types" ]; then \
-		cp ../config/mime.types $(DESTDIR)$(PREFIX)/etc/ ; \
+	if [ ! -f "$(DESTDIR)$(PREFIX)/etc/fhttpd/mime.types" ]; then \
+		cp ../config/mime.types $(DESTDIR)$(PREFIX)/etc/fhttpd/ ; \
 	fi
 	if [ ! -d "$(DESTDIR)$(PREFIX)/www" ]; then \
 		cp -r ../www $(DESTDIR)$(PREFIX)/www ; \

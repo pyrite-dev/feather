@@ -58,7 +58,7 @@ void config_init(void) {
 	ALLOC_PROP(config_serverroot, PREFIX);
 	ALLOC_PROP(config_pidfile, "/var/run/fhttpd.pid");
 	ALLOC_PROP(config_logfile, "/var/log/fhttpd.log");
-	ALLOC_PROP(config_mimefile, PREFIX "/etc/mime.types");
+	ALLOC_PROP(config_mimefile, PREFIX "/etc/fhttpd/mime.types");
 
 	recursive_free(config_root);
 	config_root    = new_config(NULL, NULL);
@@ -127,6 +127,7 @@ static fpr_bool parse(const char* path) {
 	char	  linebuf[LINE_SIZE + 1];
 	int	  s;
 	char*	  p;
+	fpr_bool  fail = fpr_false;
 
 	p = path_transform(path);
 	if((fp = fpr_fopen(p, "r")) == NULL) {
@@ -145,7 +146,6 @@ static fpr_bool parse(const char* path) {
 			if(buffer[i] == '\n') {
 				char*	 line = linebuf;
 				int	 j;
-				fpr_bool fail	 = fpr_false;
 				fpr_bool handled = fpr_false; /* this exists only for these IF macros */
 
 				while((*line) != 0 && ((*line) == '\t' || (*line) == ' ')) line++;
@@ -170,17 +170,26 @@ static fpr_bool parse(const char* path) {
 						arg = arg_parse(line);
 					}
 					if(dir) {
+						/* global directive */
 						IF_PROP(arg, "ServerRoot", config_serverroot) /**/
 						ELSEIF_PROP(arg, "PIDFile", config_pidfile)   /**/
 						ELSEIF_PROP(arg, "LogFile", config_logfile)   /**/
 						ELSEIF_PROP(arg, "MIMEFile", config_mimefile) /**/
 
+						/* generic key-value directive */
 						IF_KV(arg, "DocumentRoot")	     /**/
 						ELSEIF_KV(arg, "SSLPrivateKeyFile")  /**/
 						ELSEIF_KV(arg, "SSLCertificateFile") /**/
-						ELSEIF_KV(arg, "DirectoryIndex")     /**/
 
-						if(strcmp(arg[0], "ForceLog") == 0) {
+						if(strcmp(arg[0], "DirectoryIndex") == 0) {
+							if(arg_len(arg) >= 2) {
+								/* TODO */
+							} else {
+								fprintf(stderr, "%s: %s: DirectoryIndex takes 1 argument or more\n", argv0, path);
+
+								fail = fpr_true;
+							}
+						} else if(strcmp(arg[0], "ForceLog") == 0) {
 							if(arg_len(arg) == 2) {
 								fprintf(stderr, "%s: %s: %s", argv0, path, arg[1]);
 							} else {
@@ -210,7 +219,7 @@ static fpr_bool parse(const char* path) {
 
 								fail = 1;
 							}
-						} else if(!handled) {
+						} else if(!handled && !fail) {
 							fr_context_t context;
 							fpr_bool     x = fpr_false;
 
@@ -264,6 +273,7 @@ static fpr_bool parse(const char* path) {
 			} else if(buffer[i] != '\r') {
 				if(strlen(linebuf) == LINE_SIZE) {
 					fprintf(stderr, "%s: %s: line too long; sorry\n", argv0, path);
+					fail = fpr_true;
 					goto cleanup;
 				}
 
@@ -276,7 +286,7 @@ static fpr_bool parse(const char* path) {
 cleanup:;
 	fpr_fclose(fp);
 
-	return fpr_true;
+	return !fail;
 }
 
 fpr_bool config_parse(const char* path) {

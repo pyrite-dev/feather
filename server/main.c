@@ -4,7 +4,7 @@ char* argv0;
 
 int main(int argc, char** argv) {
 	int	    i;
-	const char* conf      = PREFIX "/etc/fhttpd.conf";
+	const char* conf      = PREFIX "/etc/fhttpd/fhttpd.conf";
 	fpr_bool    daemonize = fpr_true;
 #ifdef HAS_FORK
 	pid_t pid;
