@@ -198,40 +198,47 @@ static fpr_bool parse(const char* path) {
 								fail = fpr_true;
 							}
 						} else if(strcmp(arg[0], "Listen") == 0 || strcmp(arg[0], "ListenSSL") == 0) {
-							if(arg_len(arg) == 2) {
-								port_t p;
-								p.port = atoi(arg[1]);
-								p.ssl  = strcmp(arg[0], "ListenSSL") == 0;
-								p.fd   = -1;
+							if(arg_len(arg) >= 2) {
+								int j;
+
+								for(j = 1; j < arg_len(arg); j++) {
+									port_t p;
+									p.port = atoi(arg[j]);
+									p.ssl  = strcmp(arg[0], "ListenSSL") == 0;
+									p.fd   = -1;
 
 #if !defined(HAS_SSL)
-								if(p.ssl) {
-									fprintf(stderr, "%s: %s: HTTPd is missing SSL/TLS support\n", argv0, path);
+									if(p.ssl) {
+										fprintf(stderr, "%s: %s: HTTPd is missing SSL/TLS support\n", argv0, path);
 
-									fail = fpr_true;
-								} else
+										fail = fpr_true;
+									} else
 #endif
-								{
-									arrput(config_ports, p);
+									{
+										arrput(config_ports, p);
+									}
+
+									if(fail) break;
 								}
 							} else {
-								fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, arg[0]);
+								fprintf(stderr, "%s: %s: %s takes 1 argument or more\n", argv0, path, arg[0]);
 
 								fail = 1;
 							}
 						} else if(!handled && !fail) {
 							fr_context_t context;
-							fpr_bool     x = fpr_false;
+							int	     x = FR_MODULE_DECLINE;
 
 							for(j = 0; j < arrlen(module_modules); j++) {
-								int j;
-
 								context_init(&context);
+								context.config_path = path;
 								SAFECALL_RET(x, module_modules[j]->directive)(&context, arg_len(arg), arg);
 								context_save(&context);
 
-								if(x) break;
+								if(x != FR_MODULE_DECLINE) break;
 							}
+
+							if(x == FR_MODULE_ERROR) fail = fpr_true;
 						}
 					} else {
 						if(arg[0][0] == '/') {

@@ -11,7 +11,10 @@ all: fhttpd$(E)
 .c$(O):
 	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../fpr $(INCDIR)../lib $(INCDIR). $(INCDIR)../external/stb -c -o $@ $<
 
-fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(SO)
+.relink:
+	touch $@
+
+fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(SO) .relink
 	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../lib -o $@ $(OBJS) $(LIBS) $(SSL) $(LINK) fpr `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done`
 
 install: all
@@ -29,4 +32,4 @@ install: all
 	fi
 
 clean:
-	rm -f fhttpd$(E) *$(O)
+	rm -f fhttpd$(E) *$(O) .relink

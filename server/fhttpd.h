@@ -6,7 +6,13 @@
 #include <fpr.h>
 
 enum fr_module_version {
-	FR_MODULE_00 = 0
+	FR_MODULE_VERSION_00 = 0
+};
+
+enum fr_module_return {
+	FR_MODULE_OK	  = 0,	/* Module handled the request */
+	FR_MODULE_DECLINE = -1, /* Module declined to handle the request */
+	FR_MODULE_ERROR	  = -2, /* Module raised an error */
 };
 
 typedef struct fr_module	       fr_module_t;
@@ -25,7 +31,7 @@ struct fr_stringkv {
 struct fr_module {
 	int version;
 
-	fpr_bool (*directive)(fr_context_t* context, int argc, char** argv);
+	int (*directive)(fr_context_t* context, int argc, char** argv);
 };
 
 struct fr_request {
@@ -56,8 +62,14 @@ struct fr_config {
 };
 
 struct fr_context {
-	fr_config_t* root;
-	fr_config_t* current;
+	fr_config_t* config_root;
+	fr_config_t* config_current;
+
+	const char* config_path;
+	const char* argv0;
+
+	char* (*path_transform)(const char* path);
+	void (*log)(const char* fmt, ...);
 };
 
 #if defined(_FHTTPD)

@@ -1,6 +1,8 @@
 /config.h
 /config.mk
 /server/fhttpd
+/server/.relink
+*.core
 *.exe
 *.a
 *.so
