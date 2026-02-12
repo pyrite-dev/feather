@@ -297,9 +297,9 @@ cleanup:;
 }
 
 fpr_bool config_parse(const char* path) {
-	int st = parse(path);
+	fpr_bool st = parse(path);
 
-	mime_parse();
+	if(st) mime_parse();
 
 	return st;
 }

@@ -7,7 +7,6 @@ FPR_FILE* fpr_fopen(const char* path, const char* mode) {
 	DWORD  dis = 0;
 	DWORD  fl  = FILE_ATTRIBUTE_NORMAL;
 	HANDLE h;
-	int    i;
 
 	if(mode[0] == 'r') {
 		ac  = GENERIC_READ;
@@ -20,7 +19,10 @@ FPR_FILE* fpr_fopen(const char* path, const char* mode) {
 		dis = OPEN_ALWAYS;
 	}
 
-	return (FPR_FILE*)CreateFile(path, ac, FILE_SHARE_READ, NULL, dis, fl, NULL);
+	h = CreateFile(path, ac, FILE_SHARE_READ, NULL, dis, fl, NULL);
+	if(h == INVALID_HANDLE_VALUE) return NULL;
+
+	return (FPR_FILE*)h;
 #else
 	return (FPR_FILE*)fopen(path, mode);
 #endif
