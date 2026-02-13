@@ -2,6 +2,18 @@
 PREFIX="/usr/fhttpd"
 TARGET="`uname -s`"
 
+for i in "$@"; do
+	case "$i" in
+		--target=*)
+			TARGET="`echo "$i" | cut -d= -f2-`"
+			;;
+		*)
+			echo "Invalid argument"
+			exit 1
+			;;
+	esac
+done
+
 cat > config.mk << EOF
 PREFIX	= $PREFIX
 
@@ -62,7 +74,7 @@ E	=
 EOF
 if [ -f "mk/ostype/$TARGET.mk" ]; then
 	echo >> config.mk
-	echo "# Appended automatically" >> config.mk
+	echo "# Appended automatically - target $TARGET" >> config.mk
 	cat mk/ostype/$TARGET.mk >> config.mk
 fi
 
