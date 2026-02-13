@@ -11,7 +11,7 @@ pipeline {
 					}
 					steps {
 						sh("make distclean")
-						sh("make || true")
+						sh("./configure")
 						sh("make -j4")
 					}
 				}

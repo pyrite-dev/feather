@@ -1,7 +1,76 @@
+#!/bin/sh
+PREFIX="/usr/fhttpd"
+TARGET="`uname -s`"
+
+cat > config.mk << EOF
+PREFIX	= $PREFIX
+
+# Modules to embed
+EMBED	= dso
+
+# DSO modules to compile
+MODULES = 
+
+AR	= ar
+ARFLAGS	= rcs
+CC 	= cc
+CFLAGS	=
+LDFLAGS =
+LIBS	=
+
+# Compiler flag for Position Independent Code
+PIC	= -fPIC
+
+# Compiler flag to include directory
+INCDIR	= -I
+
+# Compiler flag to define macro
+DEFINE	= -D
+
+# Compiler flag to link library
+LINK	= -l
+
+# Linker flag for rpath
+RPATH	= -Wl,-R\$(PREFIX)/lib
+
+# Linker flag to include directory
+LIBDIR =  -L
+
+# Linker flag for SSL library
+SSL	= \$(LINK)ssl \$(LINK)crypto
+
+# Linker flag for FPR
+FPR	= \$(LINK)fpr
+
+# Linker flag for dynamic library
+SHARED	= -shared
+
+# Prefix for library
+LIB	= lib
+
+# Extension for archive
+A	= .a
+
+# Extension for DSO
+SO	= .so
+
+# Extension for object
+O	= .o
+
+# Extension for executable
+E	=
+EOF
+if [ -f "mk/ostype/$TARGET.mk" ]; then
+	echo >> config.mk
+	echo "# Appended automatically" >> config.mk
+	cat mk/ostype/$TARGET.mk >> config.mk
+fi
+
+cat > config.h << EOF
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#define PREFIX "/usr/fhttpd"
+#define PREFIX "$PREFIX"
 
 /* SSL support */
 #define HAS_SSL
@@ -49,3 +118,4 @@
 #endif
 
 #endif
+EOF
