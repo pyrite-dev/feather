@@ -1,6 +1,7 @@
 #!/bin/sh
 PREFIX="/usr/fhttpd"
 TARGET="`uname -s`"
+EMBED="dso"
 
 for i in "$@"; do
 	case "$i" in
@@ -21,7 +22,7 @@ cat > config.mk << EOF
 PREFIX	= $PREFIX
 
 # Modules to embed
-EMBED	= dso
+EMBED	= $EMBED
 
 # DSO modules to compile
 MODULES = 
@@ -111,8 +112,12 @@ cat > config.h << EOF
 #define MAX_VERSION_LENGTH 8 /* you DO NOT have to change this... */
 
 /* Modules to embed - also edit config.mk */
-#define MODULES \
-	LOAD(dso_module)
+#define MODULES \\
+EOF
+for i in "$EMBED"; do
+	echo "	LOAD($i) \\" >> config.h
+done
+cat >> config.h << EOF
 
 /*
  * /!\ DO NOT CHANGE LINES BELOW THIS LINE /!\

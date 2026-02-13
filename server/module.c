@@ -2,7 +2,7 @@
 
 #include <stb_ds.h>
 
-#define LOAD(x) extern fr_module_t* x;
+#define LOAD(x) extern fr_module_t* x ## _module;
 MODULES
 #undef LOAD
 
@@ -19,7 +19,7 @@ void module_init(void) {
 	modules = malloc(sizeof(*modules) * (i + 1));
 	i	= 0;
 
-#define LOAD(x) modules[i++] = x;
+#define LOAD(x) modules[i++] = x ## _module;
 	MODULES
 #undef LOAD
 	modules[i] = NULL;
