@@ -4,6 +4,9 @@ TARGET="`uname -s`"
 
 for i in "$@"; do
 	case "$i" in
+		--prefix=*)
+			PREFIX="`echo "$i" | cut -d= -f2-`"
+			;;
 		--target=*)
 			TARGET="`echo "$i" | cut -d= -f2-`"
 			;;
