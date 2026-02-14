@@ -1,3 +1,4 @@
+TOP = ..
 MODE = fpr
 include ../config.mk
 

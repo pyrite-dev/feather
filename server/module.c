@@ -2,7 +2,7 @@
 
 #include <stb_ds.h>
 
-#define LOAD(x) extern fr_module_t* x ## _module;
+#define LOAD(x) extern fr_module_t* x##_module;
 MODULES
 #undef LOAD
 
@@ -19,7 +19,7 @@ void module_init(void) {
 	modules = malloc(sizeof(*modules) * (i + 1));
 	i	= 0;
 
-#define LOAD(x) modules[i++] = x ## _module;
+#define LOAD(x) modules[i++] = x##_module;
 	MODULES
 #undef LOAD
 	modules[i] = NULL;
@@ -31,5 +31,11 @@ void module_init(void) {
 }
 
 void module_load(fr_module_t* module) {
+	fr_context_t context;
+
+	context_init(&context);
+	SAFECALL(module->register_hooks)(&context);
+	context_save(&context);
+
 	arrput(module_modules, module);
 }

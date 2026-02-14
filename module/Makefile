@@ -1,3 +1,4 @@
+TOP = ..
 include ../config.mk
 
 .PHONY: all clean install $(EMBED) $(MODULES)

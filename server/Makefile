@@ -1,3 +1,4 @@
+TOP = ..
 MODE = server
 include ../config.mk
 

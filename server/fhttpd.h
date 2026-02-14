@@ -32,6 +32,7 @@ struct fr_module {
 	int version;
 
 	int (*directive)(fr_context_t* context, int argc, char** argv);
+	void (*register_hooks)(fr_context_t* context);
 };
 
 struct fr_request {

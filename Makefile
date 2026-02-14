@@ -34,4 +34,4 @@ clean:
 	-cd module ; $(MAKE) clean
 
 distclean: clean
-	rm -f config.h config.mk
+	rm -f config.h config.mk local.mk

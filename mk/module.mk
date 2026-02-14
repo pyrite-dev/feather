@@ -1,3 +1,4 @@
+TOP = ../..
 MODE = module
 include ../../config.mk
 

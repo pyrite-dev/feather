@@ -2,6 +2,7 @@
 PREFIX="/usr/fhttpd"
 TARGET="`uname -s`"
 EMBED="dso"
+SSL="define"
 
 for i in "$@"; do
 	case "$i" in
@@ -10,6 +11,12 @@ for i in "$@"; do
 			;;
 		--target=*)
 			TARGET="`echo "$i" | cut -d= -f2-`"
+			;;
+		--enable-*)
+			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`="define"
+			;;
+		--disable-*)
+			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`="undef"
 			;;
 		*)
 			echo "Invalid argument"
@@ -53,7 +60,7 @@ RPATH	= -Wl,-R\$(PREFIX)/lib
 LIBDIR =  -L
 
 # Linker flag for SSL library
-SSL	= \$(LINK)ssl \$(LINK)crypto
+SSL	=
 
 # Linker flag for FPR
 FPR	= \$(LINK)fpr
@@ -75,11 +82,18 @@ O	= .o
 
 # Extension for executable
 E	=
+
+### Appended automatically - target $TARGET
 EOF
 if [ -f "mk/ostype/$TARGET.mk" ]; then
-	echo >> config.mk
-	echo "# Appended automatically - target $TARGET" >> config.mk
 	cat mk/ostype/$TARGET.mk >> config.mk
+fi
+cat >> config.mk << EOF
+
+### Additional settings
+EOF
+if [ "$SSL" = "define" ]; then
+	echo "SSL	= \$(LINK)ssl \$(LINK)crypto" >> config.mk
 fi
 
 cat > config.h << EOF
@@ -89,7 +103,7 @@ cat > config.h << EOF
 #define PREFIX "$PREFIX"
 
 /* SSL support */
-#define HAS_SSL
+#$SSL HAS_SSL
 
 /* change them if your platform is not supported
  * ... and send us patch for your platform :)
