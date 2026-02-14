@@ -16,8 +16,12 @@ all: fhttpd$(E)
 .relink:
 	touch $@
 
-fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) .relink
-	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr -o $@ $(OBJS) $(LIBS) $(SSL) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR)
+fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) $(RESFILE) .relink
+	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr -o $@ $(OBJS) $(SSL) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(LIBS)
+	$(AFTER)
+
+fhttpd.res: fhttpd.rc
+	$(RC) $(RCFLAGS) fhttpd.rc $@
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin

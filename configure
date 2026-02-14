@@ -8,6 +8,9 @@ AR='ar'
 ARFLAGS='rcs'
 CC='cc'
 CFLAGS=''
+RC='windres'
+RCFLAGS=''
+
 RPATH='-Wl,-R$(PREFIX)/lib'
 
 SSL=''
@@ -17,6 +20,10 @@ A='.a'
 SO='.so'
 O='.o'
 E=''
+
+RESFILE=''
+
+AFTER=''
 
 for i in "$@"; do
 	case "$i" in
@@ -60,6 +67,8 @@ AR	= $AR
 ARFLAGS	= $ARFLAGS
 CC 	= $CC
 CFLAGS	= $CFLAGS
+RC	= $RC
+RCFLAGS	= $RCFLAGS
 LDFLAGS = $LDFLAGS
 LIBS	= $LIBS
 
@@ -104,6 +113,12 @@ O	= $O
 
 # Extension for executable
 E	= $E
+
+# Resource file output
+RESFILE	= $RESFILE
+
+# Commands to be ran after building
+AFTER	= $AFTER
 EOF
 
 cat > config.h << EOF

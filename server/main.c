@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 
 	for(i = 1; i < argc; i++) {
 		if(strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "-h") == 0) {
-			printf("Feather HTTPd %s\n", SERVER);
+			printf("Feather HTTPd %s\n", FR_SERVER);
 			printf("Copyright (C) 2026       Pyrite development team\n");
 			printf("\n");
 			printf("Documentation online at http://moomoo.nishi.boats\n");
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
 #else
 		"",
 #endif
-		VERSION,
+		FR_VERSION,
 #if defined(HAS_SSL)
 		" (with " OPENSSL_VERSION_TEXT ")"
 #else

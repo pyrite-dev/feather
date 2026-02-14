@@ -1,0 +1,34 @@
+#define RESOURCE
+#include <winver.h>
+#include "fhttpd.h"
+
+FHTTPD ICON "../logo/logo.ico"
+
+VS_VERSION_INFO VERSIONINFO
+	FILEVERSION 1,0,0,0
+	PRODUCTVERSION 1,0,0,0
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "040904E4"
+		BEGIN
+			VALUE "CompanyName", "Pyrite development team\0"
+#ifdef HAS_SSL
+			VALUE "FileDescription", "Simple HTTP Daemon\0"
+#else
+			VALUE "FileDescription", "Simple HTTP Daemon with TLS/SSL\0"
+#endif
+			VALUE "LegalCopyright", "Copyright (C) 2026 Pyrite development team\0"
+			VALUE "FileVersion", FR_VERSION
+			VALUE "ProductVersion", FR_VERSION
+			VALUE "ProductName", "Feather HTTPd\0"
+			VALUE "License", "3-clause BSD License\0"
+			VALUE "Info", "http://moomoo.nishi.boats\0"
+		END
+	END
+
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", 0x409, 65001
+	END
+END

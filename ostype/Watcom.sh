@@ -11,3 +11,7 @@ LIBS="$LIBS ws2_32.lib"
 SO='.dll'
 
 E='.exe'
+
+RESFILE='fhttpd.rc'
+
+AFTER='wrc -q -bt=nt -fe=fhttpd.exe fhttpd.rc'

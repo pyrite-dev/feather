@@ -3,6 +3,10 @@
 
 #include "../config.h"
 
+#define FR_VERSION "0.0.0"
+#define FR_SERVER "Feather/" FR_VERSION
+
+#if !defined(RESOURCE)
 #include <fpr.h>
 
 enum fr_module_version {
@@ -89,9 +93,6 @@ struct fr_context {
 #include <openssl/ssl.h>
 #include <openssl/opensslv.h>
 #endif
-
-#define VERSION "0.0.0"
-#define SERVER "Feather/" VERSION
 
 #define SAFECALL(x) \
 	if(x != NULL) x
@@ -207,6 +208,7 @@ void module_load(fr_module_t* module);
 /* context.c */
 void context_init(fr_context_t* context);
 void context_save(fr_context_t* context);
+#endif
 #endif
 
 #endif
