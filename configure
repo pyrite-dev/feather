@@ -2,7 +2,21 @@
 PREFIX="/usr/fhttpd"
 TARGET="`uname -s`"
 EMBED="dso"
-SSL="define"
+SSLopt="define"
+
+AR='ar'
+ARFLAGS='rcs'
+CC='cc'
+CFLAGS=''
+RPATH='-Wl,-R$(PREFIX)/lib'
+
+SSL=''
+FPR='$(LINK)fpr'
+
+A='.a'
+SO='.so'
+O='.o'
+E=''
 
 for i in "$@"; do
 	case "$i" in
@@ -13,10 +27,10 @@ for i in "$@"; do
 			TARGET="`echo "$i" | cut -d= -f2-`"
 			;;
 		--enable-*)
-			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`="define"
+			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`opt="define"
 			;;
 		--disable-*)
-			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`="undef"
+			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`opt="undef"
 			;;
 		*)
 			echo "Invalid argument"
@@ -24,6 +38,14 @@ for i in "$@"; do
 			;;
 	esac
 done
+
+if [ -f "ostype/$TARGET.sh" ]; then
+	. ostype/$TARGET.sh
+fi
+
+if [ "$SSLopt" = "define" ]; then
+	SSL='$(LINK)ssl $(LINK)crypto'
+fi
 
 cat > config.mk << EOF
 PREFIX	= $PREFIX
@@ -34,12 +56,12 @@ EMBED	= $EMBED
 # DSO modules to compile
 MODULES = 
 
-AR	= ar
-ARFLAGS	= rcs
-CC 	= cc
-CFLAGS	=
-LDFLAGS =
-LIBS	=
+AR	= $AR
+ARFLAGS	= $ARFLAGS
+CC 	= $CC
+CFLAGS	= $CFLAGS
+LDFLAGS = $LDFLAGS
+LIBS	= $LIBS
 
 # Compiler flag for Position Independent Code
 PIC	= -fPIC
@@ -54,16 +76,16 @@ DEFINE	= -D
 LINK	= -l
 
 # Linker flag for rpath
-RPATH	= -Wl,-R\$(PREFIX)/lib
+RPATH	= $RPATH
 
 # Linker flag to include directory
 LIBDIR =  -L
 
 # Linker flag for SSL library
-SSL	=
+SSL	= $SSL
 
 # Linker flag for FPR
-FPR	= \$(LINK)fpr
+FPR	= $FPR
 
 # Linker flag for dynamic library
 SHARED	= -shared
@@ -72,29 +94,17 @@ SHARED	= -shared
 LIB	= lib
 
 # Extension for archive
-A	= .a
+A	= $A
 
 # Extension for DSO
-SO	= .so
+SO	= $SO
 
 # Extension for object
-O	= .o
+O	= $O
 
 # Extension for executable
-E	=
-
-### Appended automatically - target $TARGET
+E	= $E
 EOF
-if [ -f "mk/ostype/$TARGET.mk" ]; then
-	cat mk/ostype/$TARGET.mk >> config.mk
-fi
-cat >> config.mk << EOF
-
-### Additional settings
-EOF
-if [ "$SSL" = "define" ]; then
-	echo "SSL	= \$(LINK)ssl \$(LINK)crypto" >> config.mk
-fi
 
 cat > config.h << EOF
 #ifndef __CONFIG_H__
@@ -103,7 +113,7 @@ cat > config.h << EOF
 #define PREFIX "$PREFIX"
 
 /* SSL support */
-#$SSL HAS_SSL
+#$SSLopt HAS_SSL
 
 /* change them if your platform is not supported
  * ... and send us patch for your platform :)
