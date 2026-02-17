@@ -39,3 +39,7 @@ void module_load(fr_module_t* module) {
 
 	arrput(module_modules, module);
 }
+
+void module_close(void){
+	arrfree(module_modules);
+}

@@ -57,7 +57,7 @@ int fpr_socket(int domain, int type, int protocol) {
 	s = socket(d, t, p);
 
 #if defined(_WIN32)
-	if(s < INVALID_SOCKET) s = -1;
+	if(s == INVALID_SOCKET) s = -1;
 #endif
 
 	return s;

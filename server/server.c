@@ -202,8 +202,10 @@ void server_loop(void) {
 			for(i = srv_count; i < arrlen(pfd); i++) {
 				int ind = hmgeti(server_clients, pfd[i].fd);
 
-				if((time(NULL) - server_clients[ind].value.last) >= 10) {
-					kill_client(pfd[i].fd);
+				if(pfd[i].events & FPR_POLLIN){
+					if((time(NULL) - server_clients[ind].value.last) >= 10) {
+						kill_client(pfd[i].fd);
+					}
 				}
 			}
 #endif

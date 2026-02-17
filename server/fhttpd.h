@@ -19,13 +19,22 @@ enum fr_module_return {
 	FR_MODULE_ERROR	  = -2, /* Module raised an error */
 };
 
+enum fr_module_hook_order {
+	FR_MODULE_HOOK_FIRST = 0,
+	FR_MODULE_HOOK_MIDDLE,
+	FR_MODULE_HOOK_LAST
+};
+
 typedef struct fr_module	       fr_module_t;
 typedef struct fr_stringkv	       fr_stringkv_t;
 typedef struct fr_request	       fr_request_t;
+typedef struct fr_response	       fr_response_t;
 typedef union fr_config_section_union  fr_config_section_union_t;
 typedef struct fr_config_section_vhost fr_config_section_vhost_t;
 typedef struct fr_config	       fr_config_t;
 typedef struct fr_context	       fr_context_t;
+
+typedef int(*fr_hook_t)(fr_context_t* context, fr_request_t* req, fr_response_t* res);
 
 struct fr_stringkv {
 	char* key;
@@ -45,6 +54,9 @@ struct fr_request {
 	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];
 	fr_stringkv_t* headers;
+};
+
+struct fr_response {
 };
 
 struct fr_config_section_vhost {
@@ -75,6 +87,7 @@ struct fr_context {
 
 	char* (*path_transform)(const char* path);
 	void (*log)(const char* fmt, ...);
+	void (*register_hook)(fr_hook_t handler, int order);
 };
 
 #if defined(_FHTTPD)

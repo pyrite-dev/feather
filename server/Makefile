@@ -38,4 +38,4 @@ install: all
 	fi
 
 clean:
-	rm -f fhttpd$(E) *$(O) .relink
+	rm -f fhttpd$(E) *$(O) *.res .relink
