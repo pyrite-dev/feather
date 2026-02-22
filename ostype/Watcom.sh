@@ -14,4 +14,4 @@ E='.exe'
 
 RESFILE='fhttpd.rc'
 
-AFTER='wrc -q -bt=nt -fe=fhttpd.exe fhttpd.rc'
+AFTER='wrc -q -bt=nt fhttpd.rc fhttpd.exe'
