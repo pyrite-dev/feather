@@ -143,6 +143,7 @@ void server_loop(void) {
 						fd	= fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c.address, &l);
 						c.last	= time(NULL);
 						c.state = config_ports[i].ssl ? CS_WANT_SSL : CS_CONNECTED;
+						c.fd = fd;
 
 						c.port = config_ports[i].port;
 

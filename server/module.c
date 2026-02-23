@@ -8,6 +8,10 @@ MODULES
 
 fr_module_t** module_modules = NULL;
 
+fr_hook_t* module_first_hooks = NULL;
+fr_hook_t* module_middle_hooks = NULL;
+fr_hook_t* module_last_hooks = NULL;
+
 void module_init(void) {
 	int		   i	   = 0;
 	struct fr_module** modules = NULL;
@@ -42,4 +46,24 @@ void module_load(fr_module_t* module) {
 
 void module_close(void){
 	arrfree(module_modules);
+	module_modules = NULL;
+
+	arrfree(module_first_hooks);
+	module_first_hooks = NULL;
+
+	arrfree(module_middle_hooks);
+	module_middle_hooks = NULL;
+	
+	arrfree(module_last_hooks);
+	module_last_hooks = NULL;
+}
+
+void module_register_hook(fr_hook_t handler, int order){
+	if(order == FR_MODULE_HOOK_FIRST){
+		arrput(module_first_hooks, handler);
+	}else if(order == FR_MODULE_HOOK_LAST){
+		arrput(module_last_hooks, handler);
+	}else{
+		arrput(module_middle_hooks, handler);
+	}
 }

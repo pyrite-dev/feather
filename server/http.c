@@ -150,5 +150,16 @@ fpr_bool http_got(client_t* c, void* buffer, int size) {
 	return fpr_true;
 }
 
+static fpr_bool proc_hooks(fr_hook_t* hooks){
+	return fpr_false;
+}
+
 void http_req(client_t* c) {
+	if(proc_hooks(module_first_hooks)){
+	}else if(proc_hooks(module_middle_hooks)){
+	}else if(proc_hooks(module_last_hooks)){
+	}else{
+
+		return;
+	}
 }
