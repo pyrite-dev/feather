@@ -67,9 +67,13 @@ struct fr_response {
 	char	       status_text[MAX_STATUS_TEXT_LENGTH + 1];
 	fr_stringkv_t* headers;
 
+	int (*body_stream)(fr_response_t* res, unsigned char* buffer, int size);
 	void* body;
+	void* body_opaque;
 	int   body_size;
 	int   body_seek;
+
+	void (*cleanup)(fr_response_t* res);
 };
 
 struct fr_config_section_vhost {

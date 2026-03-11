@@ -14,9 +14,13 @@ void http_init(client_t* c) {
 
 	c->response.status_code = 0;
 
-	c->response.body      = NULL;
-	c->response.body_seek = 0;
-	c->response.body_size = 0;
+	c->response.body	= NULL;
+	c->response.body_stream = NULL;
+	c->response.body_opaque = NULL;
+	c->response.body_seek	= 0;
+	c->response.body_size	= 0;
+
+	c->response.cleanup = NULL;
 }
 
 void http_end(client_t* c) {
@@ -34,6 +38,8 @@ void http_end(client_t* c) {
 		free(c->response.body);
 		c->response.body = NULL;
 	}
+
+	SAFECALL(c->response.cleanup)(&c->response);
 }
 
 fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
@@ -288,21 +294,23 @@ void http_send(client_t* c) {
 
 		c->state = CS_SENT_HEADER;
 	} else if(c->state == CS_SENT_HEADER) {
-		char chunk[BUFFER_SIZE];
+		char  chunk[BUFFER_SIZE];
+		char* r = c->response.body;
+		int   l;
+
+		r += c->response.body_seek;
+
+		l = c->response.body_size - c->response.body_seek;
+		if(l > BUFFER_SIZE) l = BUFFER_SIZE;
 
 		if(c->response.body != NULL) {
-			char* r = c->response.body;
-			int   l;
-			r += c->response.body_seek;
-
-			l = c->response.body_size - c->response.body_seek;
-			if(l > BUFFER_SIZE) l = BUFFER_SIZE;
-
 			memcpy(chunk, r, l);
-			server_write(c->fd, chunk, l);
-
-			c->response.body_seek += l;
-			if(c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;
+		} else if(c->response.body_stream != NULL) {
+			c->response.body_stream(&c->response, chunk, l);
 		}
+		server_write(c->fd, chunk, l);
+
+		c->response.body_seek += l;
+		if(c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;
 	}
 }

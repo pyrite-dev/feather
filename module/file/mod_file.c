@@ -4,16 +4,21 @@
 #define TRY_LOOKUP(x,y) ((x) == NULL ? NULL : context->stringkv_lookup((x)->kv, (y)))
 #define TRY_LOOKUPARR(x,y) ((x) == NULL ? NULL : context->stringarraykv_lookup((x)->arraykv, (y)))
 
-/* TODO: make this stream, because you don't want to allocate 2GB on 2GB files */
+static int file_body_stream(fr_response_t* res, unsigned char* buffer, int size){
+	return fread(buffer, 1, size, res->body_opaque);
+}
+
+static void file_cleanup(fr_response_t* res){
+	fclose(res->body_opaque);
+}
+
 static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* path){
-	FPR_FILE* f;
 	struct fpr_stat st;
 	char* s;
 	char* ext;
 	char* mime = NULL;
 
 	if(fpr_stat(path, &st) != 0) return;
-	f = fpr_fopen(path, "rb");
 
 	s = fpr_strdup(strrchr(path, '/')); /* this should be never NULL */
 	ext = strrchr(s, '.');
@@ -31,11 +36,11 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 		strcpy(res->status_text, "OK");
 	}
 
-	res->body = malloc(st.st_size);
+	res->body_stream = file_body_stream;
+	res->body_opaque = fpr_fopen(path, "rb");
 	res->body_size = st.st_size;
 
-	fpr_fread(res->body, 1, res->body_size, f);
-	fpr_fclose(f);
+	res->cleanup = file_cleanup;
 
 	free(s);
 }
