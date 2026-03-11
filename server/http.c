@@ -201,6 +201,8 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
 }
 
 void http_req(client_t* c) {
+	http_res_set_header(&c->response, "Server", FR_SERVER);
+
 	if(proc_hooks(module_first_hooks, c)) {
 	} else if(proc_hooks(module_middle_hooks, c)) {
 	} else if(proc_hooks(module_last_hooks, c)) {
