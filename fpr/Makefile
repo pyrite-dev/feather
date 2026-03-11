@@ -23,4 +23,4 @@ install:
 	-cp *.a *.so $(PREFIX)/lib/
 
 clean:
-	rm -f *$(A) *$(O)
+	rm -f *$(A) *$(O) *$(SO)
