@@ -190,8 +190,16 @@ void server_loop(void) {
 								/* handle data */
 								int ind = hmgeti(server_clients, pfd[i].fd);
 								int st	= server_clients[ind].value.state;
+								int last;
 
-								http_got(&server_clients[ind].value, buf, len);
+								http_got(&server_clients[ind].value, buf, len, &last);
+								if(last > 0 && last < len) {
+									memcpy(server_clients[ind].value.leftover, buf, len);
+									server_clients[ind].value.leftover_seek = last;
+									server_clients[ind].value.leftover_size = len;
+								} else {
+									server_clients[ind].value.leftover_seek = 0;
+								}
 
 								if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_GOT_BODY) changed = fpr_true;
 
@@ -211,10 +219,36 @@ void server_loop(void) {
 					http_send(&server_clients[ind].value);
 
 					if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_CONNECTED) {
-						changed = fpr_true;
+#if 1
+						const char* t = http_req_get_header(&server_clients[ind].value.request, "connection");
 
-						http_end(&server_clients[ind].value);
-						http_init(&server_clients[ind].value);
+						if(t != NULL && strcmp(t, "keep-alive") == 0) {
+							changed = fpr_true;
+
+							http_end(&server_clients[ind].value);
+							http_init(&server_clients[ind].value);
+
+							if(server_clients[ind].value.leftover_seek > 0) {
+								int st = server_clients[ind].value.state;
+								int last;
+
+								http_got(&server_clients[ind].value, &server_clients[ind].value.leftover[server_clients[ind].value.leftover_seek], server_clients[ind].value.leftover_size - server_clients[ind].value.leftover_seek, &last);
+								if(last > 0 && last < (server_clients[ind].value.leftover_size - server_clients[ind].value.leftover_seek)) {
+									server_clients[ind].value.leftover_seek += last;
+								} else {
+									server_clients[ind].value.leftover_seek = 0;
+								}
+
+								if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_GOT_BODY) changed = fpr_true;
+							}
+						} else {
+							kill_client(pfd[i].fd);
+							continue;
+						}
+#else
+						kill_client(pfd[i].fd);
+						continue;
+#endif
 					}
 
 					server_clients[ind].value.last = time(NULL);

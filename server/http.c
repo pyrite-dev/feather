@@ -3,6 +3,9 @@
 #include <stb_ds.h>
 
 void http_init(client_t* c) {
+	memset(&c->request, 0, sizeof(c->request));
+	memset(&c->response, 0, sizeof(c->response));
+
 	sh_new_strdup(c->request.headers);
 	shdefault(c->request.headers, NULL);
 
@@ -31,9 +34,11 @@ void http_end(client_t* c) {
 	}
 }
 
-fpr_bool http_got(client_t* c, void* buffer, int size) {
+fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 	int   i;
 	char* buf = buffer;
+
+	*last = 0;
 
 	for(i = 0; i < size; i++) {
 		if(c->state == CS_CONNECTED) {
@@ -144,7 +149,11 @@ fpr_bool http_got(client_t* c, void* buffer, int size) {
 					char*	    v = shget(c->request.headers, k);
 
 					if(v == NULL) {
+						*last = i + 1;
+
 						http_req(c);
+
+						return fpr_true;
 					} else {
 						/* content-type exists */
 						c->state = CS_GOT_HEADER;
@@ -220,8 +229,9 @@ const char* http_res_get_header(fr_response_t* res, const char* key) {
 
 void http_send(client_t* c) {
 	if(c->state == CS_GOT_BODY) {
-		char* txt;
-		int   i;
+		char*	    txt;
+		const char* h;
+		int	    i;
 
 		txt = malloc(8 + 1 + 3 + 1 + strlen(c->response.status_text) + 2 + 1);
 		sprintf(txt, "HTTP/1.1 %d %s\r\n", c->response.status_code, c->response.status_text);
@@ -231,6 +241,13 @@ void http_send(client_t* c) {
 		for(i = 0; i < shlen(c->response.headers); i++) {
 			txt = malloc(strlen(c->response.headers[i].key) + 2 + strlen(c->response.headers[i].key) + 2 + 1);
 			sprintf(txt, "%s: %s\r\n", c->response.headers[i].key, c->response.headers[i].value);
+			server_write(c->fd, txt, strlen(txt));
+			free(txt);
+		}
+
+		if((h = http_req_get_header(&c->request, "connection")) != NULL) {
+			char* txt = malloc(strlen("Connection: ") + strlen(h) + 2 + 1);
+			sprintf(txt, "Connection: %s\r\n", h);
 			server_write(c->fd, txt, strlen(txt));
 			free(txt);
 		}
@@ -246,7 +263,7 @@ void http_send(client_t* c) {
 
 		c->state = CS_SENT_HEADER;
 	} else if(c->state == CS_SENT_HEADER) {
-		char chunk[CHUNK_SIZE];
+		char chunk[BUFFER_SIZE];
 
 		if(c->response.body != NULL) {
 			char* r = c->response.body;
@@ -254,7 +271,7 @@ void http_send(client_t* c) {
 			r += c->response.body_seek;
 
 			l = c->response.body_size - c->response.body_seek;
-			if(l > CHUNK_SIZE) l = CHUNK_SIZE;
+			if(l > BUFFER_SIZE) l = BUFFER_SIZE;
 
 			memcpy(chunk, r, l);
 			server_write(c->fd, chunk, l);

@@ -158,6 +158,10 @@ struct client {
 	fr_request_t  request;
 	fr_response_t response;
 	char	      header[LINE_SIZE + 1]; /* do not access this unless you know what this is ... */
+
+	unsigned char leftover[BUFFER_SIZE];
+	int	      leftover_seek;
+	int	      leftover_size;
 };
 
 struct clientkv {
@@ -216,7 +220,7 @@ SSL_CTX* ssl_create_context(int port);
 /* http.c */
 void	    http_init(client_t* c);
 void	    http_end(client_t* c);
-fpr_bool    http_got(client_t* c, void* buffer, int size);
+fpr_bool    http_got(client_t* c, void* buffer, int size, int* last);
 void	    http_req(client_t* c);
 void	    http_send(client_t* c);
 void	    http_req_set_header(fr_request_t* req, const char* key, const char* value);
