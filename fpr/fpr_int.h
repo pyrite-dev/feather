@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <signal.h>
+#include <sys/stat.h>
 #endif
 
 /* socket section */

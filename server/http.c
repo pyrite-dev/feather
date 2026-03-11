@@ -201,13 +201,13 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
 }
 
 void http_req(client_t* c) {
-	c->response.status_code = 500;
-	strcpy(c->response.status_text, "Internal Server Error");
-
 	if(proc_hooks(module_first_hooks, c)) {
 	} else if(proc_hooks(module_middle_hooks, c)) {
 	} else if(proc_hooks(module_last_hooks, c)) {
 	} else {
+		c->response.status_code = 500;
+		strcpy(c->response.status_text, "Internal Server Error");
+
 		http_res_set_header(&c->response, "Content-Type", "text/html");
 
 		c->response.body = fpr_strdup(

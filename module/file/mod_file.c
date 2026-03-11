@@ -2,25 +2,99 @@
 #include <fhttpd.h>
 
 #define TRY_LOOKUP(x,y) ((x) == NULL ? NULL : context->stringkv_lookup((x)->kv, (y)))
+#define TRY_LOOKUPARR(x,y) ((x) == NULL ? NULL : context->stringarraykv_lookup((x)->arraykv, (y)))
+
+/* TODO: make this stream, because you don't want to allocate 2GB on 2GB files */
+static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* path){
+	FPR_FILE* f;
+	struct fpr_stat st;
+	char* s;
+	char* ext;
+	char* mime = NULL;
+
+	if(fpr_stat(path, &st) != 0) return;
+	f = fpr_fopen(path, "rb");
+
+	s = fpr_strdup(strrchr(path, '/')); /* this should be never NULL */
+	ext = strrchr(s, '.');
+
+	if(ext != NULL){
+		mime = context->stringkv_lookup(context->mime_types, ext + 1);
+	}
+
+	if(mime != NULL){
+		context->stringkv_set(&res->headers, "Content-Type", mime);
+	}
+
+	if(res->status_code == 0){
+		res->status_code = 200;
+		strcpy(res->status_text, "OK");
+	}
+
+	res->body = malloc(st.st_size);
+	res->body_size = st.st_size;
+
+	fpr_fread(res->body, 1, res->body_size, f);
+	fpr_fclose(f);
+
+	free(s);
+}
 
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res){
-	const char* s = NULL;
+	char* s = NULL;
 	char* p;
 	char* p2;
-	FILE* f;
-
-	if(s == NULL) s = TRY_LOOKUP(context->config_root, "DocumentRoot");
+	char** arr = NULL;
+	int len;
+	int i;
+	struct fpr_stat st;
+	
 	if(s == NULL) s = TRY_LOOKUP(context->config_vhost, "DocumentRoot");
+	if(s == NULL) s = TRY_LOOKUP(context->config_root, "DocumentRoot");
 
-	if(s == NULL) return FR_MODULE_DECLINE;
+	if(arr == NULL){
+		if((arr = TRY_LOOKUPARR(context->config_vhost, "DirectoryIndex")) != NULL) len = context->stringarraykv_length(context->config_vhost->arraykv, "DirectoryIndex");
+	}
+
+	if(arr == NULL){
+		if((arr = TRY_LOOKUPARR(context->config_root, "DirectoryIndex")) != NULL) len = context->stringarraykv_length(context->config_root->arraykv, "DirectoryIndex");
+	}
+
+	if(s == NULL || arr == NULL) return FR_MODULE_DECLINE;
 
 	p = context->path_transform(s);
 	p2 = fpr_strvacat(p, req->path, NULL);
 
+	if(fpr_stat(p2, &st) == 0 && !FPR_S_ISDIR(st.st_mode)){
+		file_send(context, req, res, p2);
+
+		free(p2);
+		free(p);
+		return FR_MODULE_OK;
+	}
+
+	for(i = 0; i < len; i++){
+		char* p3 = fpr_strvacat(p2, p2[strlen(p2) - 1] == '/' ? "" : "/", arr[i], NULL);
+
+		if(fpr_stat(p3, &st) == 0 && !FPR_S_ISDIR(st.st_mode)){
+			file_send(context, req, res, p3);
+
+			free(p3);
+			free(p2);
+			free(p);
+			return FR_MODULE_OK;
+		}
+
+		free(p3);
+	}
+
 	free(p2);
 	free(p);
 
-	return FR_MODULE_DECLINE;
+	res->status_code = 404;
+	strcpy(res->status_text, "Not Found");
+
+	return FR_MODULE_OK;
 }
 
 static int directive(fr_context_t* context, int argc, char** argv){

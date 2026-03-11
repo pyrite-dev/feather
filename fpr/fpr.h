@@ -115,7 +115,7 @@ struct fpr_sockaddr_un {
 
 struct fpr_stat {
 	long st_size;
-	long st_mtime;
+	long st_modtime;
 	int  st_mode;
 };
 

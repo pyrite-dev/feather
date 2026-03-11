@@ -31,7 +31,12 @@ void util_stringarraykv_push(fr_stringarraykv_t* arraykv, const char* key, const
 	if((ind = shgeti(arraykv, key)) != -1) v = arraykv[ind].value;
 
 	arrput(v, val);
-	arraykv[ind].value = v;
+
+	if(ind == -1) {
+		shput(arraykv, key, v);
+	} else {
+		arraykv[ind].value = v;
+	}
 }
 
 int util_stringarraykv_length(fr_stringarraykv_t* arraykv, const char* key) {
