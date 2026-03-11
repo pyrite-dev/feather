@@ -189,8 +189,11 @@ void server_loop(void) {
 							} else {
 								/* handle data */
 								int ind = hmgeti(server_clients, pfd[i].fd);
+								int st	= server_clients[ind].value.state;
 
 								http_got(&server_clients[ind].value, buf, len);
+
+								if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_GOT_BODY) changed = fpr_true;
 
 								server_clients[ind].value.last = time(NULL);
 							}
@@ -202,11 +205,23 @@ void server_loop(void) {
 #if !defined(MULTITHREAD)
 			for(i = srv_count; i < arrlen(pfd); i++) {
 				int ind = hmgeti(server_clients, pfd[i].fd);
+				int st	= server_clients[ind].value.state;
 
-				if(pfd[i].events & FPR_POLLIN) {
-					if((time(NULL) - server_clients[ind].value.last) >= 10) {
-						kill_client(pfd[i].fd);
+				if(pfd[i].revents & FPR_POLLOUT) {
+					http_send(&server_clients[ind].value);
+
+					if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_CONNECTED) {
+						changed = fpr_true;
+
+						http_end(&server_clients[ind].value);
+						http_init(&server_clients[ind].value);
 					}
+
+					server_clients[ind].value.last = time(NULL);
+				}
+
+				if((time(NULL) - server_clients[ind].value.last) >= 10) {
+					kill_client(pfd[i].fd);
 				}
 			}
 #endif
@@ -241,6 +256,8 @@ void server_loop(void) {
 
 				fd.fd	  = server_clients[i].key;
 				fd.events = FPR_POLLIN | FPR_POLLPRI;
+
+				if(server_clients[i].value.state >= CS_GOT_BODY) fd.events |= FPR_POLLOUT;
 
 				arrput(pfd, fd);
 			}

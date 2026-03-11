@@ -135,7 +135,7 @@ fpr_uint16_t fpr_htons(fpr_uint16_t host16);
 
 /* string.c */
 char* fpr_strdup(const char* str);
-char* fpr_strvacat_alloc(const char* a, ...);
+char* fpr_strvacat(const char* a, ...);
 
 /* dlfcn.c */
 void* fpr_dlopen(const char* path);

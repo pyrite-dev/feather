@@ -43,6 +43,10 @@ int main(int argc, char** argv) {
 		}
 	}
 
+#ifndef _WIN32
+	signal(SIGPIPE, SIG_IGN);
+#endif
+
 	config_init();
 
 	module_init();

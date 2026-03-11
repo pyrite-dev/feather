@@ -9,7 +9,7 @@ char* fpr_strdup(const char* str) {
 	return r;
 }
 
-char* fpr_strvacat_alloc(const char* a, ...) {
+char* fpr_strvacat(const char* a, ...) {
 	int	l = 1 + strlen(a);
 	va_list va;
 	char*	s;

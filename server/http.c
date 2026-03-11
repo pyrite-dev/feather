@@ -5,8 +5,13 @@
 void http_init(client_t* c) {
 	sh_new_strdup(c->request.headers);
 	shdefault(c->request.headers, NULL);
+
 	sh_new_strdup(c->response.headers);
 	shdefault(c->response.headers, NULL);
+
+	c->response.body      = NULL;
+	c->response.body_seek = 0;
+	c->response.body_size = 0;
 }
 
 void http_end(client_t* c) {
@@ -19,6 +24,11 @@ void http_end(client_t* c) {
 		if(c->response.headers[i].value != NULL) free(c->response.headers[i].value);
 	}
 	shfree(c->response.headers);
+
+	if(c->response.body != NULL) {
+		free(c->response.body);
+		c->response.body = NULL;
+	}
 }
 
 fpr_bool http_got(client_t* c, void* buffer, int size) {
@@ -61,8 +71,8 @@ fpr_bool http_got(client_t* c, void* buffer, int size) {
 				if(strlen(c->request.path) >= 3 && strcmp(c->request.path + strlen(c->request.path) - 3, "/..") == 0) return fpr_false;
 
 				for(j = 0; reserved[j] != NULL; j++) {
-					char*	 p   = fpr_strvacat_alloc("/", reserved[j], NULL);
-					char*	 ps  = fpr_strvacat_alloc("/", reserved[j], "/", NULL);
+					char*	 p   = fpr_strvacat("/", reserved[j], NULL);
+					char*	 ps  = fpr_strvacat("/", reserved[j], "/", NULL);
 					fpr_bool pm  = (strlen(c->request.path) >= strlen(p) && strcmp(c->request.path + strlen(c->request.path) - strlen(p), p) == 0);
 					fpr_bool psm = (strlen(c->request.path) >= strlen(ps) && strstr(c->request.path, ps) != NULL);
 
@@ -135,8 +145,6 @@ fpr_bool http_got(client_t* c, void* buffer, int size) {
 
 					if(v == NULL) {
 						http_req(c);
-
-						c->state = CS_CONNECTED;
 					} else {
 						/* content-type exists */
 						c->state = CS_GOT_HEADER;
@@ -161,7 +169,6 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
 }
 
 void http_req(client_t* c) {
-
 	c->response.status_code = 500;
 	strcpy(c->response.status_text, "Internal Server Error");
 
@@ -169,14 +176,30 @@ void http_req(client_t* c) {
 	} else if(proc_hooks(module_middle_hooks, c)) {
 	} else if(proc_hooks(module_last_hooks, c)) {
 	} else {
+		http_res_set_header(&c->response, "Content-Type", "text/html");
+
+		c->response.body = fpr_strdup(
+		    "<html>\n"								 /**/
+		    "	<head>\n"							 /**/
+		    "		<title>Oops</title>\n"					 /**/
+		    "	</head>\n"							 /**/
+		    "	<body>\n"							 /**/
+		    "		No one handled the request... this should not happen!\n" /**/
+		    "	</body>\n"							 /**/
+		    "<html>\n"								 /**/
+		);
+		c->response.body_size = strlen(c->response.body);
 	}
+
+	c->state = CS_GOT_BODY;
 }
 
 void http_req_set_header(fr_request_t* req, const char* key, const char* value) {
-	int ind = shgeti(req->headers, key);
+	int   ind = shgeti(req->headers, key);
+	char* v	  = fpr_strdup(value);
 	if(ind != -1) free(req->headers[ind].value);
 	shdel(req->headers, key);
-	shput(req->headers, key, (char*)value);
+	shput(req->headers, key, v);
 }
 
 const char* http_req_get_header(fr_request_t* req, const char* key) {
@@ -184,12 +207,60 @@ const char* http_req_get_header(fr_request_t* req, const char* key) {
 }
 
 void http_res_set_header(fr_response_t* res, const char* key, const char* value) {
-	int ind = shgeti(res->headers, key);
+	int   ind = shgeti(res->headers, key);
+	char* v	  = fpr_strdup(value);
 	if(ind != -1) free(res->headers[ind].value);
 	shdel(res->headers, key);
-	shput(res->headers, key, (char*)value);
+	shput(res->headers, key, v);
 }
 
 const char* http_res_get_header(fr_response_t* res, const char* key) {
 	return shget(res->headers, key);
+}
+
+void http_send(client_t* c) {
+	if(c->state == CS_GOT_BODY) {
+		char* txt;
+		int   i;
+
+		txt = malloc(8 + 1 + 3 + 1 + strlen(c->response.status_text) + 2 + 1);
+		sprintf(txt, "HTTP/1.1 %d %s\r\n", c->response.status_code, c->response.status_text);
+		server_write(c->fd, txt, strlen(txt));
+		free(txt);
+
+		for(i = 0; i < shlen(c->response.headers); i++) {
+			txt = malloc(strlen(c->response.headers[i].key) + 2 + strlen(c->response.headers[i].key) + 2 + 1);
+			sprintf(txt, "%s: %s\r\n", c->response.headers[i].key, c->response.headers[i].value);
+			server_write(c->fd, txt, strlen(txt));
+			free(txt);
+		}
+
+		if(c->response.body != NULL) {
+			txt = malloc(128);
+			sprintf(txt, "Content-Length: %d\r\n", c->response.body_size);
+			server_write(c->fd, txt, strlen(txt));
+			free(txt);
+		}
+
+		server_write(c->fd, "\r\n", 2);
+
+		c->state = CS_SENT_HEADER;
+	} else if(c->state == CS_SENT_HEADER) {
+		char chunk[CHUNK_SIZE];
+
+		if(c->response.body != NULL) {
+			char* r = c->response.body;
+			int   l;
+			r += c->response.body_seek;
+
+			l = c->response.body_size - c->response.body_seek;
+			if(l > CHUNK_SIZE) l = CHUNK_SIZE;
+
+			memcpy(chunk, r, l);
+			server_write(c->fd, chunk, l);
+
+			c->response.body_seek += l;
+			if(c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;
+		}
+	}
 }

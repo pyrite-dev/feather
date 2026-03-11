@@ -21,9 +21,9 @@ int fpr_poll(struct fpr_pollfd* fds, int nfds, int timeout) {
 
 	if(st > 0) {
 		for(i = 0; i < nfds; i++) {
-			if(pfds[i].revents & FPR_POLLIN) fds[i].revents |= POLLIN;
-			if(pfds[i].revents & FPR_POLLPRI) fds[i].revents |= POLLPRI;
-			if(pfds[i].revents & FPR_POLLOUT) fds[i].revents |= POLLOUT;
+			if(pfds[i].revents & POLLIN) fds[i].revents |= FPR_POLLIN;
+			if(pfds[i].revents & POLLPRI) fds[i].revents |= FPR_POLLPRI;
+			if(pfds[i].revents & POLLOUT) fds[i].revents |= FPR_POLLOUT;
 		}
 	}
 

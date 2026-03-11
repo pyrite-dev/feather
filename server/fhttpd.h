@@ -60,6 +60,10 @@ struct fr_response {
 	int	       status_code;
 	char	       status_text[MAX_STATUS_TEXT_LENGTH + 1];
 	fr_stringkv_t* headers;
+
+	void* body;
+	int   body_size;
+	int   body_seek;
 };
 
 struct fr_config_section_vhost {
@@ -103,6 +107,7 @@ struct fr_context {
 #include <ctype.h>
 #ifndef _WIN32
 #include <unistd.h>
+#include <signal.h>
 #endif
 
 #ifdef HAS_SSL
@@ -122,7 +127,9 @@ enum client_state {
 	CS_GOT_PATH,
 	CS_GOT_QUERY, /* also applies to case where query does not exist */
 	CS_GOT_VERSION,
-	CS_GOT_HEADER
+	CS_GOT_HEADER,
+	CS_GOT_BODY,
+	CS_SENT_HEADER,
 };
 
 typedef struct port	port_t;
@@ -211,6 +218,7 @@ void	    http_init(client_t* c);
 void	    http_end(client_t* c);
 fpr_bool    http_got(client_t* c, void* buffer, int size);
 void	    http_req(client_t* c);
+void	    http_send(client_t* c);
 void	    http_req_set_header(fr_request_t* req, const char* key, const char* value);
 const char* http_req_get_header(fr_request_t* req, const char* key);
 void	    http_res_set_header(fr_response_t* res, const char* key, const char* value);

@@ -144,6 +144,9 @@ cat > config.h << EOF
 /* this decides how long line can be in config file */
 #define LINE_SIZE BUFFER_SIZE
 
+/* this decides size for chunk */
+#define CHUNK_SIZE 4096
+
 /* max length stuff - this does not include NUL terminator */
 #define MAX_METHOD_LENGTH 128
 #define MAX_PATH_LENGTH 1024
