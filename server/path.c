@@ -1,16 +1,29 @@
 #include <fhttpd.h>
 
 char* path_transform(const char* path) {
-	if(strlen(path) > 2 && (									  /**/
-				strstr(path, ":/") != NULL ||						  /**/
-				strstr(path, ":\\") != NULL ||						  /**/
-				path[0] == '/' ||							  /**/
-				path[0] == '\\' ||							  /**/
-				(path[0] == '.' && (path[1] == '/' || path[1] == '\\')) ||		  /**/
-				(path[0] == '.' && path[1] == '.' && (path[2] == '/' || path[2] == '\\')) /**/
-				)) {
-		return fpr_strdup(path);
+	char* p = fpr_strdup(path);
+	char* r;
+	int   i;
+
+	for(i = 0; p[i] != 0; i++) {
+		if(p[i] == '\\') p[i] = '/';
 	}
 
-	return fpr_strvacat(config_serverroot, "/", path, NULL);
+	if(strlen(p) > 2 && (						 /**/
+			     strstr(p, ":/") != NULL ||			 /**/
+			     p[0] == '/' ||				 /**/
+			     (p[0] == '.' && p[1] == '/') ||		 /**/
+			     (p[0] == '.' && p[1] == '.' && p[2] == '/') /**/
+			     )) {
+		return p;
+	}
+
+	r = fpr_strvacat(config_serverroot, "/", p, NULL);
+	free(p);
+
+	for(i = 0; r[i] != 0; i++) {
+		if(r[i] == '\\') r[i] = '/';
+	}
+
+	return r;
 }

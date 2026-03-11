@@ -27,6 +27,7 @@ enum fr_module_hook_order {
 
 typedef struct fr_module	       fr_module_t;
 typedef struct fr_stringkv	       fr_stringkv_t;
+typedef struct fr_stringarraykv	       fr_stringarraykv_t;
 typedef struct fr_request	       fr_request_t;
 typedef struct fr_response	       fr_response_t;
 typedef union fr_config_section_union  fr_config_section_union_t;
@@ -39,6 +40,11 @@ typedef int (*fr_hook_t)(fr_context_t* context, fr_request_t* req, fr_response_t
 struct fr_stringkv {
 	char* key;
 	char* value;
+};
+
+struct fr_stringarraykv {
+	char*  key;
+	char** value;
 };
 
 struct fr_module {
@@ -77,7 +83,8 @@ union fr_config_section_union {
 struct fr_config {
 	char* name;
 
-	fr_stringkv_t* kv;
+	fr_stringkv_t*	    kv;
+	fr_stringarraykv_t* arraykv;
 
 	fr_config_section_union_t section;
 
@@ -88,13 +95,28 @@ struct fr_config {
 struct fr_context {
 	fr_config_t* config_root;
 	fr_config_t* config_current;
+	fr_config_t* config_vhost;
 
 	const char* config_path;
 	const char* argv0;
 
+	fr_stringkv_t* mime_types;
+
 	char* (*path_transform)(const char* path);
 	void (*log)(const char* fmt, ...);
 	void (*register_hook)(fr_hook_t handler, int order);
+
+	void (*request_set_header)(fr_request_t* req, const char* key, const char* value);
+	char* (*request_get_header)(fr_request_t* req, const char* key);
+	void (*response_set_header)(fr_response_t* res, const char* key, const char* value);
+	char* (*response_get_header)(fr_response_t* res, const char* key);
+
+	char* (*stringkv_lookup)(fr_stringkv_t* kv, const char* key);
+	void (*stringkv_set)(fr_stringkv_t** kv, const char* key, const char* value);
+
+	char** (*stringarraykv_lookup)(fr_stringarraykv_t* arraykv, const char* key);
+	void (*stringarraykv_push)(fr_stringarraykv_t* kv, const char* key, const char* value);
+	int (*stringarraykv_length)(fr_stringarraykv_t* arraykv, const char* key);
 };
 
 #if defined(_FHTTPD)
@@ -218,15 +240,15 @@ SSL_CTX* ssl_create_context(int port);
 #endif
 
 /* http.c */
-void	    http_init(client_t* c);
-void	    http_end(client_t* c);
-fpr_bool    http_got(client_t* c, void* buffer, int size, int* last);
-void	    http_req(client_t* c);
-void	    http_send(client_t* c);
-void	    http_req_set_header(fr_request_t* req, const char* key, const char* value);
-const char* http_req_get_header(fr_request_t* req, const char* key);
-void	    http_res_set_header(fr_response_t* res, const char* key, const char* value);
-const char* http_res_get_header(fr_response_t* res, const char* key);
+void	 http_init(client_t* c);
+void	 http_end(client_t* c);
+fpr_bool http_got(client_t* c, void* buffer, int size, int* last);
+void	 http_req(client_t* c);
+void	 http_send(client_t* c);
+void	 http_req_set_header(fr_request_t* req, const char* key, const char* value);
+char*	 http_req_get_header(fr_request_t* req, const char* key);
+void	 http_res_set_header(fr_response_t* res, const char* key, const char* value);
+char*	 http_res_get_header(fr_response_t* res, const char* key);
 
 /* mime.c */
 extern fr_stringkv_t* mime_types;
@@ -247,6 +269,13 @@ void module_register_hook(fr_hook_t handler, int order);
 /* context.c */
 void context_init(fr_context_t* context);
 void context_save(fr_context_t* context);
+
+/* util.c */
+char*  util_stringkv_lookup(fr_stringkv_t* kv, const char* key);
+void   util_stringkv_set(fr_stringkv_t** kv, const char* key, const char* value);
+char** util_stringarraykv_lookup(fr_stringarraykv_t* arraykv, const char* key);
+void   util_stringarraykv_push(fr_stringarraykv_t* kv, const char* key, const char* value);
+int    util_stringarraykv_length(fr_stringarraykv_t* arraykv, const char* key);
 #endif
 #endif
 

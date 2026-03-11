@@ -23,6 +23,13 @@ static void recursive_free(fr_config_t* config) {
 		}
 		shfree(config->kv);
 
+		for(i = 0; i < shlen(config->arraykv); i++) {
+			int j;
+			for(j = 0; j < arrlen(config->arraykv[i].value); j++) free(config->arraykv[i].value[j]);
+			arrfree(config->arraykv[i].value);
+		}
+		shfree(config->arraykv);
+
 		if(config->name != NULL) {
 			if(strcmp(config->name, "VirtualHost") == 0) {
 				for(i = 0; i < arrlen(config->section.vhost.entry); i++) free(config->section.vhost.entry[i]);
@@ -42,6 +49,9 @@ static fr_config_t* new_config(fr_config_t* parent, const char* name) {
 
 	sh_new_strdup(config->kv);
 	shdefault(config->kv, NULL);
+
+	sh_new_strdup(config->arraykv);
+	shdefault(config->arraykv, NULL);
 
 	config->parent = parent;
 	if(name != NULL) config->name = fpr_strdup(name);
@@ -181,15 +191,7 @@ static fpr_bool parse(const char* path) {
 						ELSEIF_KV(arg, "SSLPrivateKeyFile")  /**/
 						ELSEIF_KV(arg, "SSLCertificateFile") /**/
 
-						if(strcmp(arg[0], "DirectoryIndex") == 0) {
-							if(arg_len(arg) >= 2) {
-								/* TODO */
-							} else {
-								fprintf(stderr, "%s: %s: DirectoryIndex takes 1 argument or more\n", argv0, path);
-
-								fail = fpr_true;
-							}
-						} else if(strcmp(arg[0], "ForceLog") == 0) {
+						if(strcmp(arg[0], "ForceLog") == 0) {
 							if(arg_len(arg) == 2) {
 								fprintf(stderr, "%s: %s: %s", argv0, path, arg[1]);
 							} else {
@@ -308,7 +310,7 @@ fr_config_t* config_vhost_match(const char* host, int port) {
 	char* n = malloc(strlen(host) + 7);
 	int   i;
 
-	sprintf(n, "%s:%d", host, port);
+	sprintf(n, "%s:%d", host == NULL ? "" : host, port);
 
 	for(i = 0; i < arrlen(config_root->children); i++) {
 		fr_config_t* c = config_root->children[i];
@@ -316,7 +318,7 @@ fr_config_t* config_vhost_match(const char* host, int port) {
 			int j;
 
 			for(j = 0; j < arrlen(c->section.vhost.entry); j++) {
-				if(fpr_wildcard(c->section.vhost.entry[j], n) || fpr_wildcard(c->section.vhost.entry[j], host)) {
+				if(fpr_wildcard(c->section.vhost.entry[j], n) || (host == NULL ? 0 : fpr_wildcard(c->section.vhost.entry[j], host))) {
 					free(n);
 
 					return c;

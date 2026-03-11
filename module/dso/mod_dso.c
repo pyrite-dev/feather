@@ -24,9 +24,13 @@ static int directive(fr_context_t* context, int argc, char** argv){
 			free(p);
 		}else{
 			context->log("%s: %s: LoadModule takes 2 arguments", context->argv0, context->config_path);
+
 			return FR_MODULE_ERROR;
 		}
+
+		return FR_MODULE_OK;
 	}
+
 	return FR_MODULE_DECLINE;
 }
 

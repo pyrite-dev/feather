@@ -12,6 +12,8 @@ void http_init(client_t* c) {
 	sh_new_strdup(c->response.headers);
 	shdefault(c->response.headers, NULL);
 
+	c->response.status_code = 0;
+
 	c->response.body      = NULL;
 	c->response.body_seek = 0;
 	c->response.body_size = 0;
@@ -174,6 +176,27 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 }
 
 static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
+	int	     i;
+	fr_context_t context;
+	const char*  host = http_req_get_header(&c->request, "host");
+
+	context_init(&context);
+
+	context.config_vhost = config_vhost_match(host, c->port);
+
+	for(i = 0; i < arrlen(hooks); i++) {
+		int st = hooks[i](&context, &c->request, &c->response);
+
+		if(st == FR_MODULE_ERROR || st == FR_MODULE_OK) {
+			context_save(&context);
+		}
+
+		if(st == FR_MODULE_ERROR) return fpr_false;
+		if(st == FR_MODULE_DECLINE) continue;
+		if(st == FR_MODULE_OK) return fpr_true;
+	}
+	context_save(&context);
+
 	return fpr_false;
 }
 
@@ -204,26 +227,26 @@ void http_req(client_t* c) {
 }
 
 void http_req_set_header(fr_request_t* req, const char* key, const char* value) {
-	int   ind = shgeti(req->headers, key);
-	char* v	  = fpr_strdup(value);
-	if(ind != -1) free(req->headers[ind].value);
+	char* v = fpr_strdup(value);
+	int   ind;
+	if((ind = shgeti(req->headers, key)) != -1) free(req->headers[ind].value);
 	shdel(req->headers, key);
 	shput(req->headers, key, v);
 }
 
-const char* http_req_get_header(fr_request_t* req, const char* key) {
+char* http_req_get_header(fr_request_t* req, const char* key) {
 	return shget(req->headers, key);
 }
 
 void http_res_set_header(fr_response_t* res, const char* key, const char* value) {
-	int   ind = shgeti(res->headers, key);
-	char* v	  = fpr_strdup(value);
-	if(ind != -1) free(res->headers[ind].value);
+	char* v = fpr_strdup(value);
+	int   ind;
+	if((ind = shgeti(res->headers, key)) != -1) free(res->headers[ind].value);
 	shdel(res->headers, key);
 	shput(res->headers, key, v);
 }
 
-const char* http_res_get_header(fr_response_t* res, const char* key) {
+char* http_res_get_header(fr_response_t* res, const char* key) {
 	return shget(res->headers, key);
 }
 

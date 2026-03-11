@@ -107,6 +107,18 @@ struct fpr_sockaddr_un {
 	char	       sun_path[104];
 };
 
+/* stat.c definitions */
+#define FPR_S_IFREG (1 << 0)
+#define FPR_S_IFDIR (1 << 1)
+#define FPR_S_ISREG(x) ((x) & FPR_S_IFREG)
+#define FPR_S_ISDIR(x) ((x) & FPR_S_IFDIR)
+
+struct fpr_stat {
+	long st_size;
+	long st_mtime;
+	int  st_mode;
+};
+
 /* poll.c */
 int fpr_poll(struct fpr_pollfd* fds, int nfds, int timeout);
 
@@ -144,6 +156,9 @@ int   fpr_dlclose(void* handle);
 
 /* unistd.c */
 int fpr_gethostname(char* name, int namelen);
+
+/* stat.c */
+int fpr_stat(const char* path, struct fpr_stat* s);
 
 /* wildcard.c */
 fpr_bool fpr_wildcard(const char* wildcard, const char* target);
