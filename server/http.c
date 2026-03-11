@@ -5,6 +5,8 @@
 void http_init(client_t* c) {
 	sh_new_strdup(c->request.headers);
 	shdefault(c->request.headers, NULL);
+	sh_new_strdup(c->response.headers);
+	shdefault(c->response.headers, NULL);
 }
 
 void http_end(client_t* c) {
@@ -13,6 +15,10 @@ void http_end(client_t* c) {
 		if(c->request.headers[i].value != NULL) free(c->request.headers[i].value);
 	}
 	shfree(c->request.headers);
+	for(i = 0; i < shlen(c->response.headers); i++) {
+		if(c->response.headers[i].value != NULL) free(c->response.headers[i].value);
+	}
+	shfree(c->response.headers);
 }
 
 fpr_bool http_got(client_t* c, void* buffer, int size) {
@@ -150,16 +156,40 @@ fpr_bool http_got(client_t* c, void* buffer, int size) {
 	return fpr_true;
 }
 
-static fpr_bool proc_hooks(fr_hook_t* hooks){
+static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
 	return fpr_false;
 }
 
 void http_req(client_t* c) {
-	if(proc_hooks(module_first_hooks)){
-	}else if(proc_hooks(module_middle_hooks)){
-	}else if(proc_hooks(module_last_hooks)){
-	}else{
 
-		return;
+	c->response.status_code = 500;
+	strcpy(c->response.status_text, "Internal Server Error");
+
+	if(proc_hooks(module_first_hooks, c)) {
+	} else if(proc_hooks(module_middle_hooks, c)) {
+	} else if(proc_hooks(module_last_hooks, c)) {
+	} else {
 	}
+}
+
+void http_req_set_header(fr_request_t* req, const char* key, const char* value) {
+	int ind = shgeti(req->headers, key);
+	if(ind != -1) free(req->headers[ind].value);
+	shdel(req->headers, key);
+	shput(req->headers, key, (char*)value);
+}
+
+const char* http_req_get_header(fr_request_t* req, const char* key) {
+	return shget(req->headers, key);
+}
+
+void http_res_set_header(fr_response_t* res, const char* key, const char* value) {
+	int ind = shgeti(res->headers, key);
+	if(ind != -1) free(res->headers[ind].value);
+	shdel(res->headers, key);
+	shput(res->headers, key, (char*)value);
+}
+
+const char* http_res_get_header(fr_response_t* res, const char* key) {
+	return shget(res->headers, key);
 }

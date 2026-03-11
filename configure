@@ -149,6 +149,7 @@ cat > config.h << EOF
 #define MAX_PATH_LENGTH 1024
 #define MAX_QUERY_LENGTH 1024
 #define MAX_VERSION_LENGTH 8 /* you DO NOT have to change this... */
+#define MAX_STATUS_TEXT_LENGTH 1024
 
 /* Modules to embed - also edit config.mk */
 #define MODULES \\

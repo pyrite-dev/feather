@@ -34,7 +34,7 @@ typedef struct fr_config_section_vhost fr_config_section_vhost_t;
 typedef struct fr_config	       fr_config_t;
 typedef struct fr_context	       fr_context_t;
 
-typedef int(*fr_hook_t)(fr_context_t* context, fr_request_t* req, fr_response_t* res);
+typedef int (*fr_hook_t)(fr_context_t* context, fr_request_t* req, fr_response_t* res);
 
 struct fr_stringkv {
 	char* key;
@@ -57,6 +57,9 @@ struct fr_request {
 };
 
 struct fr_response {
+	int	       status_code;
+	char	       status_text[MAX_STATUS_TEXT_LENGTH + 1];
+	fr_stringkv_t* headers;
 };
 
 struct fr_config_section_vhost {
@@ -145,8 +148,9 @@ struct client {
 
 	int port;
 
-	fr_request_t request;
-	char	     header[LINE_SIZE + 1]; /* do not access this unless you know what this is ... */
+	fr_request_t  request;
+	fr_response_t response;
+	char	      header[LINE_SIZE + 1]; /* do not access this unless you know what this is ... */
 };
 
 struct clientkv {
@@ -203,10 +207,14 @@ SSL_CTX* ssl_create_context(int port);
 #endif
 
 /* http.c */
-void	 http_init(client_t* c);
-void	 http_end(client_t* c);
-fpr_bool http_got(client_t* c, void* buffer, int size);
-void	 http_req(client_t* c);
+void	    http_init(client_t* c);
+void	    http_end(client_t* c);
+fpr_bool    http_got(client_t* c, void* buffer, int size);
+void	    http_req(client_t* c);
+void	    http_req_set_header(fr_request_t* req, const char* key, const char* value);
+const char* http_req_get_header(fr_request_t* req, const char* key);
+void	    http_res_set_header(fr_response_t* res, const char* key, const char* value);
+const char* http_res_get_header(fr_response_t* res, const char* key);
 
 /* mime.c */
 extern fr_stringkv_t* mime_types;
@@ -216,9 +224,9 @@ void mime_close(void);
 
 /* module.c */
 extern fr_module_t** module_modules;
-extern fr_hook_t* module_first_hooks;
-extern fr_hook_t* module_middle_hooks;
-extern fr_hook_t* module_last_hooks;
+extern fr_hook_t*    module_first_hooks;
+extern fr_hook_t*    module_middle_hooks;
+extern fr_hook_t*    module_last_hooks;
 
 void module_init(void);
 void module_load(fr_module_t* module);
