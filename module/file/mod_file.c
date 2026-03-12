@@ -5,11 +5,11 @@
 #define TRY_LOOKUPARR(x,y) ((x) == NULL ? NULL : context->stringarraykv_lookup((x)->arraykv, (y)))
 
 static int file_body_stream(fr_response_t* res, unsigned char* buffer, int size){
-	return fread(buffer, 1, size, res->body_opaque);
+	return fpr_fread(buffer, 1, size, res->body_opaque);
 }
 
 static void file_cleanup(fr_response_t* res){
-	fclose(res->body_opaque);
+	fpr_fclose(res->body_opaque);
 }
 
 static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* path){

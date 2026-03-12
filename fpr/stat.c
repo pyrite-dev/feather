@@ -14,10 +14,13 @@ int fpr_stat(const char* path, struct fpr_stat* s) {
 	s->st_modtime = (mtime.QuadPart / 10000000) / 11644473600;
 	s->st_mode    = 0;
 
-	if(fad.dwFileAttributes & FILE_ATTRIBUTE_NORMAL) s->st_mode |= FPR_S_IFREG;
-	if(fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) s->st_mode |= FPR_S_IFDIR;
+	s->st_mode |= FPR_S_IFREG;
+	if(fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+		s->st_mode &= ~FPR_S_IFREG;
+		s->st_mode |= FPR_S_IFDIR;
+	}
 
-	if(fad.dwFileAttributes & FILE_ATTRIBUTE_NORMAL) {
+	if(FPR_S_ISREG(s->st_mode)) {
 		FPR_FILE* f = fpr_fopen(path, "r"); /* :))))))) */
 		s->st_size  = GetFileSize((HANDLE)f, NULL);
 		fpr_fclose(f);

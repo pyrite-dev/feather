@@ -32,7 +32,7 @@ int fpr_fread(void* ptr, int size, int nmemb, FPR_FILE* stream) {
 #if defined(_WIN32)
 	DWORD dw;
 
-	ReadFile((HANDLE)stream, ptr, size, &dw, NULL);
+	if(!ReadFile((HANDLE)stream, ptr, size * nmemb, &dw, NULL)) return -1;
 
 	return dw;
 #else
@@ -44,7 +44,7 @@ int fpr_fwrite(const void* ptr, int size, int nmemb, FPR_FILE* stream) {
 #if defined(_WIN32)
 	DWORD dw;
 
-	WriteFile((HANDLE)stream, ptr, size, &dw, NULL);
+	if(!WriteFile((HANDLE)stream, ptr, size * nmemb, &dw, NULL)) return -1;
 
 	return dw;
 #else

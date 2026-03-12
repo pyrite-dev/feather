@@ -18,8 +18,8 @@ mod_$(MODULE)$(SO): $(OBJS) ../fpr/$(LIB)fpr$(A)
 	$(CC) $(CFLAGS) $(PIC) $(INCDIR)../../fpr $(INCDIR)../../server $(INCDIR)../../external/stb -c -o $@ $<
 
 install:
-	mkdir -p $(PREFIX)/lib/fhttpd
-	-cp *.so *.dll $(PREFIX)/lib/fhttpd/
+	mkdir -p $(DESTDIR)$(PREFIX)/lib/fhttpd
+	-cp *.so *.dll $(DESTDIR)$(PREFIX)/lib/fhttpd/
 
 clean:
 	rm -f *.o mod_$(MODULE)$(A) mod_$(MODULE)$(SO)

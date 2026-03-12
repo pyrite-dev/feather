@@ -17,10 +17,10 @@ $(LIB)fpr$(A): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 
 install:
-	mkdir -p $(PREFIX)/bin
-	mkdir -p $(PREFIX)/lib
-	-cp *.dll $(PREFIX)/bin/
-	-cp *.a *.so $(PREFIX)/lib/
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	mkdir -p $(DESTDIR)$(PREFIX)/lib
+	-cp *.dll $(DESTDIR)$(PREFIX)/bin/
+	-cp *.a *.so $(DESTDIR)$(PREFIX)/lib/
 
 clean:
 	rm -f *$(A) *$(O) *$(SO)

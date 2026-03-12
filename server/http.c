@@ -303,12 +303,14 @@ void http_send(client_t* c) {
 		l = c->response.body_size - c->response.body_seek;
 		if(l > BUFFER_SIZE) l = BUFFER_SIZE;
 
-		if(c->response.body != NULL) {
-			memcpy(chunk, r, l);
-		} else if(c->response.body_stream != NULL) {
-			c->response.body_stream(&c->response, chunk, l);
+		if(l > 0) {
+			if(c->response.body != NULL) {
+				memcpy(chunk, r, l);
+			} else if(c->response.body_stream != NULL) {
+				c->response.body_stream(&c->response, chunk, l);
+			}
+			server_write(c->fd, chunk, l);
 		}
-		server_write(c->fd, chunk, l);
 
 		c->response.body_seek += l;
 		if(c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;
