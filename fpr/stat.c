@@ -3,20 +3,23 @@
 
 int fpr_stat(const char* path, struct fpr_stat* s) {
 #if defined(_WIN32)
-	FILE_STAT_INFORMATION info;
+	WIN32_FILE_ATTRIBUTE_DATA fad;
+	ULARGE_INTEGER		  mtime;
 
-	if(!GetFileInformationByName(path, FileStatByNameInfo, &info, sizeof(info))) return -1;
+	if(!GetFileAttributesEx(path, GetFileExInfoStandard, &fad)) return -1;
+
+	memcpy(&mtime, &fad.ftLastWriteTime, sizeof(mtime));
 
 	s->st_size    = 0;
-	s->st_modtime = (info.QuadPart / 10000000) / 11644473600;
+	s->st_modtime = (mtime.QuadPart / 10000000) / 11644473600;
 	s->st_mode    = 0;
 
-	if(info.FileAttributes & FILE_ATTRIBUTE_NORMAL) s->st_mode |= FPR_S_IFREG;
-	if(info.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) s->st_mode |= FPR_S_IFDIR;
+	if(fad.dwFileAttributes & FILE_ATTRIBUTE_NORMAL) s->st_mode |= FPR_S_IFREG;
+	if(fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) s->st_mode |= FPR_S_IFDIR;
 
-	if(info.FileAttributes & FILE_ATTRIBUTE_NORMAL) {
+	if(fad.dwFileAttributes & FILE_ATTRIBUTE_NORMAL) {
 		FPR_FILE* f = fpr_fopen(path, "r"); /* :))))))) */
-		s->st_size  = GetFileSize((HANDLE)f);
+		s->st_size  = GetFileSize((HANDLE)f, NULL);
 		fpr_fclose(f);
 	}
 
