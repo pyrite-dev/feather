@@ -23,6 +23,13 @@ fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) $(RESFILE) .relink
 fhttpd.res: fhttpd.rc
 	$(RC) $(RCFLAGS) fhttpd.rc $@
 
+install.exe: fhttpd$(E) install.nsi
+	rm -rf tmp
+	cd .. ; $(MAKE) install DESTDIR=tmp/
+	sed -i 's%/usr/fhttpd%C:/Feather%g' tmp/C:/Feather/etc/fhttpd/fhttpd.conf
+	makensis install.nsi
+	rm -rf tmp
+
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(PREFIX)/etc/fhttpd
@@ -38,4 +45,4 @@ install: all
 	fi
 
 clean:
-	rm -f fhttpd$(E) *$(O) *.res .relink
+	rm -f fhttpd$(E) *$(O) *.res .relink install.exe

@@ -1,5 +1,5 @@
 .PHONY: all format pre distclean clean install
-.PHONY: fpr server module
+.PHONY: fpr server/install.exe server module
 
 all: pre fpr server module
 
@@ -16,6 +16,9 @@ pre:
 
 fpr: pre
 	cd $@ ; $(MAKE)
+
+server/install.exe: pre fpr module server
+	cd server ; $(MAKE) install.exe
 
 server: pre fpr module
 	cd $@ ; $(MAKE)
