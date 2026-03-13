@@ -3,6 +3,7 @@ PREFIX="/usr/fhttpd"
 TARGET="`uname -s`"
 EMBED="dso"
 SSLopt="define"
+MULTITHREADopt="define"
 
 AR='ar'
 ARFLAGS='rcs'
@@ -28,21 +29,8 @@ AFTER=''
 
 for i in "$@"; do
 	case "$i" in
-		--prefix=*)
-			PREFIX="`echo "$i" | cut -d= -f2-`"
-			;;
 		--target=*)
 			TARGET="`echo "$i" | cut -d= -f2-`"
-			;;
-		--enable-*)
-			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`opt="define"
-			;;
-		--disable-*)
-			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`opt="undef"
-			;;
-		*)
-			echo "Invalid argument"
-			exit 1
 			;;
 	esac
 done
@@ -50,6 +38,40 @@ done
 if [ -f "ostype/$TARGET.sh" ]; then
 	. ostype/$TARGET.sh
 fi
+
+for i in "$@"; do
+	case "$i" in
+		--prefix=*)
+			PREFIX="`echo "$i" | cut -d= -f2-`"
+			;;
+		--target=*)
+			;;
+		--enable-*)
+			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`opt="define"
+			;;
+		--disable-*)
+			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`opt="undef"
+			;;
+		--help)
+			echo "Usage: $0 [options]"
+			echo ""
+			echo "Options:"
+			echo "	--prefix=TARGET    Specify prefix"
+			echo "	--target=TARGET    Specify target"
+			echo "	--enable-OPTION    Enable option"
+			echo "	--disable-OPTION   Disable option"
+			echo "	--help             Show this help"
+			echo ""
+			echo "Tunable options:"
+			echo "	ssl multithread"
+			exit 0
+			;;
+		*)
+			echo "Invalid argument"
+			exit 1
+			;;
+	esac
+done
 
 if [ "$SSLopt" = "define" ]; then
 	SSL='$(LINK)ssl $(LINK)crypto'
