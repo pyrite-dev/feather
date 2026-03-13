@@ -27,8 +27,8 @@ pipeline {
 					steps {
 						sh("make distclean")
 						sh("./configure --prefix=C:/Feather --target=Watcom --disable-ssl")
-						sh("make -j4 server/install.exe")
-						sh("mv server/install.exe install-win32.exe")
+						sh("make -j4 package/install.exe")
+						sh("mv package/install.exe install-win32.exe")
 						archiveArtifacts("install-win32.exe")
 					}
 				}
@@ -43,8 +43,8 @@ pipeline {
 					steps {
 						sh("make distclean")
 						sh("./configure --prefix=ms0:/PSP/GAME/fhttpd --target=PSP --disable-ssl")
-						sh("make -j4 server/fhttpd-psp.zip")
-						sh("mv server/fhttpd-psp.zip ./")
+						sh("make -j4 package/fhttpd-psp.zip")
+						sh("mv package/fhttpd-psp.zip ./")
 						archiveArtifacts("fhttpd-psp.zip")
 					}
 				}
