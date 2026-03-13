@@ -273,7 +273,7 @@ void http_send(client_t* c) {
 		free(txt);
 
 		for(i = 0; i < shlen(c->response.headers); i++) {
-			txt = malloc(strlen(c->response.headers[i].key) + 2 + strlen(c->response.headers[i].key) + 2 + 1);
+			txt = malloc(strlen(c->response.headers[i].key) + 2 + strlen(c->response.headers[i].value) + 2 + 1);
 			sprintf(txt, "%s: %s\r\n", c->response.headers[i].key, c->response.headers[i].value);
 			server_write(c->fd, txt, strlen(txt));
 			free(txt);
