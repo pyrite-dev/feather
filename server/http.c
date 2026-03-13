@@ -9,6 +9,10 @@ void http_init(client_t* c) {
 	sh_new_strdup(c->request.headers);
 	shdefault(c->request.headers, NULL);
 
+	c->request.body	     = NULL;
+	c->request.body_seek = 0;
+	c->request.body_size = -1;
+
 	sh_new_strdup(c->response.headers);
 	shdefault(c->response.headers, NULL);
 
@@ -29,6 +33,11 @@ void http_end(client_t* c) {
 		if(c->request.headers[i].value != NULL) free(c->request.headers[i].value);
 	}
 	shfree(c->request.headers);
+
+	if(c->request.body != NULL) {
+		free(c->request.body);
+		c->request.body = NULL;
+	}
 
 	for(i = 0; i < shlen(c->response.headers); i++) {
 		if(c->response.headers[i].value != NULL) free(c->response.headers[i].value);
@@ -174,7 +183,7 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 					memset(c->header, 0, len);
 				} else {
 					const char* k = "content-length";
-					char*	    v = shget(c->request.headers, k);
+					char*	    v = http_req_get_header(&c->request, k);
 
 					if(v == NULL) {
 						*last = i + 1;
@@ -185,6 +194,10 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 					} else {
 						/* content-type exists */
 						c->state = CS_GOT_HEADER;
+
+						c->request.body	     = malloc(atoi(v));
+						c->request.body_seek = 0;
+						c->request.body_size = atoi(v);
 					}
 				}
 			} else if(buf[i] != '\r') {
@@ -195,6 +208,18 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 				}
 			}
 		} else if(c->state == CS_GOT_HEADER) {
+			if(c->request.body_size > 0) {
+				((unsigned char*)c->request.body)[c->request.body_seek] = buf[i];
+				c->request.body_seek++;
+			}
+
+			if(c->request.body_seek == c->request.body_size) {
+				*last = i + 1;
+
+				http_req(c);
+
+				return fpr_true;
+			}
 		}
 	}
 

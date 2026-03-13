@@ -62,6 +62,10 @@ struct fr_request {
 	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];
 	fr_stringkv_t* headers;
+
+	void* body;
+	int   body_seek;
+	int   body_size;
 };
 
 struct fr_response {
@@ -72,8 +76,8 @@ struct fr_response {
 	int (*body_stream)(fr_response_t* res, unsigned char* buffer, int size);
 	void* body;
 	void* body_opaque;
-	int   body_size;
 	int   body_seek;
+	int   body_size;
 
 	void (*cleanup)(fr_response_t* res);
 };
