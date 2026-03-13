@@ -31,23 +31,21 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 		for(i = 0; i < sizeof(errors) / sizeof(errors[0]); i++) {
 			if(errors[i].key == res->status_code) {
+				/* clang-format off */
 				char* doc = fpr_strvacat(
-				    "<html>\n"				 /**/
-				    "	<head>\n",			 /**/
-				    "		<title>",		 /**/
-				    errors[i].value,			 /**/
-				    "		</title>\n"		 /**/
-				    "	</head>\n"			 /**/
-				    "	<body>\n"			 /**/
-				    "		<h1>",			 /**/
-				    errors[i].value,			 /**/
-				    "		</h1>\n"		 /**/
-				    "		<hr>\n"			 /**/
-				    "		<i>" FR_SERVER "</i>\n", /**/
-				    "	</body>\n"			 /**/
-				    "</html>\n",			 /**/
-				    NULL				 /**/
+					"<html>\n"						/**/
+					"	<head>\n",					/**/
+					"		<title>", errors[i].value, "</title>\n" /**/
+					"	</head>\n"					/**/
+					"	<body>\n"					/**/
+					"		<h1>", errors[i].value, "</h1>\n"	/**/
+					"		<hr>\n		"			/**/
+					"		<i>" FR_SERVER "</i>\n",		/**/
+					"	</body>\n"					/**/
+					"</html>\n",						/**/
+					NULL							/**/
 				);
+				/* clang-format on */
 
 				res->body      = doc;
 				res->body_size = strlen(doc);
