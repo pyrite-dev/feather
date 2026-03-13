@@ -28,7 +28,7 @@ install.exe: fhttpd$(E) install.nsi
 	cd .. ; $(MAKE) install DESTDIR=`pwd`/server/tmp/
 	mv tmp/C:/Feather/etc tmp/etc
 	mv tmp/C:/Feather/www tmp/www
-	sed -i 's%/usr/fhttpd%C:/Feather%g' tmp/C:/Feather/etc/fhttpd/fhttpd.conf
+	sed -i 's%/usr/fhttpd%C:/Feather%g' tmp/etc/fhttpd/fhttpd.conf
 	makensis install.nsi
 	rm -rf tmp
 
