@@ -118,7 +118,6 @@ static int socket_recv(client_t* c, fpr_bool* changed) {
 		if(SSL_accept(c->ssl) > 0) {
 			c->state = CS_CONNECTED;
 		} else {
-			kill_client(c);
 			return 1;
 		}
 	} else
@@ -137,7 +136,21 @@ static int socket_recv(client_t* c, fpr_bool* changed) {
 			int st = c->state;
 			int last;
 
-			http_got(c, buf, len, &last);
+			if(!http_got(c, buf, len, &last)) {
+				c->state = CS_GOT_BODY;
+				last	 = 0;
+
+				strcpy(c->request.method, "GET");
+				strcpy(c->request.path, "bad_request");
+				strcpy(c->request.path_raw, c->request.path);
+				strcpy(c->request.version, "HTTP/1.1");
+
+				c->response.status_code = 400;
+				strcpy(c->response.status_text, "Bad Request");
+
+				http_req(c);
+			}
+
 			if(last > 0 && last < len) {
 				memcpy(c->leftover, buf, len);
 				c->leftover_seek = last;
@@ -159,7 +172,6 @@ static int socket_send(client_t* c, fpr_bool* changed) {
 	int st = c->state;
 
 	if(!http_send(c)) {
-		kill_client(c);
 		return 1;
 	}
 
@@ -187,11 +199,9 @@ static int socket_send(client_t* c, fpr_bool* changed) {
 				if(st != c->state && c->state == CS_GOT_BODY && changed != NULL) *changed = fpr_true;
 			}
 		} else {
-			kill_client(c);
 			return 1;
 		}
 #else
-		kill_client(c);
 		return 1;
 #endif
 	}
@@ -200,8 +210,14 @@ static int socket_send(client_t* c, fpr_bool* changed) {
 }
 
 static int socket_main(client_t* c, fpr_bool* changed, struct fpr_pollfd* pfd) {
-	if((pfd->revents & FPR_POLLIN) && socket_recv(c, changed)) return 1;
-	if((pfd->revents & FPR_POLLOUT) && socket_send(c, changed)) return 1;
+	if((pfd->revents & FPR_POLLIN) && socket_recv(c, changed)) {
+		kill_client(c);
+		return 1;
+	}
+	if((pfd->revents & FPR_POLLOUT) && socket_send(c, changed)) {
+		kill_client(c);
+		return 1;
+	}
 
 	return 0;
 }

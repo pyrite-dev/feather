@@ -57,6 +57,8 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 		}
 	} else {
 		strcpy(req->path, s);
+		fpr_url_encode(req->path_raw, s, MAX_PATH_LENGTH);
+
 		return FR_MODULE_LOOP;
 	}
 

@@ -53,6 +53,8 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 		if(c->state == CS_CONNECTED) {
 			if(buf[i] == ' ') {
 				c->state = CS_GOT_METHOD;
+			} else if(buf[i] == '\n') {
+				return fpr_false;
 			} else {
 				if(strlen(c->request.method) == MAX_METHOD_LENGTH) {
 					return fpr_false;
@@ -65,6 +67,8 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 				c->state = CS_GOT_QUERY;
 			} else if(buf[i] == '?') {
 				c->state = CS_GOT_PATH;
+			} else if(buf[i] == '\n') {
+				return fpr_false;
 			} else {
 				if(strlen(c->request.path_raw) == MAX_PATH_LENGTH) {
 					return fpr_false;
@@ -116,6 +120,8 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 		} else if(c->state == CS_GOT_PATH) {
 			if(buf[i] == ' ') {
 				c->state = CS_GOT_QUERY;
+			} else if(buf[i] == '\n') {
+				return fpr_false;
 			} else {
 				if(strlen(c->request.query) == MAX_QUERY_LENGTH) {
 					return fpr_false;

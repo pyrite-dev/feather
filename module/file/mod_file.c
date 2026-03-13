@@ -84,6 +84,8 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	int		i;
 	struct fpr_stat st;
 
+	if(req->path[0] != '/') return FR_MODULE_DECLINE;
+
 	if(s == NULL) s = TRY_LOOKUP(context->config_vhost, "DocumentRoot");
 	if(s == NULL) s = TRY_LOOKUP(context->config_root, "DocumentRoot");
 
