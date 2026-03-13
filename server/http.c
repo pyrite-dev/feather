@@ -212,9 +212,9 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
 void http_req(client_t* c) {
 	http_res_set_header(&c->response, "Server", FR_SERVER
 #ifdef HAS_SSL
-			" OpenSSL/" OPENSSL_FULL_VERSION_STR
-#endif	
-			);
+			    " OpenSSL/" OPENSSL_FULL_VERSION_STR
+#endif
+	);
 
 	if(proc_hooks(module_first_hooks, c)) {
 	} else if(proc_hooks(module_middle_hooks, c)) {
@@ -290,9 +290,9 @@ void http_send(client_t* c) {
 			free(txt);
 		}
 
-		if(c->response.body_size != -1) {
+		if(c->response.body_size != -1 || (c->response.body_stream == NULL && c->response.body == NULL)) {
 			txt = malloc(128);
-			sprintf(txt, "Content-Length: %d\r\n", c->response.body_size);
+			sprintf(txt, "Content-Length: %d\r\n", c->response.body_size < 0 ? 0 : c->response.body_size);
 			server_write(c->fd, txt, strlen(txt));
 			free(txt);
 		}
@@ -300,10 +300,19 @@ void http_send(client_t* c) {
 		server_write(c->fd, "\r\n", 2);
 
 		c->state = CS_SENT_HEADER;
+
+		if(c->response.body_stream == NULL && c->response.body == NULL) {
+			c->state = CS_CONNECTED;
+		}
 	} else if(c->state == CS_SENT_HEADER) {
 		char  chunk[BUFFER_SIZE];
 		char* r = c->response.body;
 		int   l;
+
+		if(strcmp(c->request.method, "HEAD") == 0) {
+			c->state = CS_CONNECTED;
+			return;
+		}
 
 		r += c->response.body_seek;
 

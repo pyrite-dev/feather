@@ -17,6 +17,31 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	char* s;
 	char* ext;
 	char* mime = NULL;
+	const char* day[] = {
+		"Sun",
+		"Mon",
+		"Tue",
+		"Wed",
+		"Thu",
+		"Fri",
+		"Sat"
+	};
+	const char* mon[] = {
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec"
+	};
+	char date[128];
+	struct tm tm;
 
 	if(fpr_stat(path, &st) != 0) return;
 
@@ -28,7 +53,7 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	}
 
 	if(mime != NULL){
-		context->stringkv_set(&res->headers, "Content-Type", mime);
+		context->response_set_header(res, "Content-Type", mime);
 	}
 
 	if(res->status_code == 0){
@@ -36,9 +61,14 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 		strcpy(res->status_text, "OK");
 	}
 
+	tm = *gmtime(&st.st_modtime);
+
 	res->body_stream = file_body_stream;
 	res->body_opaque = fpr_fopen(path, "rb");
 	res->body_size = st.st_size;
+
+	sprintf(date, "%s, %02d %s %d %02d:%02d:%02d GMT", day[tm.tm_wday], tm.tm_mday, mon[tm.tm_mon], 1900 + tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	context->response_set_header(res, "Last-Modified", date);
 
 	res->cleanup = file_cleanup;
 
