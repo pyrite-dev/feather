@@ -39,7 +39,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 					"	</head>\n"					/**/
 					"	<body>\n"					/**/
 					"		<h1>", errors[i].value, "</h1>\n"	/**/
-					"		<hr>\n		"			/**/
+					"		<hr>\n"					/**/
 					"		<i>" FR_SERVER "</i>\n",		/**/
 					"	</body>\n"					/**/
 					"</html>\n",						/**/
