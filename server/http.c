@@ -210,7 +210,11 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
 }
 
 void http_req(client_t* c) {
-	http_res_set_header(&c->response, "Server", FR_SERVER);
+	http_res_set_header(&c->response, "Server", FR_SERVER
+#ifdef HAS_SSL
+			" OpenSSL/" OPENSSL_FULL_VERSION_STR
+#endif	
+			);
 
 	if(proc_hooks(module_first_hooks, c)) {
 	} else if(proc_hooks(module_middle_hooks, c)) {
