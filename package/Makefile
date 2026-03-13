@@ -15,7 +15,7 @@ install.exe: ../server/fhttpd$(E) install.nsi
 
 fhttpd-psp.zip: fhttpd.pbp
 	rm -rf tmp
-	make install DESTDIR=`pwd`/tmp/
+	cd .. ; $(MAKE) install DESTDIR=`pwd`/package/tmp/
 	rm -rf tmp/ms0:/PSP/GAME/fhttpd/bin
 	cp fhttpd.pbp tmp/ms0:/PSP/GAME/fhttpd/EBOOT.PBP
 	sed -i 's%/usr/fhttpd%$(PREFIX)%g' tmp/ms0:/PSP/GAME/fhttpd/etc/fhttpd/fhttpd.conf
