@@ -2,6 +2,7 @@
 /config.mk
 /server/fhttpd
 /server/.relink
+*.zip
 *.pbp
 *.elf
 *.sfo

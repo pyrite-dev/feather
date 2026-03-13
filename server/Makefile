@@ -32,6 +32,19 @@ install.exe: fhttpd$(E) install.nsi
 	makensis install.nsi
 	rm -rf tmp
 
+fhttpd-psp.zip: fhttpd.pbp
+	rm -rf tmp
+	make install DESTDIR=`pwd`/tmp/
+	rm -rf tmp/ms0:/PSP/GAME/fhttpd/bin
+	cp fhttpd.pbp tmp/ms0:/PSP/GAME/fhttpd/EBOOT.PBP
+	sed -i 's%/usr/fhttpd%$(PREFIX)%g' tmp/ms0:/PSP/GAME/fhttpd/etc/fhttpd/fhttpd.conf
+	echo 'Feather HTTPd for PSP' > tmp/ms0:/PSP/GAME/fhttpd/README
+	echo '========================' >> tmp/ms0:/PSP/GAME/fhttpd/README
+	echo 'To install, just copy this `fhttpd'"'"' folder into your /PSP/GAME of the PSP memorystick.' >> tmp/ms0:/PSP/GAME/fhttpd/README
+	echo 'lib/include folders are not required to run the HTTPd.' >> tmp/ms0:/PSP/GAME/fhttpd/README
+	cd tmp/ms0:/PSP/GAME/ && zip -rv ../../../../fhttpd-psp.zip .
+	rm -rf tmp
+
 fhttpd_strip$(E): fhttpd$(E)
 	$(STRIP) fhttpd$(E) -o $@
 

@@ -43,18 +43,8 @@ pipeline {
 					steps {
 						sh("make distclean")
 						sh("./configure --prefix=ms0:/PSP/GAME/fhttpd --target=PSP --disable-ssl")
-						sh("make -j4 server/fhttpd.pbp")
-						sh("rm -rf tmp")
-						sh("make install DESTDIR=`pwd`/tmp/")
-						sh("rm -rf tmp/ms0:/PSP/GAME/fhttpd/bin")
-						sh("mv server/fhttpd.pbp tmp/ms0:/PSP/GAME/fhttpd/EBOOT.PBP")
-						sh("sed -i 's%/usr/fhttpd%ms0:/PSP/GAME/fhttpd%g' tmp/ms0:/PSP/GAME/fhttpd/etc/fhttpd/fhttpd.conf")
-						sh("echo 'Feather HTTPd for PSP' > tmp/ms0:/PSP/GAME/fhttpd/README")
-						sh("echo '========================' >> tmp/ms0:/PSP/GAME/fhttpd/README")
-						sh("echo 'To install, just copy this `fhttpd'\"'\"' folder into your /PSP/GAME of the PSP memorystick.' >> tmp/ms0:/PSP/GAME/fhttpd/README")
-						sh("echo 'lib/include folders are not required to run the HTTPd.' >> tmp/ms0:/PSP/GAME/fhttpd/README")
-						sh("cd tmp/ms0:/PSP/GAME/ && zip -rv ../../../../fhttpd-psp.zip .")
-						sh("rm -rf tmp")
+						sh("make -j4 server/fhttpd-psp.zip")
+						sh("mv server/fhttpd-psp.zip ./")
 						archiveArtifacts("fhttpd-psp.zip")
 					}
 				}
