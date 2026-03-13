@@ -66,19 +66,30 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 			} else if(buf[i] == '?') {
 				c->state = CS_GOT_PATH;
 			} else {
-				if(strlen(c->request.path) == MAX_PATH_LENGTH) {
+				if(strlen(c->request.path_raw) == MAX_PATH_LENGTH) {
 					return fpr_false;
 				} else {
-					c->request.path[strlen(c->request.path)] = buf[i] == '\\' ? '/' : buf[i];
+					c->request.path_raw[strlen(c->request.path_raw)] = buf[i] == '\\' ? '/' : buf[i];
 				}
 			}
 
 			if(c->state != CS_GOT_METHOD) {
+				const char* reserved[] = {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", NULL};
+				int	    j;
+
+				for(j = 0; c->request.path_raw[j] != 0; j++) {
+					if(c->request.path_raw[j] == '\\') c->request.path_raw[j] = '/';
+				}
+
+				if(!fpr_url_decode(c->request.path, c->request.path_raw, MAX_PATH_LENGTH)) return fpr_false;
+
+				for(j = 0; c->request.path[j] != 0; j++) {
+					if(c->request.path[j] == '\\') c->request.path[j] = '/';
+				}
+
 				/* poor but effective way to prevent path traversal
 				 * and windows' reserved name :)
 				 */
-				const char* reserved[] = {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", NULL};
-				int	    j;
 
 				if(c->request.path[0] != '/') return fpr_false;
 				if(strlen(c->request.path) >= 4 && strstr(c->request.path, "/../") != NULL) return fpr_false;
@@ -188,12 +199,15 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, int* loop) {
 	int	     i;
 	fr_context_t context;
 	const char*  host = http_req_get_header(&c->request, "host");
+	char	     hostname[1024];
+
+	fpr_gethostname(hostname, 1024);
 
 	*loop = 0;
 
 	context_init(&context);
 
-	context.config_vhost = config_vhost_match(host, c->port);
+	context.config_vhost = config_vhost_match(host == NULL ? hostname : host, c->port);
 
 	for(i = 0; i < arrlen(hooks); i++) {
 		int st = hooks[i](&context, &c->request, &c->response);
@@ -247,6 +261,8 @@ void http_req(client_t* c) {
 			c->response.body_size = strlen(c->response.body);
 		}
 	} while(loop);
+
+	log_srv("\"%s %s %s\" %d", c->request.method, c->request.path_raw, c->request.version, c->response.status_code);
 
 	c->state = CS_GOT_BODY;
 }

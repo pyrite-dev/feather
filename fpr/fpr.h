@@ -166,6 +166,9 @@ void  fpr_thread_detach(void* handle); /* this also frees the thread */
 void  fpr_thread_join(void* handle);
 void  fpr_thread_destroy(void* handle);
 
+/* url.c */
+fpr_bool fpr_url_decode(char* out, const char* input, int len);
+
 /* wildcard.c */
 fpr_bool fpr_wildcard(const char* wildcard, const char* target);
 

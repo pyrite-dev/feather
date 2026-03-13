@@ -5,7 +5,7 @@ include ../config.mk
 .PHONY: all install clean
 .SUFFIXES: .c $(O)
 
-OBJS = poll$(O) file$(O) socket$(O) arpa$(O) string$(O) dlfcn$(O) unistd$(O) stat$(O) thread$(O)
+OBJS = poll$(O) file$(O) socket$(O) arpa$(O) string$(O) dlfcn$(O) unistd$(O) stat$(O) thread$(O) url$(O)
 OBJS += wildcard$(O)
 
 all: $(LIB)fpr$(A)
