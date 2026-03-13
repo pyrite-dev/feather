@@ -262,7 +262,7 @@ void server_loop(void) {
 		}
 
 		if(cli_count != hmlen(server_clients)) {
-			cli_count = arrlen(server_clients);
+			cli_count = hmlen(server_clients);
 			changed	  = fpr_true;
 		}
 
