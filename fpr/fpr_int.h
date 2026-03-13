@@ -9,11 +9,15 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdarg.h>
+
 #if !defined(_WIN32)
 #include <unistd.h>
-#include <dlfcn.h>
 #include <signal.h>
 #include <sys/stat.h>
+
+#if !defined(FPR_DL_IS_DUMMY)
+#include <dlfcn.h>
+#endif
 #endif
 
 /* thread section */
@@ -40,7 +44,10 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+#if !defined(_PSP)
 #include <sys/un.h>
+#endif
 #endif
 
 /* windows.h wants to be the last one included */

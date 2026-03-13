@@ -126,8 +126,10 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 	int		 len = 256;
 	struct sockaddr* sa  = (struct sockaddr*)buffer;
 	int		 r;
+	socklen_t l = *addrlen;
 
-	r = accept(s, sa, &len);
+	r = accept(s, sa, &l);
+	*addrlen = l;
 
 	if(r < 0) return r;
 

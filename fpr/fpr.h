@@ -7,6 +7,10 @@
 #define fpr_newline "\n"
 #endif
 
+#if defined(_PSP)
+#define FPR_DL_IS_DUMMY
+#endif
+
 typedef unsigned char fpr_bool;
 #define fpr_false 0
 #define fpr_true 1
