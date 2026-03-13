@@ -5,7 +5,7 @@ include ../config.mk
 .PHONY: all clean install
 .SUFFIXES: .c $(O)
 
-OBJS = main$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) mime$(O) module$(O) context$(O) util$(O)
+OBJS = main$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) mime$(O) module$(O) context$(O) util$(O) machdep_psp$(O)
 OBJS += stb_ds$(O)
 
 all: fhttpd$(E)
@@ -28,7 +28,7 @@ install.exe: fhttpd$(E) install.nsi
 	cd .. ; $(MAKE) install DESTDIR=`pwd`/server/tmp/
 	mv tmp/C:/Feather/etc tmp/etc
 	mv tmp/C:/Feather/www tmp/www
-	sed -i 's%/usr/fhttpd%C:/Feather%g' tmp/etc/fhttpd/fhttpd.conf
+	sed -i 's%/usr/fhttpd%$(PREFIX)%g' tmp/etc/fhttpd/fhttpd.conf
 	makensis install.nsi
 	rm -rf tmp
 

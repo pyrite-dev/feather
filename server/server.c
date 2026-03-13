@@ -257,7 +257,7 @@ void server_loop(void) {
 	int		   cli_count = 0;
 	struct fpr_pollfd* pfd	     = NULL;
 
-	while(1) {
+	while(running) {
 		fpr_bool changed = fpr_false;
 
 		if(pfd != NULL) {

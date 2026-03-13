@@ -1,13 +1,7 @@
 #include <fhttpd.h>
 
-#if defined(_PSP)
-#include <pspkernel.h>
-
-PSP_MODULE_INFO("Feather HTTPd", PSP_MODULE_USER, 1, 1);
-PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER);
-#endif
-
-char* argv0;
+char*	 argv0;
+fpr_bool running = fpr_true;
 
 int main(int argc, char** argv) {
 	int	    i;
@@ -36,19 +30,23 @@ int main(int argc, char** argv) {
 			printf("-C file     : Specify config file\n");
 			printf("-d          : Do not daemonize\n");
 			printf("-V -h       : Version/help information\n");
-			return 0;
+			EXIT(0);
 		} else if(strcmp(argv[i], "-C") == 0) {
 			if((conf = argv[++i]) == NULL) {
 				fprintf(stderr, "%s: -C needs argument\n", argv[0]);
-				return 1;
+				EXIT(1);
 			}
 		} else if(strcmp(argv[i], "-d") == 0) {
 			daemonize = fpr_false;
 		} else {
 			fprintf(stderr, "%s: %s -- unknown option\n", argv[0], argv[i]);
-			return 1;
+			EXIT(1);
 		}
 	}
+
+#if defined(_PSP)
+	psp_init();
+#endif
 
 #if !defined(_WIN32)
 	signal(SIGPIPE, SIG_IGN);
@@ -58,9 +56,7 @@ int main(int argc, char** argv) {
 
 	module_init();
 
-	if(!config_parse(conf)) {
-		return 1;
-	}
+	if(!config_parse(conf)) EXIT(1);
 
 	log_init();
 	if(!daemonize) log_nofile();
@@ -79,9 +75,7 @@ int main(int argc, char** argv) {
 #endif
 	);
 
-	if(!server_init()) {
-		return 1;
-	}
+	if(!server_init()) EXIT(1);
 
 #if defined(FPR_HAS_FORK)
 	if(daemonize && (pid = fork()) != 0) {
@@ -92,7 +86,7 @@ int main(int argc, char** argv) {
 		fpr_fwrite(buf, 1, strlen(buf), f);
 		fpr_fclose(f);
 
-		return 0;
+		EXIT(0);
 	}
 #endif
 
@@ -103,4 +97,8 @@ int main(int argc, char** argv) {
 	server_close();
 	config_close();
 	log_close();
+
+	EXIT(0);
+
+	return 0;
 }

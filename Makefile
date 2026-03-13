@@ -1,5 +1,5 @@
 .PHONY: all format pre distclean clean install
-.PHONY: fpr server/install.exe server module
+.PHONY: fpr server/install.exe serve/fhttpd.pbp server module
 
 all: pre fpr server module
 

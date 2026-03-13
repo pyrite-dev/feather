@@ -2,6 +2,10 @@
 /config.mk
 /server/fhttpd
 /server/.relink
+*.pbp
+*.elf
+*.sfo
+*.swp
 *.core
 *.exe
 *.a

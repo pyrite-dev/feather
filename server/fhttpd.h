@@ -137,7 +137,7 @@ struct fr_context {
 #include <time.h>
 #include <stdarg.h>
 #include <ctype.h>
-#ifndef _WIN32
+#if !defined(_WIN32)
 #include <unistd.h>
 #include <signal.h>
 #endif
@@ -202,7 +202,8 @@ struct clientkv {
 };
 
 /* main.c */
-extern char* argv0;
+extern char*	argv0;
+extern fpr_bool running;
 
 /* config.c */
 extern char*	    config_serverroot;
@@ -286,6 +287,28 @@ void   util_stringkv_set(fr_stringkv_t** kv, const char* key, const char* value)
 char** util_stringarraykv_lookup(fr_stringarraykv_t* arraykv, const char* key);
 void   util_stringarraykv_push(fr_stringarraykv_t* kv, const char* key, const char* value);
 int    util_stringarraykv_length(fr_stringarraykv_t* arraykv, const char* key);
+
+/* machdep_psp.c */
+#if defined(_PSP)
+void psp_init(void);
+void psp_wait(void);
+void psp_exit(int x);
+#endif
+
+/* wait routine for exit */
+#if defined(_PSP)
+#define EXIT(x) \
+	{ \
+		psp_wait(); \
+		psp_exit((x)); \
+	}
+#else
+#define EXIT(x) \
+	{ \
+		exit((x)); \
+	}
+#endif
+
 #endif
 #endif
 
