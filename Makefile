@@ -3,8 +3,6 @@
 
 all: pre fpr server module
 
-TARGET = `uname -s`
-
 format:
 	clang-format --verbose -i `find fpr server module -name "*.c" -or -name "*.h"`
 

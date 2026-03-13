@@ -214,5 +214,9 @@ cat >> config.h << EOF
 #define HAS_UNIX_SOCKET
 #endif
 
+/* PSP */
+#if defined(_PSP)
+#endif
+
 #endif
 EOF

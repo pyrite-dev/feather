@@ -32,6 +32,20 @@ pipeline {
 						archiveArtifacts("install-win32.exe")
 					}
 				}
+				stage("Build for PSP") {
+					agent {
+						label "built-in"
+					}
+					environment {
+						PSPDEV = "/usr/pspdev"
+						PATH = "/usr/pspdev/bin:${env.PATH}"
+					}
+					steps {
+						sh("make distclean")
+						sh("./configure --prefix=ms0:/PSP/GAME/Feather --target=PSP --disable-ssl")
+						sh("make -j4")
+					}
+				}
 			}
 			post {
 				always {
