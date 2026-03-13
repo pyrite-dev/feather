@@ -199,7 +199,6 @@ void server_loop(void) {
 									server_clients[ind].value.leftover_size = len;
 								} else {
 									server_clients[ind].value.leftover_seek = 0;
-									fwrite(buf, 1, len, stdout);
 								}
 
 								if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_GOT_BODY) changed = fpr_true;
