@@ -18,7 +18,7 @@ void http_init(client_t* c) {
 	c->response.body_stream = NULL;
 	c->response.body_opaque = NULL;
 	c->response.body_seek	= 0;
-	c->response.body_size	= 0;
+	c->response.body_size	= -1;
 
 	c->response.cleanup = NULL;
 }
@@ -286,7 +286,7 @@ void http_send(client_t* c) {
 			free(txt);
 		}
 
-		if(c->response.body != NULL) {
+		if(c->response.body_size != -1) {
 			txt = malloc(128);
 			sprintf(txt, "Content-Length: %d\r\n", c->response.body_size);
 			server_write(c->fd, txt, strlen(txt));
