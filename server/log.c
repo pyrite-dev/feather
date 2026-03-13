@@ -51,7 +51,7 @@ void log_vasrv(const char* fmt, va_list va) {
 
 	if(log_file == NULL) {
 #if defined(_PSP)
-		pspDebugScreenPrintf(stderr, "%s" fpr_newline, out);
+		pspDebugScreenPrintf("%s" fpr_newline, out);
 #else
 		fprintf(stderr, "%s" fpr_newline, out);
 #endif
