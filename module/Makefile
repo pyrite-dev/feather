@@ -13,7 +13,7 @@ $(MODULES):
 
 clean install:
 	for i in $(EMBED) $(MODULES); do \
-		cd $$i ; \
+		cd $$i || exit 1 ; \
 		$(MAKE) $@ || exit 1 ; \
 		cd .. ; \
 	done

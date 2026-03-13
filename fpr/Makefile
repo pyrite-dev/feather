@@ -19,8 +19,10 @@ $(LIB)fpr$(A): $(OBJS)
 install:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(PREFIX)/lib
+	mkdir -p $(DESTDIR)$(PREFIX)/include
 	-cp *.dll $(DESTDIR)$(PREFIX)/bin/
 	-cp *.a *.so $(DESTDIR)$(PREFIX)/lib/
+	cp *.h $(DESTDIR)$(PREFIX)/include/
 
 clean:
 	rm -f *$(A) *$(O) *$(SO)

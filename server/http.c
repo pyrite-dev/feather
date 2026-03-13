@@ -184,10 +184,12 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 	return fpr_true;
 }
 
-static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
+static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, int* loop) {
 	int	     i;
 	fr_context_t context;
 	const char*  host = http_req_get_header(&c->request, "host");
+
+	*loop = 0;
 
 	context_init(&context);
 
@@ -203,6 +205,10 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
 		if(st == FR_MODULE_ERROR) return fpr_false;
 		if(st == FR_MODULE_DECLINE) continue;
 		if(st == FR_MODULE_OK) return fpr_true;
+		if(st == FR_MODULE_LOOP) {
+			*loop = 1;
+			return fpr_true;
+		}
 	}
 	context_save(&context);
 
@@ -210,33 +216,37 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c) {
 }
 
 void http_req(client_t* c) {
+	int loop = 1;
+
 	http_res_set_header(&c->response, "Server", FR_SERVER
 #ifdef HAS_SSL
 			    " OpenSSL/" OPENSSL_FULL_VERSION_STR
 #endif
 	);
 
-	if(proc_hooks(module_first_hooks, c)) {
-	} else if(proc_hooks(module_middle_hooks, c)) {
-	} else if(proc_hooks(module_last_hooks, c)) {
-	} else {
-		c->response.status_code = 500;
-		strcpy(c->response.status_text, "Internal Server Error");
+	do {
+		if(proc_hooks(module_first_hooks, c, &loop)) {
+		} else if(proc_hooks(module_middle_hooks, c, &loop)) {
+		} else if(proc_hooks(module_last_hooks, c, &loop)) {
+		} else {
+			c->response.status_code = 500;
+			strcpy(c->response.status_text, "Internal Server Error");
 
-		http_res_set_header(&c->response, "Content-Type", "text/html");
+			http_res_set_header(&c->response, "Content-Type", "text/html");
 
-		c->response.body = fpr_strdup(
-		    "<html>\n"								 /**/
-		    "	<head>\n"							 /**/
-		    "		<title>Oops</title>\n"					 /**/
-		    "	</head>\n"							 /**/
-		    "	<body>\n"							 /**/
-		    "		No one handled the request... this should not happen!\n" /**/
-		    "	</body>\n"							 /**/
-		    "<html>\n"								 /**/
-		);
-		c->response.body_size = strlen(c->response.body);
-	}
+			c->response.body = fpr_strdup(
+			    "<html>\n"								 /**/
+			    "	<head>\n"							 /**/
+			    "		<title>Oops</title>\n"					 /**/
+			    "	</head>\n"							 /**/
+			    "	<body>\n"							 /**/
+			    "		No one handled the request... this should not happen!\n" /**/
+			    "	</body>\n"							 /**/
+			    "<html>\n"								 /**/
+			);
+			c->response.body_size = strlen(c->response.body);
+		}
+	} while(loop);
 
 	c->state = CS_GOT_BODY;
 }

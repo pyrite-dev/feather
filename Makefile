@@ -6,7 +6,7 @@ all: pre fpr server module
 TARGET = `uname -s`
 
 format:
-	clang-format --verbose -i `find fpr server -name "*.c" -or -name "*.h"`
+	clang-format --verbose -i `find fpr server module -name "*.c" -or -name "*.h"`
 
 pre:
 	@if [ ! -f "config.h" -o ! -f "config.mk" ]; then \

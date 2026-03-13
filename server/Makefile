@@ -26,6 +26,8 @@ fhttpd.res: fhttpd.rc
 install.exe: fhttpd$(E) install.nsi
 	rm -rf tmp
 	cd .. ; $(MAKE) install DESTDIR=`pwd`/server/tmp/
+	mv tmp/C:/Feather/etc tmp/etc
+	mv tmp/C:/Feather/www tmp/www
 	sed -i 's%/usr/fhttpd%C:/Feather%g' tmp/C:/Feather/etc/fhttpd/fhttpd.conf
 	makensis install.nsi
 	rm -rf tmp
@@ -33,6 +35,7 @@ install.exe: fhttpd$(E) install.nsi
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(PREFIX)/etc/fhttpd
+	mkdir -p $(DESTDIR)$(PREFIX)/include
 	cp fhttpd$(E) $(DESTDIR)$(PREFIX)/bin/
 	if [ ! -f "$(DESTDIR)$(PREFIX)/etc/fhttpd/fhttpd.conf" ]; then \
 		cp ../config/fhttpd.conf $(DESTDIR)$(PREFIX)/etc/fhttpd/ ; \
@@ -43,6 +46,7 @@ install: all
 	if [ ! -d "$(DESTDIR)$(PREFIX)/www" ]; then \
 		cp -r ../www $(DESTDIR)$(PREFIX)/www ; \
 	fi
+	cp *.h $(DESTDIR)$(PREFIX)/include/
 
 clean:
 	rm -f fhttpd$(E) *$(O) *.res .relink install.exe

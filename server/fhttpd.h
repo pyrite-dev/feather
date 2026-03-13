@@ -17,6 +17,7 @@ enum fr_module_return {
 	FR_MODULE_OK	  = 0,	/* Module handled the request */
 	FR_MODULE_DECLINE = -1, /* Module declined to handle the request */
 	FR_MODULE_ERROR	  = -2, /* Module raised an error */
+	FR_MODULE_LOOP	  = -3	/* Module says server should run hook again */
 };
 
 enum fr_module_hook_order {

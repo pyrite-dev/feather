@@ -28,6 +28,11 @@ Section
 	SetOutPath "$INSTDIR"
 	File /r tmp/C:/Feather/*
 
+	SetOverwrite Off
+	File /r tmp/etc
+	File /r tmp/www
+	SetOverwrite On
+
 	${If} ${RunningX64}
 		SetRegView 64
 	${Else}

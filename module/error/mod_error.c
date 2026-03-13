@@ -1,0 +1,94 @@
+#define _FHTTPD
+#include <fhttpd.h>
+
+#define TRY_LOOKUP(x, y) ((x) == NULL ? NULL : context->stringkv_lookup((x)->kv, (y)))
+
+typedef struct error {
+	int   key;
+	char* value;
+} error_t;
+
+static error_t errors[] =
+#include <fhttpd_status.h>
+    ;
+
+static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
+	char  lookup[512];
+	char* s = NULL;
+
+	if(res->status_code == 0) {
+		res->status_code = 404;
+		strcpy(res->status_text, "Not Found");
+	}
+
+	sprintf(lookup, "ErrorDocument%d", res->status_code);
+
+	if(s == NULL) s = TRY_LOOKUP(context->config_vhost, lookup);
+	if(s == NULL) s = TRY_LOOKUP(context->config_root, lookup);
+
+	if(s == NULL || strcmp(req->path, s) == 0) {
+		int i;
+
+		for(i = 0; i < sizeof(errors) / sizeof(errors[0]); i++) {
+			if(errors[i].key == res->status_code) {
+				char* doc = fpr_strvacat(
+				    "<html>\n"				 /**/
+				    "	<head>\n",			 /**/
+				    "		<title>",		 /**/
+				    errors[i].value,			 /**/
+				    "		</title>\n"		 /**/
+				    "	</head>\n"			 /**/
+				    "	<body>\n"			 /**/
+				    "		<h1>",			 /**/
+				    errors[i].value,			 /**/
+				    "		</h1>\n"		 /**/
+				    "		<hr>\n"			 /**/
+				    "		<i>" FR_SERVER "</i>\n", /**/
+				    "	</body>\n"			 /**/
+				    "</html>\n",			 /**/
+				    NULL				 /**/
+				);
+
+				res->body      = doc;
+				res->body_size = strlen(doc);
+
+				return FR_MODULE_OK;
+			}
+		}
+	} else {
+		strcpy(req->path, s);
+		return FR_MODULE_LOOP;
+	}
+
+	return FR_MODULE_DECLINE;
+}
+
+static int directive(fr_context_t* context, int argc, char** argv) {
+	if(strcmp(argv[0], "ErrorDocument") == 0) {
+		if(argc == 3) {
+			int  i;
+			char name[512];
+
+			sprintf(name, "ErrorDocument%d", atoi(argv[1]));
+
+			context->stringkv_set(&context->config_current->kv, name, argv[2]);
+		} else {
+			fprintf(stderr, "%s: %s: ErrorDocument takes 2 arguments\n", context->argv0, context->config_path);
+
+			return FR_MODULE_ERROR;
+		}
+
+		return FR_MODULE_OK;
+	}
+	return FR_MODULE_DECLINE;
+}
+
+static void register_hooks(fr_context_t* context) {
+	context->register_hook(hook, FR_MODULE_HOOK_LAST);
+}
+
+static fr_module_t module = {
+    FR_MODULE_VERSION_00,
+    directive,
+    register_hooks};
+fr_module_t* error_module = &module;
