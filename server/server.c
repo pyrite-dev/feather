@@ -219,7 +219,7 @@ void server_loop(void) {
 					http_send(&server_clients[ind].value);
 
 					if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_CONNECTED) {
-#if 1
+#if 0
 						const char* t = http_req_get_header(&server_clients[ind].value.request, "connection");
 
 						if(t != NULL && strcmp(t, "keep-alive") == 0) {

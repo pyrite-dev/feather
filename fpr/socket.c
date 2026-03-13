@@ -74,6 +74,9 @@ int fpr_send(int s, const void* msg, int len, int flags) {
 
 int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
 	int st = -1;
+	int yes = 1;
+
+	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (void*)&yes, sizeof(yes));
 
 	if(name->sa_family == FPR_AF_INET && namelen == sizeof(struct fpr_sockaddr_in)) {
 		struct fpr_sockaddr_in* addr = (struct fpr_sockaddr_in*)name;
