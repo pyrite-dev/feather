@@ -167,14 +167,6 @@ cat > config.h << EOF
 /* Multithreaded or not */
 #$MULTITHREADopt MULTITHREAD
 
-/* change them if your platform is not supported
- * ... and send us patch for your platform :)
- */
-#undef HAS_IPV6
-#undef HAS_POLL
-#undef HAS_FORK
-#undef HAS_UNIX_SOCKET
-
 /* this decides buffer size for config file and HTTP */
 #define BUFFER_SIZE 1024
 
@@ -197,28 +189,6 @@ done
 cat >> config.h << EOF
 	LOAD(file) \\
 	LOAD(error)
-
-/*
- * /!\ DO NOT CHANGE LINES BELOW THIS LINE /!\
- * /!\     UNLESS YOU ARE A MAINTAINER     /!\
- */
-
-/* Windows */
-#if defined(_WIN32)
-#define HAS_IPV6
-#endif
-
-/* NetBSD/OpenBSD/FreeBSD/Linux */
-#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__)
-#define HAS_IPV6
-#define HAS_POLL
-#define HAS_FORK
-#define HAS_UNIX_SOCKET
-#endif
-
-/* PSP */
-#if defined(_PSP)
-#endif
 
 #endif
 EOF

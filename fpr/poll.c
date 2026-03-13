@@ -2,7 +2,7 @@
 #include <fpr_int.h>
 
 int fpr_poll(struct fpr_pollfd* fds, int nfds, int timeout) {
-#ifdef HAS_POLL
+#if defined(FPR_HAS_POLL)
 	struct pollfd* pfds = malloc(sizeof(*pfds) * nfds);
 	int	       i;
 	int	       st;

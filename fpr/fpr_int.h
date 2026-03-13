@@ -22,7 +22,7 @@
 
 /* thread section */
 #if defined(_WIN32)
-#if !defined(USE_CREATETHREAD)
+#if !defined(FPR_USE_CREATETHREAD)
 #include <process.h>
 #endif
 #else
@@ -34,7 +34,7 @@
 #include <winsock2.h>
 #include <ws2ipdef.h>
 #else
-#if defined(HAS_POLL)
+#if defined(FPR_HAS_POLL)
 #include <poll.h>
 #else
 #include <sys/select.h>
@@ -45,7 +45,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#if !defined(_PSP)
+#if defined(FPR_HAS_UNIX_SOCKET)
 #include <sys/un.h>
 #endif
 #endif

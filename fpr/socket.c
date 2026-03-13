@@ -33,11 +33,11 @@ int fpr_socket(int domain, int type, int protocol) {
 	if(domain == FPR_PF_INET) {
 		d = PF_INET;
 	} else if(domain == FPR_PF_INET6) {
-#if defined(PF_INET6)
+#if defined(FPR_HAS_IPV6)
 		d = PF_INET6;
 #endif
 	} else if(domain == FPR_PF_UNIX) {
-#if defined(PF_UNIX)
+#if defined(FPR_HAS_UNIX_SOCKET)
 		d = PF_UNIX;
 #endif
 	}
@@ -88,7 +88,7 @@ int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
 
 		st = bind(s, (struct sockaddr*)&addr4, sizeof(addr4));
 	} else if(name->sa_family == FPR_AF_INET6 && namelen == sizeof(struct fpr_sockaddr_in6)) {
-#if defined(HAS_IPV6)
+#if defined(FPR_HAS_IPV6)
 		struct fpr_sockaddr_in6* addr = (struct fpr_sockaddr_in6*)name;
 		struct sockaddr_in6	 addr6;
 
@@ -101,7 +101,7 @@ int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
 		st = -1;
 #endif
 	} else if(name->sa_family == FPR_AF_UNIX && namelen == sizeof(struct fpr_sockaddr_un)) {
-#if defined(HAS_UNIX_SOCKET)
+#if defined(FPR_HAS_UNIX_SOCKET)
 		struct fpr_sockaddr_un* addr = (struct fpr_sockaddr_un*)name;
 		struct sockaddr_un	addru;
 
@@ -126,9 +126,14 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 	int		 len = 256;
 	struct sockaddr* sa  = (struct sockaddr*)buffer;
 	int		 r;
-	socklen_t l = *addrlen;
+#if defined(FPR_USE_SOCKLEN_T)
+	socklen_t l
+#else
+	int l
+#endif
+	    = *addrlen;
 
-	r = accept(s, sa, &l);
+	r	 = accept(s, sa, &l);
 	*addrlen = l;
 
 	if(r < 0) return r;
@@ -143,7 +148,7 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 
 		*addrlen = sizeof(*taddr);
 	} else if(sa->sa_family == AF_INET6) {
-#if defined(HAS_IPV6)
+#if defined(FPR_HAS_IPV6)
 		struct fpr_sockaddr_in6* taddr = (struct fpr_sockaddr_in6*)addr;
 		struct sockaddr_in6*	 addr6 = (struct sockaddr_in6*)buffer;
 
@@ -154,7 +159,7 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 		*addrlen = sizeof(*taddr);
 #endif
 	} else if(sa->sa_family == AF_UNIX) {
-#if defined(HAS_UNIX_SOCKET)
+#if defined(FPR_HAS_UNIX_SOCKET)
 		struct fpr_sockaddr_un* taddr = (struct fpr_sockaddr_un*)addr;
 		struct sockaddr_un*	addru = (struct sockaddr_un*)buffer;
 

@@ -6,11 +6,11 @@ void* fpr_dlopen(const char* path) {
 	return NULL;
 }
 
-void* fpr_dlsym(void* handle, const char* symbol){
+void* fpr_dlsym(void* handle, const char* symbol) {
 	return NULL;
 }
 
-int fpr_dlclose(void* handle){
+int fpr_dlclose(void* handle) {
 	return 1;
 }
 #else

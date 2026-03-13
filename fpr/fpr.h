@@ -7,8 +7,30 @@
 #define fpr_newline "\n"
 #endif
 
+#undef FPR_DL_IS_DUMMY
+#undef FPR_HAS_IPV6
+#undef FPR_HAS_POLL
+#undef FPR_HAS_FORK
+#undef FPR_HAS_UNIX_SOCKET
+#undef FPR_USE_SOCKLEN_T
+
 #if defined(_PSP)
 #define FPR_DL_IS_DUMMY
+#endif
+
+#if !defined(_WIN32)
+#define FPR_USE_SOCKLEN_T
+#endif
+
+#if defined(_WIN32)
+#define FPR_HAS_IPV6
+#endif
+
+#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__)
+#define FPR_HAS_IPV6
+#define FPR_HAS_POLL
+#define FPR_HAS_FORK
+#define FPR_HAS_UNIX_SOCKET
 #endif
 
 typedef unsigned char fpr_bool;

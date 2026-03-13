@@ -7,7 +7,7 @@ typedef struct arg {
 } arg_t;
 
 #if defined(_WIN32)
-#if defined(USE_CREATETHREAD)
+#if defined(FPR_USE_CREATETHREAD)
 static DWORD WINAPI thread_entry(void* _param) {
 #else
 static unsigned int WINAPI thread_entry(void* _param) {
@@ -39,7 +39,7 @@ static void* thread_entry(void* _param) {
 void* fpr_thread_create(void (*entry)(void* param), void* param) {
 #if defined(_WIN32)
 	arg_t* arg = malloc(sizeof(*arg));
-#if defined(USE_CREATETHREAD)
+#if defined(FPR_USE_CREATETHREAD)
 	DWORD id;
 #else
 	unsigned int id;
@@ -48,7 +48,7 @@ void* fpr_thread_create(void (*entry)(void* param), void* param) {
 	arg->entry = entry;
 	arg->param = param;
 
-#if defined(USE_CREATETHREAD)
+#if defined(FPR_USE_CREATETHREAD)
 	CreateThread
 #else
 	_beginthreadex

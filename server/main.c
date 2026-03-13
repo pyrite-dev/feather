@@ -6,7 +6,7 @@ int main(int argc, char** argv) {
 	int	    i;
 	const char* conf      = PREFIX "/etc/fhttpd/fhttpd.conf";
 	fpr_bool    daemonize = fpr_true;
-#ifdef HAS_FORK
+#if defined(FPR_HAS_FORK)
 	pid_t pid;
 #endif
 
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-#ifdef HAS_FORK
+#if defined(FPR_HAS_FORK)
 	if(daemonize && (pid = fork()) != 0) {
 		FPR_FILE* f = fpr_fopen(config_pidfile, "w");
 		char	  buf[512];
