@@ -83,11 +83,6 @@ void kill_client(int fd) {
 	}
 #endif
 
-	for(j = 0; j < shlen(server_clients[ind].value.request.headers); j++) {
-		if(server_clients[ind].value.request.headers[j].value != NULL) free(server_clients[ind].value.request.headers[j].value);
-	}
-	shfree(server_clients[ind].value.request.headers);
-
 	fpr_socket_close(fd);
 	hmdel(server_clients, fd);
 }
