@@ -16,6 +16,15 @@
 #include <sys/stat.h>
 #endif
 
+/* thread section */
+#if defined(_WIN32)
+#if !defined(USE_CREATETHREAD)
+#include <process.h>
+#endif
+#else
+#include <pthread.h>
+#endif
+
 /* socket section */
 #if defined(_WIN32)
 #include <winsock2.h>

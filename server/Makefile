@@ -17,7 +17,7 @@ all: fhttpd$(E)
 	touch $@
 
 fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) $(RESFILE) .relink
-	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr -o $@ $(OBJS) $(SSL) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(LIBS)
+	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr -o $@ $(OBJS) $(SSL) $(THREAD) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(LIBS)
 	$(AFTER)
 
 fhttpd.res: fhttpd.rc

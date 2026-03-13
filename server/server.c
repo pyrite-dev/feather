@@ -62,56 +62,174 @@ void server_close(void) {
 	fpr_socket_uninit();
 }
 
-void kill_client(int fd) {
-	int ind = hmgeti(server_clients, fd);
+static void kill_client(client_t* c) {
 	int j;
+	int fd = c->fd;
 
-	http_end(&server_clients[ind].value);
+	http_end(c);
 
 #if defined(HAS_SSL)
-	if(server_clients[ind].value.ssl != NULL) {
-		if(server_clients[ind].value.state > CS_WANT_SSL) {
+	if(c->ssl != NULL) {
+		if(c->state > CS_WANT_SSL) {
 			/* if it's larger than CS_WANT_SSL, client should be shut down using SSL_shutdown - probably */
-			SSL_shutdown(server_clients[ind].value.ssl);
+			SSL_shutdown(c->ssl);
 		}
 
-		SSL_free(server_clients[ind].value.ssl);
+		SSL_free(c->ssl);
 	}
 
-	if(server_clients[ind].value.ctx != NULL) {
-		SSL_CTX_free(server_clients[ind].value.ctx);
+	if(c->ctx != NULL) {
+		SSL_CTX_free(c->ctx);
 	}
 #endif
 
-	fpr_socket_close(fd);
+	fpr_socket_close(c->fd);
+#if !defined(MULTITHREAD)
 	hmdel(server_clients, fd);
+#endif
 }
 
-int server_read(int fd, void* buffer, int len) {
+int server_read(client_t* c, void* buffer, int len) {
 #if defined(HAS_SSL)
-	int ind = hmgeti(server_clients, fd);
-
-	if(server_clients[ind].value.ssl != NULL) {
-		return SSL_read(server_clients[ind].value.ssl, buffer, len);
+	if(c->ssl != NULL) {
+		return SSL_read(c->ssl, buffer, len);
 	} else
 #endif
 	{
-		return fpr_recv(fd, buffer, len, 0);
+		return fpr_recv(c->fd, buffer, len, 0);
 	}
 }
 
-int server_write(int fd, void* buffer, int len) {
+int server_write(client_t* c, void* buffer, int len) {
 #if defined(HAS_SSL)
-	int ind = hmgeti(server_clients, fd);
-
-	if(server_clients[ind].value.ssl != NULL) {
-		return SSL_write(server_clients[ind].value.ssl, buffer, len);
+	if(c->ssl != NULL) {
+		return SSL_write(c->ssl, buffer, len);
 	} else
 #endif
 	{
-		return fpr_send(fd, buffer, len, 0);
+		return fpr_send(c->fd, buffer, len, 0);
 	}
 }
+
+static int socket_recv(client_t* c, fpr_bool* changed) {
+#if defined(HAS_SSL)
+	/* probably handshake */
+	if(c->state == CS_WANT_SSL) {
+		if(SSL_accept(c->ssl) > 0) {
+			c->state = CS_CONNECTED;
+		} else {
+			return 1;
+		}
+	} else
+#endif
+	{
+		int	      len;
+		unsigned char buf[BUFFER_SIZE];
+
+		len = server_read(c, buf, BUFFER_SIZE);
+
+		if(len <= 0) {
+			return 1;
+		} else {
+			/* handle data */
+			int st = c->state;
+			int last;
+
+			http_got(c, buf, len, &last);
+			if(last > 0 && last < len) {
+				memcpy(c->leftover, buf, len);
+				c->leftover_seek = last;
+				c->leftover_size = len;
+			} else {
+				c->leftover_seek = 0;
+			}
+
+			if(st != c->state && c->state == CS_GOT_BODY && changed != NULL) *changed = fpr_true;
+
+			c->last = time(NULL);
+		}
+	}
+
+	return 0;
+}
+
+static int socket_send(client_t* c, fpr_bool* changed) {
+	int st = c->state;
+
+	http_send(c);
+
+	if(st != c->state && c->state == CS_CONNECTED) {
+#if 1
+		const char* t = http_req_get_header(&c->request, "connection");
+
+		if(t != NULL && strcmp(t, "keep-alive") == 0) {
+			if(changed != NULL) *changed = fpr_true;
+
+			http_end(c);
+			http_init(c);
+
+			if(c->leftover_seek > 0) {
+				int st = c->state;
+				int last;
+
+				http_got(c, &c->leftover[c->leftover_seek], c->leftover_size - c->leftover_seek, &last);
+				if(last > 0 && last < (c->leftover_size - c->leftover_seek)) {
+					c->leftover_seek += last;
+				} else {
+					c->leftover_seek = 0;
+				}
+
+				if(st != c->state && c->state == CS_GOT_BODY && changed != NULL) *changed = fpr_true;
+			}
+		} else {
+			kill_client(c);
+			return 1;
+		}
+#else
+		kill_client(c);
+		return 1;
+#endif
+	}
+
+	return 0;
+}
+
+static int socket_main(client_t* c, fpr_bool* changed, struct fpr_pollfd* pfd) {
+	if((pfd->revents & FPR_POLLIN) && socket_recv(c, changed)) return 1;
+	if((pfd->revents & FPR_POLLOUT) && socket_send(c, changed)) return 1;
+
+	return 0;
+}
+
+#if defined(MULTITHREAD)
+static void thread_main(void* param) {
+	client_t*	  c = param;
+	struct fpr_pollfd pfd;
+
+	pfd.fd	   = c->fd;
+	pfd.events = FPR_POLLIN | FPR_POLLPRI;
+
+	while(1) {
+		int s = fpr_poll(&pfd, 1, 100);
+
+		if(s < 0) break;
+
+		if(s > 0) {
+			if(socket_main(c, NULL, &pfd)) {
+				goto done;
+			}
+
+			pfd.events &= ~FPR_POLLOUT;
+			if(c->state >= CS_GOT_BODY) pfd.events |= FPR_POLLOUT;
+		}
+	}
+
+	kill_client(c);
+
+done:;
+	free(c);
+}
+#endif
 
 void server_loop(void) {
 	int		   srv_count = 0;
@@ -133,6 +251,9 @@ void server_loop(void) {
 						int	 l = sizeof(c.address);
 						int	 fd;
 						int	 j;
+#if defined(MULTITHREAD)
+						client_t* ptr;
+#endif
 
 						memset(&c, 0, sizeof(c));
 						fd	= fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c.address, &l);
@@ -153,54 +274,24 @@ void server_loop(void) {
 
 						http_init(&c);
 
+#if defined(MULTITHREAD)
+						ptr = malloc(sizeof(c));
+						memcpy(ptr, &c, sizeof(c));
+
+						fpr_thread_detach(fpr_thread_create(thread_main, ptr));
+#else
 						hmput(server_clients, fd, c);
+#endif
 					}
 				}
 
 #if !defined(MULTITHREAD)
 				/* client sockets */
 				for(i = srv_count; i < arrlen(pfd); i++) {
-					if(pfd[i].revents & FPR_POLLIN) {
-						int ind = hmgeti(server_clients, pfd[i].fd);
+					int ind = hmgeti(server_clients, pfd[i].fd);
 
-#if defined(HAS_SSL)
-						/* probably handshake */
-						if(server_clients[ind].value.state == CS_WANT_SSL) {
-							if(SSL_accept(server_clients[ind].value.ssl) > 0) {
-								server_clients[ind].value.state = CS_CONNECTED;
-							} else {
-								kill_client(pfd[i].fd);
-							}
-						} else
-#endif
-						{
-							int	      len;
-							unsigned char buf[BUFFER_SIZE];
-
-							len = server_read(pfd[i].fd, buf, BUFFER_SIZE);
-
-							if(len <= 0) {
-								kill_client(pfd[i].fd);
-							} else {
-								/* handle data */
-								int ind = hmgeti(server_clients, pfd[i].fd);
-								int st	= server_clients[ind].value.state;
-								int last;
-
-								http_got(&server_clients[ind].value, buf, len, &last);
-								if(last > 0 && last < len) {
-									memcpy(server_clients[ind].value.leftover, buf, len);
-									server_clients[ind].value.leftover_seek = last;
-									server_clients[ind].value.leftover_size = len;
-								} else {
-									server_clients[ind].value.leftover_seek = 0;
-								}
-
-								if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_GOT_BODY) changed = fpr_true;
-
-								server_clients[ind].value.last = time(NULL);
-							}
-						}
+					if(socket_main(&server_clients[ind].value, &changed, &pfd[i])) {
+						continue;
 					}
 				}
 #endif
@@ -208,49 +299,11 @@ void server_loop(void) {
 #if !defined(MULTITHREAD)
 			for(i = srv_count; i < arrlen(pfd); i++) {
 				int ind = hmgeti(server_clients, pfd[i].fd);
-				int st	= server_clients[ind].value.state;
 
-				if(pfd[i].revents & FPR_POLLOUT) {
-					http_send(&server_clients[ind].value);
-
-					if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_CONNECTED) {
-#if 1
-						const char* t = http_req_get_header(&server_clients[ind].value.request, "connection");
-
-						if(t != NULL && strcmp(t, "keep-alive") == 0) {
-							changed = fpr_true;
-
-							http_end(&server_clients[ind].value);
-							http_init(&server_clients[ind].value);
-
-							if(server_clients[ind].value.leftover_seek > 0) {
-								int st = server_clients[ind].value.state;
-								int last;
-
-								http_got(&server_clients[ind].value, &server_clients[ind].value.leftover[server_clients[ind].value.leftover_seek], server_clients[ind].value.leftover_size - server_clients[ind].value.leftover_seek, &last);
-								if(last > 0 && last < (server_clients[ind].value.leftover_size - server_clients[ind].value.leftover_seek)) {
-									server_clients[ind].value.leftover_seek += last;
-								} else {
-									server_clients[ind].value.leftover_seek = 0;
-								}
-
-								if(st != server_clients[ind].value.state && server_clients[ind].value.state == CS_GOT_BODY) changed = fpr_true;
-							}
-						} else {
-							kill_client(pfd[i].fd);
-							continue;
-						}
-#else
-						kill_client(pfd[i].fd);
-						continue;
-#endif
-					}
-
-					server_clients[ind].value.last = time(NULL);
-				}
+				if(ind == -1) continue;
 
 				if((time(NULL) - server_clients[ind].value.last) >= 10) {
-					kill_client(pfd[i].fd);
+					kill_client(&server_clients[ind].value);
 				}
 			}
 #endif
@@ -261,10 +314,12 @@ void server_loop(void) {
 			changed	  = fpr_true;
 		}
 
+#if !defined(MULTITHREAD)
 		if(cli_count != hmlen(server_clients)) {
 			cli_count = hmlen(server_clients);
 			changed	  = fpr_true;
 		}
+#endif
 
 		if(changed) {
 			int i;

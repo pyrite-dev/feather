@@ -11,7 +11,7 @@ pipeline {
 					}
 					steps {
 						sh("make distclean")
-						sh("./configure")
+						sh("./configure --enable-multithread")
 						sh("make -j4")
 					}
 				}
@@ -26,7 +26,7 @@ pipeline {
 					}
 					steps {
 						sh("make distclean")
-						sh("./configure --prefix=C:/Feather --target=Watcom --disable-ssl")
+						sh("./configure --prefix=C:/Feather --target=Watcom --disable-ssl --enable-multithread")
 						sh("make -j4 server/install.exe")
 						sh("mv server/install.exe install-win32.exe")
 						archiveArtifacts("install-win32.exe")

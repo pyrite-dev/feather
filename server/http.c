@@ -283,31 +283,31 @@ void http_send(client_t* c) {
 
 		txt = malloc(8 + 1 + 3 + 1 + strlen(c->response.status_text) + 2 + 1);
 		sprintf(txt, "HTTP/1.1 %d %s\r\n", c->response.status_code, c->response.status_text);
-		server_write(c->fd, txt, strlen(txt));
+		server_write(c, txt, strlen(txt));
 		free(txt);
 
 		for(i = 0; i < shlen(c->response.headers); i++) {
 			txt = malloc(strlen(c->response.headers[i].key) + 2 + strlen(c->response.headers[i].value) + 2 + 1);
 			sprintf(txt, "%s: %s\r\n", c->response.headers[i].key, c->response.headers[i].value);
-			server_write(c->fd, txt, strlen(txt));
+			server_write(c, txt, strlen(txt));
 			free(txt);
 		}
 
 		if((h = http_req_get_header(&c->request, "connection")) != NULL) {
 			char* txt = malloc(strlen("Connection: ") + strlen(h) + 2 + 1);
 			sprintf(txt, "Connection: %s\r\n", h);
-			server_write(c->fd, txt, strlen(txt));
+			server_write(c, txt, strlen(txt));
 			free(txt);
 		}
 
 		if(c->response.body_size != -1 || (c->response.body_stream == NULL && c->response.body == NULL)) {
 			txt = malloc(128);
 			sprintf(txt, "Content-Length: %d\r\n", c->response.body_size < 0 ? 0 : c->response.body_size);
-			server_write(c->fd, txt, strlen(txt));
+			server_write(c, txt, strlen(txt));
 			free(txt);
 		}
 
-		server_write(c->fd, "\r\n", 2);
+		server_write(c, "\r\n", 2);
 
 		c->state = CS_SENT_HEADER;
 
@@ -335,7 +335,7 @@ void http_send(client_t* c) {
 			} else if(c->response.body_stream != NULL) {
 				c->response.body_stream(&c->response, chunk, l);
 			}
-			server_write(c->fd, chunk, l);
+			server_write(c, chunk, l);
 		}
 
 		c->response.body_seek += l;

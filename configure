@@ -14,6 +14,7 @@ RCFLAGS=''
 RPATH='-Wl,-R$(PREFIX)/lib'
 
 SSL=''
+THREAD='$(LINK)pthread'
 FPR='$(LINK)fpr'
 
 A='.a'
@@ -96,6 +97,9 @@ LIBDIR =  -L
 # Linker flag for SSL library
 SSL	= $SSL
 
+# Linker flag for thread
+THREAD	= $THREAD
+
 # Linker flag for FPR
 FPR	= $FPR
 
@@ -133,6 +137,9 @@ cat > config.h << EOF
 /* SSL support */
 #$SSLopt HAS_SSL
 
+/* Multithreaded or not */
+#$MULTITHREADopt MULTITHREAD
+
 /* change them if your platform is not supported
  * ... and send us patch for your platform :)
  */
@@ -161,7 +168,7 @@ for i in $EMBED; do
 	echo "	LOAD($i) \\" >> config.h
 done
 cat >> config.h << EOF
-	LOAD(file) \
+	LOAD(file) \\
 	LOAD(error)
 
 /*

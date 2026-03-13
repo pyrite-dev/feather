@@ -160,6 +160,12 @@ int fpr_gethostname(char* name, int namelen);
 /* stat.c */
 int fpr_stat(const char* path, struct fpr_stat* s);
 
+/* thread.c */
+void* fpr_thread_create(void (*entry)(void* param), void* param);
+void  fpr_thread_detach(void* handle); /* this also frees the thread */
+void  fpr_thread_join(void* handle);
+void  fpr_thread_destroy(void* handle);
+
 /* wildcard.c */
 fpr_bool fpr_wildcard(const char* wildcard, const char* target);
 

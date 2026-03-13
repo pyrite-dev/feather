@@ -236,8 +236,8 @@ extern clientkv_t* server_clients;
 fpr_bool server_init(void);
 void	 server_close(void);
 void	 server_loop(void);
-int	 server_read(int fd, void* buffer, int len);
-int	 server_write(int fd, void* buffer, int len);
+int	 server_read(client_t* c, void* buffer, int len);
+int	 server_write(client_t* c, void* buffer, int len);
 
 /* ssl.c */
 #if defined(HAS_SSL)
