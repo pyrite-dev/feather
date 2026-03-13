@@ -42,8 +42,15 @@ pipeline {
 					}
 					steps {
 						sh("make distclean")
-						sh("./configure --prefix=ms0:/PSP/GAME/Feather --target=PSP --disable-ssl")
+						sh("./configure --prefix=ms0:/PSP/GAME/fhttpd --target=PSP --disable-ssl")
 						sh("make -j4 server/tewi.pbp")
+						sh("rm -rf tmp")
+						sh("make install DESTDIR=`pwd`/tmp")
+						sh("rm -rf tmp/ms0:/PSP/GAME/fhttpd/bin")
+						sh("cp server/fhttpd.pbp tmp/ms0:/PSP/GAME/fhttpd/ EBOOT.PBP")
+						sh("cd tmp/ms0:/PSP/GAME/ && zip -rv ../../../../fhttpd-psp.zip .")
+						sh("rm -rf tmp")
+						archiveArtifacts("fhttpd-psp.zip")
 					}
 				}
 			}
