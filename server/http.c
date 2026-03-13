@@ -29,6 +29,7 @@ void http_end(client_t* c) {
 		if(c->request.headers[i].value != NULL) free(c->request.headers[i].value);
 	}
 	shfree(c->request.headers);
+
 	for(i = 0; i < shlen(c->response.headers); i++) {
 		if(c->response.headers[i].value != NULL) free(c->response.headers[i].value);
 	}
@@ -143,13 +144,15 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 					}
 
 					if(v != NULL && strlen(v) == 0) v = NULL;
+					if(v == NULL) v = "";
 
 					k = fpr_strdup(k);
-					if(v != NULL) v = fpr_strdup(v);
+					v = fpr_strdup(v);
 
 					for(j = 0; k[j] != 0; j++) k[j] = tolower((int)k[j]);
 
 					shput(c->request.headers, k, v);
+					free(k);
 
 					memset(c->header, 0, len);
 				} else {
