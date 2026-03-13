@@ -1,5 +1,9 @@
 #include <fhttpd.h>
 
+#if defined(_PSP)
+#include <pspdebug.h>
+#endif
+
 static FPR_FILE* log_file = NULL;
 
 void log_init(void) {
@@ -46,7 +50,11 @@ void log_vasrv(const char* fmt, va_list va) {
 	sprintf(out, "[%s %s %.2d %02d:%02d:%02d UTC] %s", day[tm->tm_wday], mon[tm->tm_mon], tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, buf);
 
 	if(log_file == NULL) {
+#if defined(_PSP)
+		pspDebugScreenPrintf(stderr, "%s" fpr_newline, out);
+#else
 		fprintf(stderr, "%s" fpr_newline, out);
+#endif
 	} else {
 		const char* nl = fpr_newline;
 

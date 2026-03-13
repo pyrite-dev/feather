@@ -1,5 +1,12 @@
 #include <fhttpd.h>
 
+#if defined(_PSP)
+#include <pspkernel.h>
+
+PSP_MODULE_INFO("Feather HTTPd", PSP_MODULE_USER, 1, 1);
+PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER);
+#endif
+
 char* argv0;
 
 int main(int argc, char** argv) {

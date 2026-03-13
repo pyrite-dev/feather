@@ -48,6 +48,7 @@ pipeline {
 						sh("make install DESTDIR=`pwd`/tmp")
 						sh("rm -rf tmp/ms0:/PSP/GAME/fhttpd/bin")
 						sh("cp server/fhttpd.pbp tmp/ms0:/PSP/GAME/fhttpd/ EBOOT.PBP")
+						sh("sed -i 's%/usr/fhttpd%ms0:/PSP/GAME/fhttpd%g' tmp/ms0:/PSP/GAME/fhttpd/etc/fhttpd/fhttpd.conf")
 						sh("cd tmp/ms0:/PSP/GAME/ && zip -rv ../../../../fhttpd-psp.zip .")
 						sh("rm -rf tmp")
 						archiveArtifacts("fhttpd-psp.zip")
