@@ -2,6 +2,9 @@ pipeline {
 	agent {
 		label "built-in"
 	}
+	options {
+		buildDiscarder(logRotator(numToKeepStr: '16', artifactNumToKeepStr: '16'))
+	}
 	stages {
 		stage("Build") {
 			parallel {
