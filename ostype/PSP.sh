@@ -9,3 +9,5 @@ LIBS="$LIBS -lpspgum -lpspgu -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspnet 
 PIC=""
 
 E='.elf'
+
+AFTER='psp-fixup-imports fhttpd.elf'

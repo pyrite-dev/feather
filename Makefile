@@ -18,6 +18,9 @@ fpr: pre
 server/install.exe: pre fpr module server
 	cd server ; $(MAKE) install.exe
 
+server/fhttpd.pbp: pre fpr module server
+	cd server ; $(MAKE) fhttpd.pbp
+
 server: pre fpr module
 	cd $@ ; $(MAKE)
 

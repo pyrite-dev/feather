@@ -32,6 +32,15 @@ install.exe: fhttpd$(E) install.nsi
 	makensis install.nsi
 	rm -rf tmp
 
+fhttpd_strip$(E): fhttpd$(E)
+	$(STRIP) fhttpd$(E) -o $@
+
+fhttpd.pbp: fhttpd_strip$(E) param.sfo
+	pack-pbp $@ param.sfo ../logo/opaque.png NULL NULL NULL NULL fhttpd_strip$(E) NULL
+
+param.sfo:
+	mksfoex -d MEMSIZE=1 'Feather HTTPd' $@
+
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(PREFIX)/etc/fhttpd
@@ -49,4 +58,4 @@ install: all
 	cp *.h $(DESTDIR)$(PREFIX)/include/
 
 clean:
-	rm -f fhttpd$(E) *$(O) *.res .relink install.exe
+	rm -f fhttpd$(E) fhttpd_strip$(E) *$(O) *.res *.pbp *.sfo .relink install.exe

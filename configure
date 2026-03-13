@@ -14,6 +14,7 @@ CC='cc'
 CFLAGS=''
 RC='windres'
 RCFLAGS=''
+STRIP='strip'
 
 PIC='-fPIC'
 
@@ -100,6 +101,7 @@ CC 	= $CC
 CFLAGS	= $CFLAGS
 RC	= $RC
 RCFLAGS	= $RCFLAGS
+STRIP	= $STRIP
 LDFLAGS = $LDFLAGS
 LIBS	= $LIBS
 
