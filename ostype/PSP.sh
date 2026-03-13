@@ -1,6 +1,7 @@
 #!/bin/sh
 CC="psp-gcc"
 AR="psp-ar"
+STRIP="psp-strip"
 
 CFLAGS="$CFLAGS -I$PSPDEV/psp/sdk/include -D_PSP_FW_VERSION=600"
 LDFLAGS="$LDFLAGS -Wl,-zmax-page-size=128 -L$PSPDEV/psp/sdk/lib"
