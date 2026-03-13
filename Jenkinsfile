@@ -45,7 +45,7 @@ pipeline {
 						sh("./configure --prefix=ms0:/PSP/GAME/fhttpd --target=PSP --disable-ssl")
 						sh("make -j4 server/fhttpd.pbp")
 						sh("rm -rf tmp")
-						sh("make install DESTDIR=`pwd`/tmp")
+						sh("make install DESTDIR=`pwd`/tmp/")
 						sh("rm -rf tmp/ms0:/PSP/GAME/fhttpd/bin")
 						sh("mv server/fhttpd.pbp tmp/ms0:/PSP/GAME/fhttpd/EBOOT.PBP")
 						sh("sed -i 's%/usr/fhttpd%ms0:/PSP/GAME/fhttpd%g' tmp/ms0:/PSP/GAME/fhttpd/etc/fhttpd/fhttpd.conf")
