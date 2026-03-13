@@ -32,8 +32,5 @@ fhttpd.pbp: ../server/fhttpd_strip$(E) param.sfo
 param.sfo:
 	mksfoex -d MEMSIZE=1 'Feather HTTPd' $@
 
-../server/fhttpd_strip$(E): ../server/fhttpd$(E)
-	cd ../server && $(MAKE) fhttpd_strip$(E)
-
 clean:
 	rm -f *.pbp *.sfo *.zip *.exe

@@ -19,6 +19,7 @@ package/install.exe: pre fpr module server
 	cd package ; $(MAKE) `echo $@ | cut -d/ -f2-`
 
 package/fhttpd-psp.zip: pre fpr module server
+	cd server ; $(MAKE) fhttpd_strip.elf
 	cd package ; $(MAKE) `echo $@ | cut -d/ -f2-`
 
 server: pre fpr module
