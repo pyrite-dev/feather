@@ -275,7 +275,7 @@ char* http_res_get_header(fr_response_t* res, const char* key) {
 	return shget(res->headers, key);
 }
 
-void http_send(client_t* c) {
+fpr_bool http_send(client_t* c) {
 	if(c->state == CS_GOT_BODY) {
 		char*	    txt;
 		const char* h;
@@ -289,25 +289,34 @@ void http_send(client_t* c) {
 		for(i = 0; i < shlen(c->response.headers); i++) {
 			txt = malloc(strlen(c->response.headers[i].key) + 2 + strlen(c->response.headers[i].value) + 2 + 1);
 			sprintf(txt, "%s: %s\r\n", c->response.headers[i].key, c->response.headers[i].value);
-			server_write(c, txt, strlen(txt));
+			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+				free(txt);
+				return fpr_false;
+			}
 			free(txt);
 		}
 
 		if((h = http_req_get_header(&c->request, "connection")) != NULL) {
 			char* txt = malloc(strlen("Connection: ") + strlen(h) + 2 + 1);
 			sprintf(txt, "Connection: %s\r\n", h);
-			server_write(c, txt, strlen(txt));
+			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+				free(txt);
+				return fpr_false;
+			}
 			free(txt);
 		}
 
 		if(c->response.body_size != -1 || (c->response.body_stream == NULL && c->response.body == NULL)) {
 			txt = malloc(128);
 			sprintf(txt, "Content-Length: %d\r\n", c->response.body_size < 0 ? 0 : c->response.body_size);
-			server_write(c, txt, strlen(txt));
+			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+				free(txt);
+				return fpr_false;
+			}
 			free(txt);
 		}
 
-		server_write(c, "\r\n", 2);
+		if(server_write(c, "\r\n", 2) < 2) return fpr_false;
 
 		c->state = CS_SENT_HEADER;
 
@@ -321,7 +330,7 @@ void http_send(client_t* c) {
 
 		if(strcmp(c->request.method, "HEAD") == 0) {
 			c->state = CS_CONNECTED;
-			return;
+			return fpr_true;
 		}
 
 		r += c->response.body_seek;
@@ -335,10 +344,12 @@ void http_send(client_t* c) {
 			} else if(c->response.body_stream != NULL) {
 				c->response.body_stream(&c->response, chunk, l);
 			}
-			server_write(c, chunk, l);
+			if(server_write(c, chunk, l) < l) return fpr_false;
 		}
 
 		c->response.body_seek += l;
 		if(c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;
 	}
+
+	return fpr_true;
 }

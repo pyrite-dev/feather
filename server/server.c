@@ -118,6 +118,7 @@ static int socket_recv(client_t* c, fpr_bool* changed) {
 		if(SSL_accept(c->ssl) > 0) {
 			c->state = CS_CONNECTED;
 		} else {
+			kill_client(c);
 			return 1;
 		}
 	} else
@@ -129,6 +130,7 @@ static int socket_recv(client_t* c, fpr_bool* changed) {
 		len = server_read(c, buf, BUFFER_SIZE);
 
 		if(len <= 0) {
+			kill_client(c);
 			return 1;
 		} else {
 			/* handle data */
@@ -156,7 +158,10 @@ static int socket_recv(client_t* c, fpr_bool* changed) {
 static int socket_send(client_t* c, fpr_bool* changed) {
 	int st = c->state;
 
-	http_send(c);
+	if(!http_send(c)) {
+		kill_client(c);
+		return 1;
+	}
 
 	if(st != c->state && c->state == CS_CONNECTED) {
 #if 1

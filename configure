@@ -1,7 +1,10 @@
 #!/bin/sh
 PREFIX="/usr/fhttpd"
 TARGET="`uname -s`"
+
 EMBED="dso"
+MODULES=""
+
 SSLopt="define"
 MULTITHREADopt="define"
 
@@ -87,7 +90,7 @@ EMBED	= $EMBED
 EMBED += file error
 
 # DSO modules to compile
-MODULES = 
+MODULES = $MODULES
 
 AR	= $AR
 ARFLAGS	= $ARFLAGS

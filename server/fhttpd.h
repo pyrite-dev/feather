@@ -249,7 +249,7 @@ void	 http_init(client_t* c);
 void	 http_end(client_t* c);
 fpr_bool http_got(client_t* c, void* buffer, int size, int* last);
 void	 http_req(client_t* c);
-void	 http_send(client_t* c);
+fpr_bool http_send(client_t* c);
 void	 http_req_set_header(fr_request_t* req, const char* key, const char* value);
 char*	 http_req_get_header(fr_request_t* req, const char* key);
 void	 http_res_set_header(fr_response_t* res, const char* key, const char* value);
