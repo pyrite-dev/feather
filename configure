@@ -182,7 +182,9 @@ cat > config.h << EOF
 #define MAX_VERSION_LENGTH 8 /* you DO NOT have to change this... */
 #define MAX_STATUS_TEXT_LENGTH 1024
 
-/* Modules to embed - also edit config.mk */
+/* Modules to embed - also edit config.mk
+ * Do NOT remove LOAD(file) and LOAD(error) unless you know what it means...
+ */
 #define MODULES \\
 EOF
 for i in $EMBED; do

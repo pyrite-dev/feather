@@ -151,12 +151,12 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 	return FR_MODULE_DECLINE;
 }
 
-static void register_hooks(fr_context_t* context) {
+static void register_stuff(fr_context_t* context) {
 	context->register_hook(hook, FR_MODULE_HOOK_LAST);
 }
 
 static fr_module_t module = {
     FR_MODULE_VERSION_00,
     directive,
-    register_hooks};
+    register_stuff};
 fr_module_t* file_module = &module;

@@ -2,6 +2,7 @@
 
 char*	 argv0;
 fpr_bool running = fpr_true;
+char	 server[2048];
 
 int main(int argc, char** argv) {
 	int	    i;

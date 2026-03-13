@@ -263,11 +263,7 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, int* loop) {
 void http_req(client_t* c) {
 	int loop = 1;
 
-	http_res_set_header(&c->response, "Server", FR_SERVER
-#if defined(HAS_SSL)
-			    " OpenSSL/" OPENSSL_FULL_VERSION_STR
-#endif
-	);
+	http_res_set_header(&c->response, "Server", server);
 
 	do {
 		if(proc_hooks(module_first_hooks, c, &loop)) {

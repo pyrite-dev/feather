@@ -1,6 +1,7 @@
 #include <fpr.h>
 #include <fpr_int.h>
 
+#if defined(MULTITHREAD)
 typedef struct arg {
 	void (*entry)(void* param);
 	void* param;
@@ -93,3 +94,17 @@ void fpr_thread_destroy(void* handle) {
 	free(handle);
 #endif
 }
+#else
+void* fpr_thread_create(void (*entry)(void* param), void* param) {
+	return NULL;
+}
+
+void fpr_thread_detach(void* handle) {
+}
+
+void fpr_thread_join(void* handle) {
+}
+
+void fpr_thread_destroy(void* handle) {
+}
+#endif

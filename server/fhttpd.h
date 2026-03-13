@@ -3,8 +3,16 @@
 
 #include "../config.h"
 
+#if defined(_WIN32)
+#define FR_PLATFORM "Win32"
+#elif defined(_PSP)
+#define FR_PLATFORM "PSP"
+#else
+#define FR_PLATFORM "Unix"
+#endif
+
 #define FR_VERSION "0.0.0"
-#define FR_SERVER "Feather/" FR_VERSION
+#define FR_SERVER "Feather/" FR_VERSION " (" FR_PLATFORM ")"
 
 #if !defined(RESOURCE)
 #include <fpr.h>
@@ -52,7 +60,7 @@ struct fr_module {
 	int version;
 
 	int (*directive)(fr_context_t* context, int argc, char** argv);
-	void (*register_hooks)(fr_context_t* context);
+	void (*register_stuff)(fr_context_t* context);
 };
 
 struct fr_request {
@@ -109,6 +117,8 @@ struct fr_context {
 
 	const char* config_path;
 	const char* argv0;
+
+	char* server;
 
 	fr_stringkv_t* mime_types;
 
@@ -204,6 +214,7 @@ struct clientkv {
 /* main.c */
 extern char*	argv0;
 extern fpr_bool running;
+extern char	server[];
 
 /* config.c */
 extern char*	    config_serverroot;

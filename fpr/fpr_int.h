@@ -21,12 +21,14 @@
 #endif
 
 /* thread section */
+#if defined(MULTITHREAD)
 #if defined(_WIN32)
 #if !defined(FPR_USE_CREATETHREAD)
 #include <process.h>
 #endif
 #else
 #include <pthread.h>
+#endif
 #endif
 
 /* socket section */

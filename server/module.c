@@ -32,13 +32,19 @@ void module_init(void) {
 		module_load(modules[i]);
 	}
 	free(modules);
+
+	/* this is done here so it doesn't get appended everytime module gets reloaded */
+	strcpy(server, FR_SERVER);
+#if defined(HAS_SSL)
+	strcat(server, " OpenSSL/" OPENSSL_FULL_VERSION_STR);
+#endif
 }
 
 void module_load(fr_module_t* module) {
 	fr_context_t context;
 
 	context_init(&context);
-	SAFECALL(module->register_hooks)(&context);
+	SAFECALL(module->register_stuff)(&context);
 	context_save(&context);
 
 	arrput(module_modules, module);

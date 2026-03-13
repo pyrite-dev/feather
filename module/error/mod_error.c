@@ -35,17 +35,17 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 				/* clang-format off */
 				doc = fpr_strvacat(
-					"<html>\n"						/**/
-					"	<head>\n",					/**/
-					"		<title>", errors[i].value, "</title>\n" /**/
-					"	</head>\n"					/**/
-					"	<body>\n"					/**/
-					"		<h1>", errors[i].value, "</h1>\n"	/**/
-					"		<hr>\n"					/**/
-					"		<i>" FR_SERVER "</i>\n",		/**/
-					"	</body>\n"					/**/
-					"</html>\n",						/**/
-					NULL							/**/
+					"<html>\n"									/**/
+					"	<head>\n",								/**/
+					"		<title>", errors[i].value, "</title>\n" 			/**/
+					"	</head>\n"								/**/
+					"	<body>\n"								/**/
+					"		<h1>", errors[i].value, "</h1>\n"				/**/
+					"		<hr>\n"								/**/
+					"		<i>", context->response_get_header(res, "Server"), "</i>\n",	/**/
+					"	</body>\n"								/**/
+					"</html>\n",									/**/
+					NULL										/**/
 				);
 				/* clang-format on */
 
@@ -85,12 +85,12 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 	return FR_MODULE_DECLINE;
 }
 
-static void register_hooks(fr_context_t* context) {
+static void register_stuff(fr_context_t* context) {
 	context->register_hook(hook, FR_MODULE_HOOK_LAST);
 }
 
 static fr_module_t module = {
     FR_MODULE_VERSION_00,
     directive,
-    register_hooks};
+    register_stuff};
 fr_module_t* error_module = &module;

@@ -8,6 +8,8 @@ void context_init(fr_context_t* context) {
 
 	context->argv0 = argv0;
 
+	context->server = server;
+
 	context->mime_types = mime_types;
 
 	context->log		= log_srv;

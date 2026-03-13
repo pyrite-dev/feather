@@ -1,5 +1,5 @@
 .PHONY: all format pre distclean clean install
-.PHONY: fpr package/install.exe package/fhttpd-psp.zip package module
+.PHONY: fpr package/install.exe package/fhttpd.pbp package/fhttpd-psp.zip package module
 
 all: pre fpr server module
 
@@ -15,7 +15,7 @@ pre:
 fpr: pre
 	cd $@ ; $(MAKE)
 
-package/install.exe: pre fpr module server
+package/install.exe package/fhttpd.pbp: pre fpr module server
 	cd package ; $(MAKE) `echo $@ | cut -d/ -f2-`
 
 package/fhttpd-psp.zip: pre fpr module server
