@@ -27,7 +27,7 @@ fhttpd-psp.zip: fhttpd.pbp
 	rm -rf tmp
 
 fhttpd.pbp: ../server/fhttpd_strip$(E) param.sfo
-	pack-pbp $@ param.sfo ../logo/opaque.png NULL NULL NULL NULL fhttpd_strip$(E) NULL
+	pack-pbp $@ param.sfo ../logo/opaque.png NULL NULL NULL NULL ../server/fhttpd_strip$(E) NULL
 
 param.sfo:
 	mksfoex -d MEMSIZE=1 'Feather HTTPd' $@
