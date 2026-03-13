@@ -43,7 +43,7 @@ pipeline {
 					steps {
 						sh("make distclean")
 						sh("./configure --prefix=ms0:/PSP/GAME/fhttpd --target=PSP --disable-ssl")
-						sh("make -j4 server/tewi.pbp")
+						sh("make -j4 server/fhttpd.pbp")
 						sh("rm -rf tmp")
 						sh("make install DESTDIR=`pwd`/tmp")
 						sh("rm -rf tmp/ms0:/PSP/GAME/fhttpd/bin")
