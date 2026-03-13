@@ -1,7 +1,7 @@
 #ifndef __FPR_H__
 #define __FPR_H__
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define fpr_newline "\r\n"
 #else
 #define fpr_newline "\n"

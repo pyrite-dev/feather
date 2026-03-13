@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 			printf("Documentation online at http://moomoo.nishi.boats\n");
 			printf("\n");
 			printf("Compiled in Options:\n");
-#ifdef HAS_SSL
+#if defined(HAS_SSL)
 			printf("     HAS_SSL\n");
 #endif
 			printf("     PREFIX = %s\n", PREFIX);
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-#ifndef _WIN32
+#if !defined(_WIN32)
 	signal(SIGPIPE, SIG_IGN);
 #endif
 

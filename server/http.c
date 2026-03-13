@@ -264,7 +264,7 @@ void http_req(client_t* c) {
 	int loop = 1;
 
 	http_res_set_header(&c->response, "Server", FR_SERVER
-#ifdef HAS_SSL
+#if defined(HAS_SSL)
 			    " OpenSSL/" OPENSSL_FULL_VERSION_STR
 #endif
 	);

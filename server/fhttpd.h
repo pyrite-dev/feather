@@ -142,7 +142,7 @@ struct fr_context {
 #include <signal.h>
 #endif
 
-#ifdef HAS_SSL
+#if defined(HAS_SSL)
 #include <openssl/ssl.h>
 #include <openssl/opensslv.h>
 #endif

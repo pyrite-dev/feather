@@ -13,7 +13,7 @@ BEGIN
 		BLOCK "040904E4"
 		BEGIN
 			VALUE "CompanyName", "Pyrite development team\0"
-#ifdef HAS_SSL
+#if defined(HAS_SSL)
 			VALUE "FileDescription", "Simple HTTP Daemon\0"
 #else
 			VALUE "FileDescription", "Simple HTTP Daemon with TLS/SSL\0"
