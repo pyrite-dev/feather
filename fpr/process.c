@@ -164,7 +164,7 @@ void* fpr_process_create(const char* exec, char** env) {
 		close(outfd);
 		close(errfd);
 
-		execlpe(exec, exec, NULL, envs);
+		execle(exec, exec, NULL, envs);
 
 		_exit(-1);
 	} else {
