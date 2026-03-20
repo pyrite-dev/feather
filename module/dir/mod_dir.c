@@ -9,19 +9,15 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	struct fpr_stat st;
 	int		i;
 
-	if(arr == NULL) {
-		if((arr = TRY_LOOKUPARR(context->config_vhost, "DirectoryIndex")) != NULL) len = context->stringarraykv_length(context->config_vhost->arraykv, "DirectoryIndex");
-	}
-
-	if(arr == NULL) {
-		if((arr = TRY_LOOKUPARR(context->config_root, "DirectoryIndex")) != NULL) len = context->stringarraykv_length(context->config_root->arraykv, "DirectoryIndex");
-	}
+	arr = context->config_lookup_array(context, "DirectoryIndex", &len);
 
 	for(i = 0; i < len; i++) {
 		char* p = fpr_strvacat(req->path_translated, req->path_translated[strlen(req->path_translated) - 1] == '/' ? "" : "/", arr[i], NULL);
 
 		if(fpr_stat(p, &st) == 0 && !FPR_S_ISDIR(st.st_mode)) {
 			strcpy(req->path_translated, p);
+
+			context->request_assume_handler(req, context);
 
 			free(p);
 			return FR_MODULE_DECLINE;

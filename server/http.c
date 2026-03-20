@@ -13,6 +13,8 @@ void http_init(client_t* c) {
 	c->request.body_seek = 0;
 	c->request.body_size = -1;
 
+	c->request.server_name = NULL;
+
 	sh_new_strdup(c->response.headers);
 	shdefault(c->response.headers, NULL);
 
@@ -33,6 +35,11 @@ void http_end(client_t* c) {
 		if(c->request.headers[i].value != NULL) free(c->request.headers[i].value);
 	}
 	shfree(c->request.headers);
+
+	if(c->request.server_name != NULL) {
+		free(c->request.server_name);
+		c->request.server_name = NULL;
+	}
 
 	if(c->request.body != NULL) {
 		free(c->request.body);
@@ -95,6 +102,7 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 				}
 
 				if(!fpr_url_decode(c->request.path, c->request.path_raw, MAX_PATH_LENGTH)) return fpr_false;
+				strcpy(c->request.path_virtual, c->request.path);
 
 				for(j = 0; c->request.path[j] != 0; j++) {
 					if(c->request.path[j] == '\\') c->request.path[j] = '/';
@@ -226,25 +234,16 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 	return fpr_true;
 }
 
-static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, int* loop) {
-	int	     i;
-	fr_context_t context;
-	const char*  host = http_req_get_header(&c->request, "host");
-	char	     hostname[1024];
-
-	fpr_gethostname(hostname, 1024);
+static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, fr_context_t* context, int* loop) {
+	int i;
 
 	*loop = 0;
 
-	context_init(&context);
-
-	context.config_vhost = config_vhost_match(host == NULL ? hostname : host, c->port);
-
 	for(i = 0; i < arrlen(hooks); i++) {
-		int st = hooks[i](&context, &c->request, &c->response);
+		int st = hooks[i](context, &c->request, &c->response);
 
 		if(st == FR_MODULE_ERROR || st == FR_MODULE_OK) {
-			context_save(&context);
+			context_save(context);
 		}
 
 		if(st == FR_MODULE_ERROR) return fpr_false;
@@ -255,7 +254,6 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, int* loop) {
 			return fpr_true;
 		}
 	}
-	context_save(&context);
 
 	return fpr_false;
 }
@@ -267,6 +265,8 @@ void http_req(client_t* c) {
 	char	     hostname[1024];
 	const char*  s;
 	int	     ok = 1;
+	fr_context_t context;
+	int	     first = 1;
 
 	fpr_gethostname(hostname, 1024);
 
@@ -274,26 +274,36 @@ void http_req(client_t* c) {
 
 	http_res_set_header(&c->response, "Server", server);
 
+	c->request.server_name = fpr_strdup(host == NULL ? hostname : host);
+	c->request.port	       = c->port;
+
+	context_init(&context);
+	context.config_vhost = config_vhost_match(c->request.server_name, c->port);
+
 	s = NULL;
-	if((config = config_vhost_match(host == NULL ? hostname : host, c->port)) != NULL && (s = util_stringkv_lookup(config->kv, "DocumentRoot")) != NULL) {
-	} else if((s = util_stringkv_lookup(config_root->kv, "DocumentRoot")) != NULL) {
-	}
-
-	if(s == NULL || (strlen(s) + 1 + strlen(c->request.path)) >= MAX_PATH_LENGTH) {
-		ok = 0;
-	} else {
-		char* p = path_transform(s);
-
-		strcpy(c->request.path_translated, p);
-		strcat(c->request.path_translated, c->request.path + (p[strlen(p) - 1] == '/' ? 1 : 0));
-
-		free(p);
-	}
+	if(context.config_vhost != NULL && s == NULL) s = util_stringkv_lookup(context.config_vhost->kv, "DocumentRoot");
+	if(context.config_root != NULL && s == NULL) s = util_stringkv_lookup(context.config_root->kv, "DocumentRoot");
 
 	do {
-		if(ok && proc_hooks(module_first_hooks, c, &loop)) {
-		} else if(ok && proc_hooks(module_middle_hooks, c, &loop)) {
-		} else if(ok && proc_hooks(module_last_hooks, c, &loop)) {
+		if(s == NULL || (strlen(s) + 1 + strlen(c->request.path_virtual)) >= MAX_PATH_LENGTH) {
+			ok = 0;
+		} else {
+			char* p = path_transform(s);
+
+			strcpy(c->request.path_translated, p);
+			strcat(c->request.path_translated, c->request.path_virtual + (p[strlen(p) - 1] == '/' ? 1 : 0));
+
+			free(p);
+		}
+
+		if(first) {
+			http_req_assume_handler(&c->request, &context);
+			first = 0;
+		}
+
+		if(ok && proc_hooks(module_first_hooks, c, &context, &loop)) {
+		} else if(ok && proc_hooks(module_middle_hooks, c, &context, &loop)) {
+		} else if(ok && proc_hooks(module_last_hooks, c, &context, &loop)) {
 		} else {
 			c->response.status_code = 500;
 			strcpy(c->response.status_text, "Internal Server Error");
@@ -312,7 +322,11 @@ void http_req(client_t* c) {
 			);
 			c->response.body_size = strlen(c->response.body);
 		}
+
+		context.loop++;
 	} while(loop);
+
+	context_save(&context);
 
 	log_srv("\"%s %s %s\" %d", c->request.method, c->request.path_raw, c->request.version, c->response.status_code);
 
@@ -394,7 +408,7 @@ fpr_bool http_send(client_t* c) {
 	} else if(c->state == CS_SENT_HEADER) {
 		char  chunk[BUFFER_SIZE];
 		char* r = c->response.body;
-		int   l;
+		int   l, n;
 
 		if(strcmp(c->request.method, "HEAD") == 0) {
 			c->state = CS_CONNECTED;
@@ -412,12 +426,14 @@ fpr_bool http_send(client_t* c) {
 		if(l > 0) {
 			if(c->response.body != NULL) {
 				memcpy(chunk, r, l);
+
+				n = l;
 			} else if(c->response.body_stream != NULL) {
-				if(c->response.body_stream(&c->response, chunk, l) == 0) {
+				if((n = c->response.body_stream(&c->response, chunk, l)) == 0) {
 					c->state = CS_CONNECTED;
 				}
 			}
-			if(server_write(c, chunk, l) < l) return fpr_false;
+			if(server_write(c, chunk, n) < n) return fpr_false;
 		}
 
 		c->response.body_seek += l;
@@ -425,4 +441,30 @@ fpr_bool http_send(client_t* c) {
 	}
 
 	return fpr_true;
+}
+
+void http_req_assume_handler(fr_request_t* req, fr_context_t* context) {
+	char* n;
+
+	req->handler[0] = 0;
+
+	/* this should be always non-NULL tho */
+	if((n = strrchr(req->path_translated, '/')) != NULL) {
+		char* dot;
+
+		n = fpr_strdup(n + 1);
+
+		if((dot = strrchr(n, '.')) != NULL) {
+			char* p = fpr_strvacat("Handler_", dot, NULL);
+			char* handler;
+
+			if((handler = context_config_lookup(context, p)) != NULL && strlen(handler) <= MAX_HANDLER_LENGTH) {
+				strcpy(req->handler, handler);
+			}
+
+			free(p);
+		}
+
+		free(n);
+	}
 }

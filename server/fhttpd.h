@@ -12,7 +12,8 @@
 #endif
 
 #define FR_VERSION "0.0.0"
-#define FR_SERVER "Feather/" FR_VERSION " (" FR_PLATFORM ")"
+#define FR_VERSION_TEXT "Feather/" FR_VERSION
+#define FR_SERVER FR_VERSION_TEXT " (" FR_PLATFORM ")"
 
 #if !defined(RESOURCE)
 #include <fpr.h>
@@ -71,12 +72,16 @@ struct fr_module {
 
 struct fr_request {
 	char	       method[MAX_METHOD_LENGTH + 1];
-	char	       path[MAX_PATH_LENGTH + 1];
-	char	       path_translated[MAX_PATH_LENGTH + 1];
-	char	       path_raw[MAX_PATH_LENGTH + 1];
+	char	       path[MAX_PATH_LENGTH + 1];	     /* decoded HTTP path, do not modify */
+	char	       path_translated[MAX_PATH_LENGTH + 1]; /* physical path */
+	char	       path_raw[MAX_PATH_LENGTH + 1];	     /* raw HTTP path */
+	char	       path_virtual[MAX_PATH_LENGTH + 1];    /* virtual path */
 	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];
 	fr_stringkv_t* headers;
+
+	char* server_name;
+	int   port;
 
 	char handler[MAX_HANDLER_LENGTH + 1];
 
@@ -131,12 +136,16 @@ struct fr_context {
 
 	fr_stringkv_t* mime_types;
 
+	int loop;
+
 	char* (*path_transform)(const char* path);
 	void (*log)(const char* fmt, ...);
 	void (*register_hook)(fr_hook_t handler, int order);
 
 	void (*request_set_header)(fr_request_t* req, const char* key, const char* value);
 	char* (*request_get_header)(fr_request_t* req, const char* key);
+	void (*request_assume_handler)(fr_request_t* req, fr_context_t* context);
+
 	void (*response_set_header)(fr_response_t* res, const char* key, const char* value);
 	char* (*response_get_header)(fr_response_t* res, const char* key);
 
@@ -146,6 +155,9 @@ struct fr_context {
 	char** (*stringarraykv_lookup)(fr_stringarraykv_t* arraykv, const char* key);
 	void (*stringarraykv_push)(fr_stringarraykv_t* kv, const char* key, const char* value);
 	int (*stringarraykv_length)(fr_stringarraykv_t* arraykv, const char* key);
+
+	char* (*config_lookup)(fr_context_t* context, const char* key);
+	char** (*config_lookup_array)(fr_context_t* context, const char* key, int* len);
 };
 
 #if defined(_FHTTPD)
@@ -278,6 +290,7 @@ void	 http_req(client_t* c);
 fpr_bool http_send(client_t* c);
 void	 http_req_set_header(fr_request_t* req, const char* key, const char* value);
 char*	 http_req_get_header(fr_request_t* req, const char* key);
+void	 http_req_assume_handler(fr_request_t* req, fr_context_t* context);
 void	 http_res_set_header(fr_response_t* res, const char* key, const char* value);
 char*	 http_res_get_header(fr_response_t* res, const char* key);
 
@@ -298,8 +311,10 @@ void module_load(fr_module_t* module);
 void module_register_hook(fr_hook_t handler, int order);
 
 /* context.c */
-void context_init(fr_context_t* context);
-void context_save(fr_context_t* context);
+void   context_init(fr_context_t* context);
+void   context_save(fr_context_t* context);
+char*  context_config_lookup(fr_context_t* context, const char* key);
+char** context_config_lookup_array(fr_context_t* context, const char* key, int* len);
 
 /* util.c */
 char*  util_stringkv_lookup(fr_stringkv_t* kv, const char* key);

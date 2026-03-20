@@ -79,6 +79,9 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
+	/* error from other module */
+	if(context->loop == 0 && res->status_code != 200 && res->status_code != 0) return FR_MODULE_DECLINE;
+
 	if(fpr_stat(req->path_translated, &st) == 0 && !FPR_S_ISDIR(st.st_mode)) {
 		file_send(context, req, res, req->path_translated);
 		return FR_MODULE_OK;

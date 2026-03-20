@@ -115,11 +115,7 @@ void config_close(void) {
 #define IF_KV(arg, direc) \
 	if(strcmp(arg[0], direc) == 0) { \
 		if(arg_len(arg) == 2) { \
-			char* v = fpr_strdup(arg[1]); \
-			if(shgeti(config_current->kv, arg[0]) != -1) { \
-				free(shget(config_current->kv, arg[0])); \
-			} \
-			shput(config_current->kv, arg[0], v); \
+			util_stringkv_set(&config_current->kv, arg[0], arg[1]); \
 \
 			handled = fpr_true; \
 		} else { \
@@ -221,6 +217,22 @@ static fpr_bool parse(const char* path) {
 									}
 
 									if(fail) break;
+								}
+							} else {
+								fprintf(stderr, "%s: %s: %s takes 3 argument or more\n", argv0, path, arg[0]);
+
+								fail = 1;
+							}
+						} else if(strcmp(arg[0], "AddHandler") == 0) {
+							if(arg_len(arg) >= 3) {
+								int j;
+
+								for(j = 2; j < arg_len(arg); j++) {
+									char* p = fpr_strvacat("Handler_", arg[j], NULL);
+
+									util_stringkv_set(&config_current->kv, p, arg[1]);
+
+									free(p);
 								}
 							} else {
 								fprintf(stderr, "%s: %s: %s takes 1 argument or more\n", argv0, path, arg[0]);

@@ -5,7 +5,7 @@ include ../../config.mk
 .PHONY: install clean
 .SUFFIXES: .c $(O)
 
-OBJS += mod_$(MODULE)$(O)
+OBJS += mod_$(MODULE)$(O) $(DEPS)
 
 mod_$(MODULE)$(A): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)

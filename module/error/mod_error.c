@@ -1,8 +1,6 @@
 #define _FHTTPD
 #include <fhttpd.h>
 
-#define TRY_LOOKUP(x, y) ((x) == NULL ? NULL : context->stringkv_lookup((x)->kv, (y)))
-
 typedef struct error {
 	int   key;
 	char* value;
@@ -23,10 +21,9 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 	sprintf(lookup, "ErrorDocument%d", res->status_code);
 
-	if(s == NULL) s = TRY_LOOKUP(context->config_vhost, lookup);
-	if(s == NULL) s = TRY_LOOKUP(context->config_root, lookup);
+	s = context->config_lookup(context, lookup);
 
-	if(s == NULL || strcmp(req->path, s) == 0) {
+	if(s == NULL || strcmp(req->path_virtual, s) == 0) {
 		int i;
 
 		for(i = 0; i < sizeof(errors) / sizeof(errors[0]); i++) {
@@ -56,8 +53,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 			}
 		}
 	} else {
-		strcpy(req->path, s);
-		fpr_url_encode(req->path_raw, s, MAX_PATH_LENGTH);
+		strcpy(req->path_virtual, s);
 
 		return FR_MODULE_LOOP;
 	}
