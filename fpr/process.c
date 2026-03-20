@@ -3,11 +3,12 @@
 
 typedef struct process {
 #if defined(FPR_IS_WIN32)
+	HANDLE process;
 	HANDLE h_stdin;
 	HANDLE h_stdout;
 	HANDLE h_stderr;
 #elif defined(FPR_IS_UNIX)
-	int pid;
+	pid_t pid;
 	int fd_stdin;
 	int fd_stdout;
 	int fd_stderr;
@@ -16,6 +17,103 @@ typedef struct process {
 
 void* fpr_process_create(const char* exec, char** env) {
 #if defined(FPR_IS_WIN32)
+	process_t* proc = malloc(sizeof(*proc));
+	SECURITY_ATTRIBUTES attr;
+	HANDLE pipe_stdin[2];
+	HANDLE pipe_stdout[2];
+	HANDLE pipe_stderr[2];
+	char path[2048];
+	char* envs;
+	PROCESS_INFORMATION pi;
+	STARTUPINFO si;
+	char* d_envs = GetEnvironmentStrings();
+	char* d_envs2;
+	int envs_len = 0;
+	int i;
+
+	d_envs2 = d_envs;
+	while(*d_envs2){
+		envs_len += strlen(d_envs2) + 1;
+
+		d_envs2 += strlen(d_envs2) + 1;
+	}
+
+	for(i = 0; env[i] != NULL; i++) envs_len += strlen(env[i]) + 1;
+	envs_len++;
+
+	envs = malloc(envs_len);
+	envs_len = 0;
+
+	d_envs2 = d_envs;
+	while(*d_envs2){
+		strcpy(envs + envs_len, d_envs2);
+		envs_len += strlen(d_envs2) + 1;
+
+		d_envs2 += strlen(d_envs2) + 1;
+	}
+
+	for(i = 0; env[i] != NULL; i++){
+		strcpy(envs + envs_len, env[i]);
+		envs_len += strlen(env[i]) + 1;
+	}
+
+	envs[envs_len] = 0;
+
+	memset(&pi, 0, sizeof(pi));
+
+	memset(&si, 0, sizeof(si));
+	si.cb = sizeof(si);
+	si.dwFlags = STARTF_USESTDHANDLES;
+
+	sprintf(path, "\"%s\"", exec);
+
+	memset(&attr, 0, sizeof(attr));
+	attr.nLength = sizeof(attr);
+	attr.bInheritHandle = TRUE;
+
+	CreatePipe(&pipe_stdin[0], &pipe_stdin[1], &attr, 0);
+	SetHandleInformation(pipe_stdin[1], HANDLE_FLAG_INHERIT, 0);
+
+	CreatePipe(&pipe_stdout[0], &pipe_stdout[1], &attr, 0);
+	SetHandleInformation(pipe_stdout[0], HANDLE_FLAG_INHERIT, 0);
+
+	CreatePipe(&pipe_stderr[0], &pipe_stderr[1], &attr, 0);
+	SetHandleInformation(pipe_stderr[0], HANDLE_FLAG_INHERIT, 0);
+
+	si.hStdInput = pipe_stdin[0];
+	si.hStdOutput = pipe_stdout[1];
+	si.hStdError = pipe_stderr[1];
+
+	if(!CreateProcess(NULL, path, NULL, NULL, TRUE, 0, envs, NULL, &si, &pi)){
+		int i;
+
+		free(proc);
+		free(envs);
+
+		for(i = 0; i < 2; i++){
+			CloseHandle(pipe_stdin[i]);
+			CloseHandle(pipe_stdout[i]);
+			CloseHandle(pipe_stderr[i]);
+		}
+
+		return NULL;
+	}else{
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+
+		CloseHandle(pipe_stdin[0]);
+		CloseHandle(pipe_stdout[1]);
+		CloseHandle(pipe_stderr[1]);
+
+		proc->process = pi.hProcess;
+		proc->h_stdin = pipe_stdin[1];
+		proc->h_stdout = pipe_stdout[0];
+		proc->h_stderr = pipe_stderr[0];
+	}
+
+	free(envs);
+
+	return proc;
 #elif defined(FPR_IS_UNIX)
 	process_t* proc = malloc(sizeof(*proc));
 	int	   pipe_stdin[2];
@@ -90,14 +188,22 @@ void* fpr_process_create(const char* exec, char** env) {
 void fpr_process_close(void* handle) {
 	process_t* proc = handle;
 #if defined(FPR_IS_WIN32)
+	CloseHandle(proc->h_stdin);
+	proc->h_stdin = NULL;
 #elif defined(FPR_IS_UNIX)
 	close(proc->fd_stdin);
+	proc->fd_stdin = -1;
 #endif
 }
 
 int fpr_process_write(void* handle, const void* data, int len) {
 	process_t* proc = handle;
 #if defined(FPR_IS_WIN32)
+	DWORD r;
+
+	if(!WriteFile(proc->h_stdin, data, len, &r, NULL)) return -1;
+	
+	return r;
 #elif defined(FPR_IS_UNIX)
 	return write(proc->fd_stdin, data, len);
 #else
@@ -108,6 +214,11 @@ int fpr_process_write(void* handle, const void* data, int len) {
 int fpr_process_read(void* handle, void* data, int len) {
 	process_t* proc = handle;
 #if defined(FPR_IS_WIN32)
+	DWORD r;
+
+	if(!ReadFile(proc->h_stdout, data, len, &r, NULL)) return -1;
+	
+	return r;
 #elif defined(FPR_IS_UNIX)
 	return read(proc->fd_stdout, data, len);
 #else
@@ -118,6 +229,11 @@ int fpr_process_read(void* handle, void* data, int len) {
 void fpr_process_destroy(void* handle) {
 	process_t* proc = handle;
 #if defined(FPR_IS_WIN32)
+	WaitForSingleObject(proc->process, INFINITE);
+
+	if(proc->h_stdin != NULL) CloseHandle(proc->h_stdin);
+	CloseHandle(proc->h_stdout);
+	CloseHandle(proc->h_stderr);
 #elif defined(FPR_IS_UNIX)
 	int st;
 
@@ -125,7 +241,7 @@ void fpr_process_destroy(void* handle) {
 		waitpid(proc->pid, &st, 0);
 	} while(!WIFEXITED(st));
 
-	close(proc->fd_stdin);
+	if(proc->fd_stdin >= 0) close(proc->fd_stdin);
 	close(proc->fd_stdout);
 	close(proc->fd_stderr);
 #endif
