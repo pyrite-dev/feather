@@ -38,6 +38,12 @@ for i in "$@"; do
 		--target=*)
 			TARGET="`echo "$i" | cut -d= -f2-`"
 			;;
+		--embed=*)
+			EMBED="`echo "$i" | cut -d= -f2-`"
+			;;
+		--embed=*)
+			MODULES="`echo "$i" | cut -d= -f2-`"
+			;;
 	esac
 done
 
@@ -51,6 +57,21 @@ for i in "$@"; do
 			PREFIX="`echo "$i" | cut -d= -f2-`"
 			;;
 		--target=*)
+			;;
+		--embed=*)
+			;;
+		--module=*)
+			no_dso=true
+			for j in "$EMBED"; do
+				if [ "$j" = "dso" ]; then
+					no_dso=false
+					break
+				fi
+			done
+			if $no_dso; then
+				echo "Module needs DSO to work, pass dso to --embed"
+				exit 1
+			fi
 			;;
 		--enable-*)
 			eval `echo "$i" | cut -d- -f4 | tr "[:lower:]" "[:upper:]"`opt="define"
