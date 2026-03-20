@@ -1,6 +1,9 @@
 #define _FHTTPD
 #include <fhttpd.h>
 
+#include <string.h>
+#include <stdlib.h>
+
 typedef struct error {
 	int   key;
 	char* value;

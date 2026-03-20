@@ -103,6 +103,7 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 
 				if(!fpr_url_decode(c->request.path, c->request.path_raw, MAX_PATH_LENGTH)) return fpr_false;
 				strcpy(c->request.path_virtual, c->request.path);
+				strcpy(c->request.path_virtual2, c->request.path);
 
 				for(j = 0; c->request.path[j] != 0; j++) {
 					if(c->request.path[j] == '\\') c->request.path[j] = '/';
@@ -285,21 +286,21 @@ void http_req(client_t* c) {
 	if(context.config_root != NULL && s == NULL) s = util_stringkv_lookup(context.config_root->kv, "DocumentRoot");
 
 	do {
-		if(s == NULL || (strlen(s) + 1 + strlen(c->request.path_virtual)) >= MAX_PATH_LENGTH) {
-			ok = 0;
-		} else {
-			char* p = path_transform(s);
+#define PATH_THING(to, from) \
+	if(s == NULL || (strlen(s) + 1 + strlen(c->request.from)) >= MAX_PATH_LENGTH) { \
+		ok = 0; \
+	} else { \
+		char* p = path_transform(s); \
+\
+		strcpy(c->request.to, p); \
+		strcat(c->request.to, c->request.from + (p[strlen(p) - 1] == '/' ? 1 : 0)); \
+\
+		free(p); \
+	}
+		PATH_THING(path_translated, path_virtual);
+		PATH_THING(path_translated2, path_virtual2);
 
-			strcpy(c->request.path_translated, p);
-			strcat(c->request.path_translated, c->request.path_virtual + (p[strlen(p) - 1] == '/' ? 1 : 0));
-
-			free(p);
-		}
-
-		if(first) {
-			http_req_assume_handler(&c->request, &context);
-			first = 0;
-		}
+		http_req_assume_handler(&c->request, &context);
 
 		if(ok && proc_hooks(module_first_hooks, c, &context, &loop)) {
 		} else if(ok && proc_hooks(module_middle_hooks, c, &context, &loop)) {

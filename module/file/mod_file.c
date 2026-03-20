@@ -1,6 +1,9 @@
 #define _FHTTPD
 #include <fhttpd.h>
 
+#include <string.h>
+#include <stdlib.h>
+
 #define TRY_LOOKUP(x, y) ((x) == NULL ? NULL : context->stringkv_lookup((x)->kv, (y)))
 
 static int file_body_stream(fr_response_t* res, unsigned char* buffer, int size) {

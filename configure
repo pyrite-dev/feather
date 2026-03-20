@@ -38,7 +38,7 @@ for i in "$@"; do
 		--target=*)
 			TARGET="`echo "$i" | cut -d= -f2-`"
 			;;
-		--embed=*)
+		--enable-mods-static=*)
 			if [ "`echo "$i" | cut -d= -f2-`" = "all" ]; then
 				cd module
 				m="`ls -d *`"
@@ -55,7 +55,7 @@ for i in "$@"; do
 				EMBED="`echo "$i" | cut -d= -f2-`"
 			fi
 			;;
-		--module=*)
+		--enable-mods-shared=*)
 			if [ "`echo "$i" | cut -d= -f2-`" = "all" ]; then
 				cd module
 				m="`ls -d *`"
@@ -86,9 +86,9 @@ for i in "$@"; do
 			;;
 		--target=*)
 			;;
-		--embed=*)
+		--enable-mods-static=*)
 			;;
-		--module=*)
+		--enable-mods-shared=*)
 			no_dso=true
 			for j in "$EMBED"; do
 				if [ "$j" = "dso" ]; then
@@ -111,13 +111,13 @@ for i in "$@"; do
 			echo "Usage: $0 [options]"
 			echo ""
 			echo "Options:"
-			echo "	--prefix=TARGET    Specify prefix"
-			echo "	--target=TARGET    Specify target"
-			echo "	--enable-OPTION    Enable option"
-			echo "	--disable-OPTION   Disable option"
-			echo "	--help             Show this help"
-			echo "  --module=MODULES   Compile MODULES as modules"
-			echo "  --embed=MODULES    Embed MODULES"
+			echo "	--prefix=TARGET                 Specify prefix"
+			echo "	--target=TARGET                 Specify target"
+			echo "	--enable-OPTION                 Enable option"
+			echo "	--disable-OPTION                Disable option"
+			echo "	--help                          Show this help"
+			echo "	--enable-mods-shared=MODULES    Compile MODULES as modules"
+			echo "	--enable-mods-static=MODULES    Embed MODULES"
 			echo ""
 			echo "Tunable options:"
 			echo "	ssl multithread"

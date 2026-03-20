@@ -11,7 +11,7 @@ pipeline {
 					}
 					steps {
 						sh("make distclean")
-						sh("./configure --module=all")
+						sh("./configure --enable-mods-shared=all")
 						sh("make -j4")
 					}
 				}
@@ -26,7 +26,7 @@ pipeline {
 					}
 					steps {
 						sh("make distclean")
-						sh("./configure --prefix=C:/Feather --target=Watcom --disable-ssl --module=all")
+						sh("./configure --prefix=C:/Feather --target=Watcom --disable-ssl --enable-mods-shared=all")
 						sh("make -j4 package/install.exe")
 						sh("mv package/install.exe install-win32.exe")
 						archiveArtifacts("install-win32.exe")
@@ -42,7 +42,7 @@ pipeline {
 					}
 					steps {
 						sh("make distclean")
-						sh("./configure --prefix=ms0:/PSP/GAME/fhttpd --target=PSP --disable-ssl")
+						sh("./configure --prefix=ms0:/PSP/GAME/fhttpd --target=PSP --disable-ssl --enable-mods-static=all")
 						sh("make -j4 package/fhttpd-psp.zip")
 						sh("mv package/fhttpd-psp.zip ./")
 						archiveArtifacts("fhttpd-psp.zip")

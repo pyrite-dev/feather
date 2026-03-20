@@ -3,6 +3,9 @@
 
 #include <stb_ds.h>
 
+#include <stdlib.h>
+#include <string.h>
+
 static int body_stream(fr_response_t* res, unsigned char* buffer, int size) {
 	return fpr_process_read(res->body_opaque, buffer, size);
 }
@@ -42,10 +45,10 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("PATH_INFO=", req->path, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated, NULL);
+	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated_original, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_NAME=", script_name == NULL ? req->path_virtual : script_name, NULL);
+	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual, NULL);
 	arrput(envs, s);
 
 	s = fpr_strvacat("QUERY_STRING=", strlen(req->query) > 0 ? (&req->query[1]) : "", NULL);
