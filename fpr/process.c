@@ -3,7 +3,9 @@
 
 typedef struct process {
 #if defined(FPR_IS_WIN32)
-
+	HANDLE h_stdin;
+	HANDLE h_stdout;
+	HANDLE h_stderr;
 #elif defined(FPR_IS_UNIX)
 	int pid;
 	int fd_stdin;
@@ -80,6 +82,8 @@ void* fpr_process_create(const char* exec, char** env) {
 	free(envs);
 
 	return proc;
+#else
+	return NULL;
 #endif
 }
 
@@ -96,6 +100,8 @@ int fpr_process_write(void* handle, const void* data, int len) {
 #if defined(FPR_IS_WIN32)
 #elif defined(FPR_IS_UNIX)
 	return write(proc->fd_stdin, data, len);
+#else
+	return -1;
 #endif
 }
 
@@ -104,6 +110,8 @@ int fpr_process_read(void* handle, void* data, int len) {
 #if defined(FPR_IS_WIN32)
 #elif defined(FPR_IS_UNIX)
 	return read(proc->fd_stdout, data, len);
+#else
+	return -1;
 #endif
 }
 

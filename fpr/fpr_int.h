@@ -15,10 +15,11 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-
-#if !defined(FPR_DL_IS_DUMMY)
 #include <dlfcn.h>
 #endif
+
+#if defined(_PSP)
+#include <unistd.h>
 #endif
 
 /* thread section */
