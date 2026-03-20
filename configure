@@ -45,8 +45,8 @@ for i in "$@"; do
 				cd ..
 
 				EMBED=""
-				for j in "$m"; do
-					if [ "$j" = "dir" -o "$j" = "file" -o "$j" = "error" ]; then
+				for j in $m; do
+					if [ "$j" = "dir" -o "$j" = "file" -o "$j" = "error" -o "$j" = "Makefile" ]; then
 						continue
 					fi
 					EMBED="$MODULES $j"
@@ -62,8 +62,8 @@ for i in "$@"; do
 				cd ..
 
 				MODULES=""
-				for j in "$m"; do
-					if [ "$j" = "dso" -o "$j" = "dir" -o "$j" = "file" -o "$j" = "error" ]; then
+				for j in $m; do
+					if [ "$j" = "dso" -o "$j" = "dir" -o "$j" = "file" -o "$j" = "error" -o "$j" = "Makefile" ]; then
 						continue
 					fi
 					MODULES="$MODULES $j"
