@@ -17,6 +17,12 @@
 #if !defined(RESOURCE)
 #include <fpr.h>
 
+#if defined(FPR_IS_WIN32)
+#define FR_MODULE_DATA __declspec(dllexport)
+#else
+#define FR_MODULE_DATA
+#endif
+
 enum fr_module_version {
 	FR_MODULE_VERSION_00 = 0
 };
@@ -71,6 +77,8 @@ struct fr_request {
 	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];
 	fr_stringkv_t* headers;
+
+	char handler[MAX_HANDLER_LENGTH + 1];
 
 	void* body;
 	int   body_seek;

@@ -93,4 +93,4 @@ static fr_module_t module = {
     FR_MODULE_VERSION_00,
     directive,
     register_stuff};
-fr_module_t* error_module = &module;
+FR_MODULE_DATA fr_module_t* error_module = &module;

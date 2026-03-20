@@ -39,10 +39,38 @@ for i in "$@"; do
 			TARGET="`echo "$i" | cut -d= -f2-`"
 			;;
 		--embed=*)
-			EMBED="`echo "$i" | cut -d= -f2-`"
+			if [ "`echo "$i" | cut -d= -f2-`" = "all" ]; then
+				cd module
+				m="`ls -d *`"
+				cd ..
+
+				EMBED=""
+				for j in "$m"; do
+					if [ "$j" = "dir" -o "$j" = "file" -o "$j" = "error" ]; then
+						continue
+					fi
+					EMBED="$MODULES $j"
+				done
+			else
+				EMBED="`echo "$i" | cut -d= -f2-`"
+			fi
 			;;
-		--embed=*)
-			MODULES="`echo "$i" | cut -d= -f2-`"
+		--module=*)
+			if [ "`echo "$i" | cut -d= -f2-`" = "all" ]; then
+				cd module
+				m="`ls -d *`"
+				cd ..
+
+				MODULES=""
+				for j in "$m"; do
+					if [ "$j" = "dso" -o "$j" = "dir" -o "$j" = "file" -o "$j" = "error" ]; then
+						continue
+					fi
+					MODULES="$MODULES $j"
+				done
+			else
+				MODULES="`echo "$i" | cut -d= -f2-`"
+			fi
 			;;
 	esac
 done
@@ -88,6 +116,8 @@ for i in "$@"; do
 			echo "	--enable-OPTION    Enable option"
 			echo "	--disable-OPTION   Disable option"
 			echo "	--help             Show this help"
+			echo "  --module=MODULES   Compile MODULES as modules"
+			echo "  --embed=MODULES    Embed MODULES"
 			echo ""
 			echo "Tunable options:"
 			echo "	ssl multithread"
@@ -202,6 +232,7 @@ cat > config.h << EOF
 #define MAX_QUERY_LENGTH 1024
 #define MAX_VERSION_LENGTH 8 /* you DO NOT have to change this... */
 #define MAX_STATUS_TEXT_LENGTH 1024
+#define MAX_HANDLER_LENGTH 64
 
 /* Modules to embed - also edit config.mk
  * Do NOT remove LOAD(dir), LOAD(file) and LOAD(error) unless you know

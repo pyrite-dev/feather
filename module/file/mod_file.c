@@ -95,4 +95,4 @@ static fr_module_t module = {
     FR_MODULE_VERSION_00,
     NULL,
     register_stuff};
-fr_module_t* file_module = &module;
+FR_MODULE_DATA fr_module_t* file_module = &module;

@@ -270,6 +270,8 @@ void http_req(client_t* c) {
 
 	fpr_gethostname(hostname, 1024);
 
+	c->request.handler[0] = 0;
+
 	http_res_set_header(&c->response, "Server", server);
 
 	s = NULL;
@@ -399,22 +401,27 @@ fpr_bool http_send(client_t* c) {
 			return fpr_true;
 		}
 
-		r += c->response.body_seek;
-
-		l = c->response.body_size - c->response.body_seek;
-		if(l > BUFFER_SIZE) l = BUFFER_SIZE;
+		if(c->response.body_size == -1) {
+			l = BUFFER_SIZE;
+		} else {
+			r += c->response.body_seek;
+			l = c->response.body_size - c->response.body_seek;
+			if(l > BUFFER_SIZE) l = BUFFER_SIZE;
+		}
 
 		if(l > 0) {
 			if(c->response.body != NULL) {
 				memcpy(chunk, r, l);
 			} else if(c->response.body_stream != NULL) {
-				c->response.body_stream(&c->response, chunk, l);
+				if(c->response.body_stream(&c->response, chunk, l) == 0) {
+					c->state = CS_CONNECTED;
+				}
 			}
 			if(server_write(c, chunk, l) < l) return fpr_false;
 		}
 
 		c->response.body_seek += l;
-		if(c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;
+		if(c->response.body_size != -1 && c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;
 	}
 
 	return fpr_true;
