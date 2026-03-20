@@ -7,7 +7,7 @@ typedef struct arg {
 	void* param;
 } arg_t;
 
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 #if defined(FPR_USE_CREATETHREAD)
 static DWORD WINAPI thread_entry(void* _param) {
 #else
@@ -23,7 +23,7 @@ static unsigned int WINAPI thread_entry(void* _param) {
 
 	return 0;
 }
-#else
+#elif defined(FPR_IS_UNIX)
 static void* thread_entry(void* _param) {
 	arg_t* arg		   = _param;
 	void (*entry)(void* param) = arg->entry;
@@ -38,7 +38,7 @@ static void* thread_entry(void* _param) {
 #endif
 
 void* fpr_thread_create(void (*entry)(void* param), void* param) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	arg_t* arg = malloc(sizeof(*arg));
 #if defined(FPR_USE_CREATETHREAD)
 	DWORD id;
@@ -55,7 +55,7 @@ void* fpr_thread_create(void (*entry)(void* param), void* param) {
 	_beginthreadex
 #endif
 	    (NULL, 0, thread_entry, arg, 0, &id);
-#else
+#elif defined(FPR_IS_UNIX)
 	pthread_t* t   = malloc(sizeof(*t));
 	arg_t*	   arg = malloc(sizeof(*arg));
 
@@ -69,18 +69,18 @@ void* fpr_thread_create(void (*entry)(void* param), void* param) {
 }
 
 void fpr_thread_detach(void* handle) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	CloseHandle(handle);
-#else
+#elif defined(FPR_IS_UNIX)
 	pthread_detach(*(pthread_t*)handle);
 	free(handle);
 #endif
 }
 
 void fpr_thread_join(void* handle) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	WaitForSingleObject(handle, INFINITE);
-#else
+#elif defined(FPR_IS_UNIX)
 	void* ret;
 
 	pthread_join(*(pthread_t*)handle, &ret);
@@ -88,9 +88,9 @@ void fpr_thread_join(void* handle) {
 }
 
 void fpr_thread_destroy(void* handle) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	CloseHandle(handle);
-#else
+#elif defined(FPR_IS_UNIX)
 	free(handle);
 #endif
 }

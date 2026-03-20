@@ -4,6 +4,8 @@ char*	 argv0;
 fpr_bool running = fpr_true;
 char	 server[2048];
 
+#include <stb_ds.h>
+
 int main(int argc, char** argv) {
 	int	    i;
 	const char* conf      = PREFIX "/etc/fhttpd/fhttpd.conf";

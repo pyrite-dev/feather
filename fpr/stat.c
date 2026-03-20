@@ -2,7 +2,7 @@
 #include <fpr_int.h>
 
 int fpr_stat(const char* path, struct fpr_stat* s) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	WIN32_FILE_ATTRIBUTE_DATA fad;
 	ULARGE_INTEGER		  mtime;
 
@@ -27,7 +27,7 @@ int fpr_stat(const char* path, struct fpr_stat* s) {
 	}
 
 	return 0;
-#else
+#elif defined(FPR_IS_UNIX)
 	struct stat st;
 	int	    sc;
 

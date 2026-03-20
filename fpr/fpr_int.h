@@ -10,10 +10,11 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#if !defined(_WIN32)
+#if defined(FPR_IS_UNIX)
 #include <unistd.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 #if !defined(FPR_DL_IS_DUMMY)
 #include <dlfcn.h>
@@ -22,7 +23,7 @@
 
 /* thread section */
 #if defined(MULTITHREAD)
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 #if !defined(FPR_USE_CREATETHREAD)
 #include <process.h>
 #endif
@@ -32,7 +33,7 @@
 #endif
 
 /* socket section */
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 #include <winsock2.h>
 #include <ws2ipdef.h>
 #else
@@ -53,7 +54,7 @@
 #endif
 
 /* windows.h wants to be the last one included */
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 #include <windows.h>
 #endif
 

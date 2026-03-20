@@ -2,7 +2,7 @@
 #include <fpr_int.h>
 
 FPR_FILE* fpr_fopen(const char* path, const char* mode) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	DWORD  ac  = 0;
 	DWORD  dis = 0;
 	DWORD  fl  = FILE_ATTRIBUTE_NORMAL;
@@ -29,7 +29,7 @@ FPR_FILE* fpr_fopen(const char* path, const char* mode) {
 }
 
 int fpr_fread(void* ptr, int size, int nmemb, FPR_FILE* stream) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	DWORD dw;
 
 	if(!ReadFile((HANDLE)stream, ptr, size * nmemb, &dw, NULL)) return -1;
@@ -41,7 +41,7 @@ int fpr_fread(void* ptr, int size, int nmemb, FPR_FILE* stream) {
 }
 
 int fpr_fwrite(const void* ptr, int size, int nmemb, FPR_FILE* stream) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	DWORD dw;
 
 	if(!WriteFile((HANDLE)stream, ptr, size * nmemb, &dw, NULL)) return -1;
@@ -53,7 +53,7 @@ int fpr_fwrite(const void* ptr, int size, int nmemb, FPR_FILE* stream) {
 }
 
 void fpr_fclose(FPR_FILE* stream) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	CloseHandle((HANDLE)stream);
 #else
 	fclose((FILE*)stream);

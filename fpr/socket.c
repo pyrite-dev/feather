@@ -10,19 +10,19 @@
 #endif
 
 void fpr_socket_init(void) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	WSADATA wsa;
 
 	WSAStartup(MAKEWORD(2, 0), &wsa);
-#else
+#elif defined(FPR_IS_UNIX)
 	signal(SIGPIPE, SIG_IGN);
 #endif
 }
 
 void fpr_socket_uninit(void) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	WSACleanup();
-#else
+#elif defined(FPR_IS_UNIX)
 #endif
 }
 
@@ -56,7 +56,7 @@ int fpr_socket(int domain, int type, int protocol) {
 
 	s = socket(d, t, p);
 
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	if(s == INVALID_SOCKET) s = -1;
 #endif
 
@@ -174,9 +174,9 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 }
 
 void fpr_socket_close(int d) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	closesocket(d);
-#else
+#elif defined(FPR_IS_UNIX)
 	close(d);
 #endif
 }

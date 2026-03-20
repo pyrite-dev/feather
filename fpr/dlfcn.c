@@ -16,25 +16,25 @@ int fpr_dlclose(void* handle) {
 #else
 
 void* fpr_dlopen(const char* path) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	return LoadLibrary(path);
-#else
+#elif defined(FPR_IS_UNIX)
 	return dlopen(path, RTLD_LAZY | RTLD_LOCAL);
 #endif
 }
 
 void* fpr_dlsym(void* handle, const char* symbol) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	return GetProcAddress(handle, symbol);
-#else
+#elif defined(FPR_IS_UNIX)
 	return dlsym(handle, symbol);
 #endif
 }
 
 int fpr_dlclose(void* handle) {
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 	return FreeLibrary(handle) ? 0 : 1;
-#else
+#elif defined(FPR_IS_UNIX)
 	return dlclose(handle);
 #endif
 }

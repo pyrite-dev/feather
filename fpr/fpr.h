@@ -1,7 +1,13 @@
 #ifndef __FPR_H__
 #define __FPR_H__
 
-#if defined(_WIN32)
+#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__)
+#define FPR_IS_UNIX
+#elif defined(_WIN32)
+#define FPR_IS_WIN32
+#endif
+
+#if defined(FPR_IS_WIN32)
 #define fpr_newline "\r\n"
 #else
 #define fpr_newline "\n"
@@ -191,6 +197,13 @@ void* fpr_thread_create(void (*entry)(void* param), void* param);
 void  fpr_thread_detach(void* handle); /* this also frees the thread */
 void  fpr_thread_join(void* handle);
 void  fpr_thread_destroy(void* handle);
+
+/* process.c */
+void* fpr_process_create(const char* exec, char** env);
+void  fpr_process_close(void* handle);
+int   fpr_process_write(void* handle, const void* data, int len);
+int   fpr_process_read(void* handle, void* data, int len);
+void  fpr_process_destroy(void* handle);
 
 /* url.c */
 fpr_bool fpr_url_decode(char* out, const char* input, int len);
