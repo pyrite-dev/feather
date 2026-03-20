@@ -70,6 +70,9 @@ struct fr_module {
 	void (*register_stuff)(fr_context_t* context);
 };
 
+/* read path_translated if you want to read "normal" path, which is what you most likely want
+ * read path_translated2 if you want to read 2nd path (e.g. Script Action wants to run)
+ */
 struct fr_request {
 	char	       method[MAX_METHOD_LENGTH + 1];
 	char	       path[MAX_PATH_LENGTH + 1];	      /* decoded HTTP path, do not modify */
@@ -77,7 +80,7 @@ struct fr_request {
 	char	       path_translated2[MAX_PATH_LENGTH + 1]; /* physical path, but calculated from path_virtual2 */
 	char	       path_raw[MAX_PATH_LENGTH + 1];	      /* raw HTTP path */
 	char	       path_virtual[MAX_PATH_LENGTH + 1];     /* virtual path */
-	char	       path_virtual2[MAX_PATH_LENGTH + 1];    /* virtual path, but (usually) respects how client sent it */
+	char	       path_virtual2[MAX_PATH_LENGTH + 1];    /* virtual path */
 	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];
 	fr_stringkv_t* headers;

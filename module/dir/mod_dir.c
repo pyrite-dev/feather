@@ -15,7 +15,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	arr = context->config_lookup_array(context, "DirectoryIndex", &len);
 
 	for(i = 0; i < len; i++) {
-		char* p = fpr_strvacat(req->path_translated2, req->path_translated[strlen(req->path_translated2) - 1] == '/' ? "" : "/", arr[i], NULL);
+		char* p = fpr_strvacat(req->path_translated, req->path_translated[strlen(req->path_translated) - 1] == '/' ? "" : "/", arr[i], NULL);
 
 		if(fpr_stat(p, &st) == 0 && !FPR_S_ISDIR(st.st_mode)) {
 			strcpy(req->path_virtual, req->path);
