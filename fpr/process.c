@@ -9,30 +9,30 @@ typedef struct process {
 	HANDLE h_stderr;
 #elif defined(FPR_IS_UNIX)
 	pid_t pid;
-	int fd_stdin;
-	int fd_stdout;
-	int fd_stderr;
+	int   fd_stdin;
+	int   fd_stdout;
+	int   fd_stderr;
 #endif
 } process_t;
 
 void* fpr_process_create(const char* exec, char** env) {
 #if defined(FPR_IS_WIN32)
-	process_t* proc = malloc(sizeof(*proc));
+	process_t*	    proc = malloc(sizeof(*proc));
 	SECURITY_ATTRIBUTES attr;
-	HANDLE pipe_stdin[2];
-	HANDLE pipe_stdout[2];
-	HANDLE pipe_stderr[2];
-	char path[2048];
-	char* envs;
+	HANDLE		    pipe_stdin[2];
+	HANDLE		    pipe_stdout[2];
+	HANDLE		    pipe_stderr[2];
+	char		    path[2048];
+	char*		    envs;
 	PROCESS_INFORMATION pi;
-	STARTUPINFO si;
-	char* d_envs = GetEnvironmentStrings();
-	char* d_envs2;
-	int envs_len = 0;
-	int i;
+	STARTUPINFO	    si;
+	char*		    d_envs = GetEnvironmentStrings();
+	char*		    d_envs2;
+	int		    envs_len = 0;
+	int		    i;
 
 	d_envs2 = d_envs;
-	while(*d_envs2){
+	while(*d_envs2) {
 		envs_len += strlen(d_envs2) + 1;
 
 		d_envs2 += strlen(d_envs2) + 1;
@@ -41,18 +41,18 @@ void* fpr_process_create(const char* exec, char** env) {
 	for(i = 0; env[i] != NULL; i++) envs_len += strlen(env[i]) + 1;
 	envs_len++;
 
-	envs = malloc(envs_len);
+	envs	 = malloc(envs_len);
 	envs_len = 0;
 
 	d_envs2 = d_envs;
-	while(*d_envs2){
+	while(*d_envs2) {
 		strcpy(envs + envs_len, d_envs2);
 		envs_len += strlen(d_envs2) + 1;
 
 		d_envs2 += strlen(d_envs2) + 1;
 	}
 
-	for(i = 0; env[i] != NULL; i++){
+	for(i = 0; env[i] != NULL; i++) {
 		strcpy(envs + envs_len, env[i]);
 		envs_len += strlen(env[i]) + 1;
 	}
@@ -62,13 +62,13 @@ void* fpr_process_create(const char* exec, char** env) {
 	memset(&pi, 0, sizeof(pi));
 
 	memset(&si, 0, sizeof(si));
-	si.cb = sizeof(si);
+	si.cb	   = sizeof(si);
 	si.dwFlags = STARTF_USESTDHANDLES;
 
 	sprintf(path, "\"%s\"", exec);
 
 	memset(&attr, 0, sizeof(attr));
-	attr.nLength = sizeof(attr);
+	attr.nLength	    = sizeof(attr);
 	attr.bInheritHandle = TRUE;
 
 	CreatePipe(&pipe_stdin[0], &pipe_stdin[1], &attr, 0);
@@ -80,24 +80,24 @@ void* fpr_process_create(const char* exec, char** env) {
 	CreatePipe(&pipe_stderr[0], &pipe_stderr[1], &attr, 0);
 	SetHandleInformation(pipe_stderr[0], HANDLE_FLAG_INHERIT, 0);
 
-	si.hStdInput = pipe_stdin[0];
+	si.hStdInput  = pipe_stdin[0];
 	si.hStdOutput = pipe_stdout[1];
-	si.hStdError = pipe_stderr[1];
+	si.hStdError  = pipe_stderr[1];
 
-	if(!CreateProcess(NULL, path, NULL, NULL, TRUE, 0, envs, NULL, &si, &pi)){
+	if(!CreateProcess(NULL, path, NULL, NULL, TRUE, 0, envs, NULL, &si, &pi)) {
 		int i;
 
 		free(proc);
 		free(envs);
 
-		for(i = 0; i < 2; i++){
+		for(i = 0; i < 2; i++) {
 			CloseHandle(pipe_stdin[i]);
 			CloseHandle(pipe_stdout[i]);
 			CloseHandle(pipe_stderr[i]);
 		}
 
 		return NULL;
-	}else{
+	} else {
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 
@@ -105,8 +105,8 @@ void* fpr_process_create(const char* exec, char** env) {
 		CloseHandle(pipe_stdout[1]);
 		CloseHandle(pipe_stderr[1]);
 
-		proc->process = pi.hProcess;
-		proc->h_stdin = pipe_stdin[1];
+		proc->process  = pi.hProcess;
+		proc->h_stdin  = pipe_stdin[1];
 		proc->h_stdout = pipe_stdout[0];
 		proc->h_stderr = pipe_stderr[0];
 	}
@@ -202,7 +202,7 @@ int fpr_process_write(void* handle, const void* data, int len) {
 	DWORD r;
 
 	if(!WriteFile(proc->h_stdin, data, len, &r, NULL)) return -1;
-	
+
 	return r;
 #elif defined(FPR_IS_UNIX)
 	return write(proc->fd_stdin, data, len);
@@ -217,7 +217,7 @@ int fpr_process_read(void* handle, void* data, int len) {
 	DWORD r;
 
 	if(!ReadFile(proc->h_stdout, data, len, &r, NULL)) return -1;
-	
+
 	return r;
 #elif defined(FPR_IS_UNIX)
 	return read(proc->fd_stdout, data, len);

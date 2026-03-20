@@ -66,6 +66,7 @@ struct fr_module {
 struct fr_request {
 	char	       method[MAX_METHOD_LENGTH + 1];
 	char	       path[MAX_PATH_LENGTH + 1];
+	char	       path_translated[MAX_PATH_LENGTH + 1];
 	char	       path_raw[MAX_PATH_LENGTH + 1];
 	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];

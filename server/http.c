@@ -261,14 +261,37 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, int* loop) {
 }
 
 void http_req(client_t* c) {
-	int loop = 1;
+	int	     loop = 1;
+	fr_config_t* config;
+	const char*  host = http_req_get_header(&c->request, "host");
+	char	     hostname[1024];
+	const char*  s;
+	int	     ok = 1;
+
+	fpr_gethostname(hostname, 1024);
 
 	http_res_set_header(&c->response, "Server", server);
 
+	s = NULL;
+	if((config = config_vhost_match(host == NULL ? hostname : host, c->port)) != NULL && (s = util_stringkv_lookup(config->kv, "DocumentRoot")) != NULL) {
+	} else if((s = util_stringkv_lookup(config_root->kv, "DocumentRoot")) != NULL) {
+	}
+
+	if(s == NULL || (strlen(s) + 1 + strlen(c->request.path)) >= MAX_PATH_LENGTH) {
+		ok = 0;
+	} else {
+		char* p = path_transform(s);
+
+		strcpy(c->request.path_translated, p);
+		strcat(c->request.path_translated, c->request.path + (p[strlen(p) - 1] == '/' ? 1 : 0));
+
+		free(p);
+	}
+
 	do {
-		if(proc_hooks(module_first_hooks, c, &loop)) {
-		} else if(proc_hooks(module_middle_hooks, c, &loop)) {
-		} else if(proc_hooks(module_last_hooks, c, &loop)) {
+		if(ok && proc_hooks(module_first_hooks, c, &loop)) {
+		} else if(ok && proc_hooks(module_middle_hooks, c, &loop)) {
+		} else if(ok && proc_hooks(module_last_hooks, c, &loop)) {
 		} else {
 			c->response.status_code = 500;
 			strcpy(c->response.status_text, "Internal Server Error");
@@ -276,14 +299,14 @@ void http_req(client_t* c) {
 			http_res_set_header(&c->response, "Content-Type", "text/html");
 
 			c->response.body = fpr_strdup(
-			    "<html>\n"								 /**/
-			    "	<head>\n"							 /**/
-			    "		<title>Oops</title>\n"					 /**/
-			    "	</head>\n"							 /**/
-			    "	<body>\n"							 /**/
-			    "		No one handled the request... this should not happen!\n" /**/
-			    "	</body>\n"							 /**/
-			    "<html>\n"								 /**/
+			    "<html>\n"					  /**/
+			    "	<head>\n"				  /**/
+			    "		<title>Oops</title>\n"		  /**/
+			    "	</head>\n"				  /**/
+			    "	<body>\n"				  /**/
+			    "		Something went horribly wrong!\n" /**/
+			    "	</body>\n"				  /**/
+			    "<html>\n"					  /**/
 			);
 			c->response.body_size = strlen(c->response.body);
 		}

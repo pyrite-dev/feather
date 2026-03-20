@@ -90,7 +90,7 @@ PREFIX	= $PREFIX
 EMBED	= $EMBED
 
 # Do not disable these modules, unless you know what it means
-EMBED += file error
+EMBED += dir file error
 
 # DSO modules to compile
 MODULES = $MODULES
@@ -183,7 +183,8 @@ cat > config.h << EOF
 #define MAX_STATUS_TEXT_LENGTH 1024
 
 /* Modules to embed - also edit config.mk
- * Do NOT remove LOAD(file) and LOAD(error) unless you know what it means...
+ * Do NOT remove LOAD(dir), LOAD(file) and LOAD(error) unless you know
+ * what it means...
  */
 #define MODULES \\
 EOF
@@ -191,6 +192,7 @@ for i in $EMBED; do
 	echo "	LOAD($i) \\" >> config.h
 done
 cat >> config.h << EOF
+	LOAD(dir) \\
 	LOAD(file) \\
 	LOAD(error)
 

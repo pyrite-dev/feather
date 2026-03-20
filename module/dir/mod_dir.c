@@ -1,0 +1,64 @@
+#define _FHTTPD
+#include <fhttpd.h>
+
+#define TRY_LOOKUPARR(x, y) ((x) == NULL ? NULL : context->stringarraykv_lookup((x)->arraykv, (y)))
+
+static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
+	char**		arr = NULL;
+	int		len;
+	struct fpr_stat st;
+	int		i;
+
+	if(arr == NULL) {
+		if((arr = TRY_LOOKUPARR(context->config_vhost, "DirectoryIndex")) != NULL) len = context->stringarraykv_length(context->config_vhost->arraykv, "DirectoryIndex");
+	}
+
+	if(arr == NULL) {
+		if((arr = TRY_LOOKUPARR(context->config_root, "DirectoryIndex")) != NULL) len = context->stringarraykv_length(context->config_root->arraykv, "DirectoryIndex");
+	}
+
+	for(i = 0; i < len; i++) {
+		char* p = fpr_strvacat(req->path_translated, req->path_translated[strlen(req->path_translated) - 1] == '/' ? "" : "/", arr[i], NULL);
+
+		if(fpr_stat(p, &st) == 0 && !FPR_S_ISDIR(st.st_mode)) {
+			strcpy(req->path_translated, p);
+
+			free(p);
+			return FR_MODULE_DECLINE;
+		}
+
+		free(p);
+	}
+
+	return FR_MODULE_DECLINE;
+}
+
+static int directive(fr_context_t* context, int argc, char** argv) {
+	if(strcmp(argv[0], "DirectoryIndex") == 0) {
+		if(argc >= 2) {
+			int i;
+
+			for(i = 1; i < argc; i++) {
+				context->stringarraykv_push(context->config_current->arraykv, "DirectoryIndex", argv[i]);
+			}
+		} else {
+			fprintf(stderr, "%s: %s: DirectoryIndex takes 1 argument or more\n", context->argv0, context->config_path);
+
+			return FR_MODULE_ERROR;
+		}
+
+		return FR_MODULE_OK;
+	}
+
+	return FR_MODULE_DECLINE;
+}
+
+static void register_stuff(fr_context_t* context) {
+	context->register_hook(hook, FR_MODULE_HOOK_FIRST);
+}
+
+static fr_module_t module = {
+    FR_MODULE_VERSION_00,
+    directive,
+    register_stuff};
+fr_module_t* dir_module = &module;
