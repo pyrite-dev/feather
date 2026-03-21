@@ -57,6 +57,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 		}
 	} else {
 		strcpy(req->path_virtual, s);
+		strcpy(req->path_virtual2, s);
 
 		return FR_MODULE_LOOP;
 	}
