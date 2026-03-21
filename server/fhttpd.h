@@ -71,10 +71,9 @@ struct fr_module {
 };
 
 /* read path_translated if you want to read "normal" path, which is what you most likely want
- * read path_translated2 if you want to read 2nd path (e.g. Script that Action wants to run)
+ * read path_translated2 if you want to read "alternative" path or "normal" path (e.g. Script that Action wants to run)
  *
- * if you always want to read ACTUAL path, read path_translated
- * if you want to read ALTERNATIVE path or ACTUAL path, read path_translated2
+ * path_translated2 is the path that gets handled internally
  */
 struct fr_request {
 	char	       method[MAX_METHOD_LENGTH + 1];
