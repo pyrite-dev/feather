@@ -39,6 +39,7 @@ Section
 		SetRegView 32
 	${EndIf}
 
+	SetOutPath "$INSTDIR\bin"
 	CreateDirectory "$SMPROGRAMS\Feather HTTPd"
 	CreateShortcut "$SMPROGRAMS\Feather HTTPd\License.lnk" "$INSTDIR\LICENSE.txt" ""
 	CreateShortcut "$SMPROGRAMS\Feather HTTPd\Start Feather HTTPd.lnk" "$INSTDIR\bin\fhttpd.exe" ""
