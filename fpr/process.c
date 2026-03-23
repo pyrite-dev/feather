@@ -16,6 +16,17 @@ typedef struct process {
 #endif
 } process_t;
 
+static fpr_bool is_allowed_env(const char* n) {
+	char* p = fpr_strdup(n);
+	char* s;
+
+	if((s = strchr(p, '=')) != NULL) s[0] = 0;
+
+	if(strcmp(p, "PATH") == 0) return fpr_true;
+
+	return fpr_false;
+}
+
 void* fpr_process_create(const char* exec, char** env) {
 #if defined(FPR_IS_WIN32)
 	process_t*	    proc = malloc(sizeof(*proc));
@@ -34,7 +45,7 @@ void* fpr_process_create(const char* exec, char** env) {
 
 	d_envs2 = d_envs;
 	while(*d_envs2) {
-		envs_len += strlen(d_envs2) + 1;
+		if(is_allowed_env(d_envs2)) envs_len += strlen(d_envs2) + 1;
 
 		d_envs2 += strlen(d_envs2) + 1;
 	}
@@ -47,8 +58,10 @@ void* fpr_process_create(const char* exec, char** env) {
 
 	d_envs2 = d_envs;
 	while(*d_envs2) {
-		strcpy(envs + envs_len, d_envs2);
-		envs_len += strlen(d_envs2) + 1;
+		if(is_allowed_env(d_envs2)) {
+			strcpy(envs + envs_len, d_envs2);
+			envs_len += strlen(d_envs2) + 1;
+		}
 
 		d_envs2 += strlen(d_envs2) + 1;
 	}
@@ -124,13 +137,17 @@ void* fpr_process_create(const char* exec, char** env) {
 
 	extern char** environ;
 
-	for(i = 0; environ[i] != NULL; i++) c++;
+	for(i = 0; environ[i] != NULL; i++) {
+		if(is_allowed_env(environ[i])) c++;
+	}
 	for(i = 0; env != NULL && env[i] != NULL; i++) c++;
 
 	envs = malloc(sizeof(*envs) * (c + 1));
 
 	c = 0;
-	for(i = 0; environ[i] != NULL; i++) envs[c++] = environ[i];
+	for(i = 0; environ[i] != NULL; i++) {
+		if(is_allowed_env(environ[i])) envs[c++] = environ[i];
+	}
 	for(i = 0; env != NULL && env[i] != NULL; i++) envs[c++] = env[i];
 	envs[c] = 0;
 
