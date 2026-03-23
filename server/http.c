@@ -354,16 +354,18 @@ void http_req(client_t* c) {
 
 	strcpy(c->request.path_virtual3, c->request.path_virtual);
 
-	PATH_SET;
-
 	strcpy(c->request.path_virtual3, c->request.path_virtual);
 	c->request.path_virtual3[strlen(c->request.path_virtual3) - strlen(c->request.path_info)] = 0;
+
+	PATH_SET;
 
 	do {
 		PROCESS_PATH;
 
 		if(first) {
 			http_req_assume_handler(&c->request, &context);
+
+			printf("%s %s %s\n", c->request.path_virtual, c->request.path_virtual2, c->request.path_virtual3);
 
 			first = 0;
 		}
@@ -565,8 +567,6 @@ static void http_assume_handler(char* handler, const char* path, fr_context_t* c
 }
 
 void http_req_assume_handler(fr_request_t* req, fr_context_t* context) {
-	req->handler[0] = 0;
-
-	if(strlen(req->handler) == 0) http_assume_handler(req->handler, req->path_translated3, context);
-	if(strlen(req->handler) == 0) http_assume_handler(req->handler, req->path_translated, context);
+	http_assume_handler(req->handler, req->path_translated, context);
+	http_assume_handler(req->handler3, req->path_translated3, context);
 }

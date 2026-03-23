@@ -39,7 +39,8 @@ enum fr_module_hook_order {
 	FR_MODULE_HOOK_FIRST = 0,
 	FR_MODULE_HOOK_MIDDLE,
 	FR_MODULE_HOOK_LAST,
-	FR_MODULE_HOOK_REWRITE
+	FR_MODULE_HOOK_REWRITE,
+	FR_MODULE_HOOK_PATH_INFO_CHECK
 };
 
 typedef struct fr_module	       fr_module_t;
@@ -95,6 +96,7 @@ struct fr_request {
 	int   port;
 
 	char handler[MAX_HANDLER_LENGTH + 1];
+	char handler3[MAX_HANDLER_LENGTH + 1]; /* handler, but calculated from path_translated3 */
 
 	void* body;
 	int   body_seek;
