@@ -354,16 +354,21 @@ void http_req(client_t* c) {
 
 	strcpy(c->request.path_virtual3, c->request.path_virtual);
 
-	strcpy(c->request.path_virtual3, c->request.path_virtual);
-	c->request.path_virtual3[strlen(c->request.path_virtual3) - strlen(c->request.path_info)] = 0;
-
 	PATH_SET;
+
+	strcpy(c->request.path_virtual3, c->request.path_virtual);
+
+	if(strlen(c->request.path_virtual3) > strlen(c->request.path_info) && strcmp(&c->request.path_virtual3[strlen(c->request.path_virtual3) - strlen(c->request.path_info)], c->request.path_info) == 0) {
+		c->request.path_virtual3[strlen(c->request.path_virtual3) - strlen(c->request.path_info)] = 0;
+	}
 
 	do {
 		PROCESS_PATH;
 
 		if(first) {
 			http_req_assume_handler(&c->request, &context);
+
+			printf("%s %s %s\n", c->request.path_virtual, c->request.path_virtual2, c->request.path_virtual3);
 
 			first = 0;
 		}
