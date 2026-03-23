@@ -57,8 +57,21 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("QUERY_STRING=", strlen(req->query) > 0 ? (&req->query[1]) : "", NULL);
-	arrput(envs, s);
+	if(strlen(req->query) > 0){
+		s = fpr_strvacat("QUERY_STRING=", &req->query[1], NULL);
+		arrput(envs, s);
+	}
+
+	if((h = context->request_get_header(req, "content-type")) != NULL){
+		s = fpr_strvacat("CONTENT_TYPE=", h, NULL);
+		arrput(envs, s);
+	}
+
+	if(req->body_size > 0){
+		sprintf(buf, "%d", req->body_size, NULL);
+		s = fpr_strvacat("CONTENT_LENGTH=", buf, NULL);
+		arrput(envs, s);
+	}
 
 	/* Apache extension, needed to make PHP work */
 	sprintf(buf, "%d", res->status_code == 0 ? 200 : res->status_code);
@@ -84,6 +97,8 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	context->request_set_header(req, "connection", "close");
 
 	res->body_opaque = proc;
+
+	if(req->body_size > 0) fpr_process_write(res->body_opaque, req->body, req->body_size);
 
 	fpr_process_close(res->body_opaque);
 
