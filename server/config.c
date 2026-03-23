@@ -34,6 +34,8 @@ static void recursive_free(fr_config_t* config) {
 			if(strcmp(config->name, "VirtualHost") == 0) {
 				for(i = 0; i < arrlen(config->section.vhost.entry); i++) free(config->section.vhost.entry[i]);
 				arrfree(config->section.vhost.entry);
+			} else if(strcmp(config->name, "FilesMatch") == 0) {
+				free(config->section.match.pattern);
 			}
 
 			free(config->name);
@@ -219,7 +221,7 @@ static fpr_bool parse(const char* path) {
 									if(fail) break;
 								}
 							} else {
-								fprintf(stderr, "%s: %s: %s takes 3 argument or more\n", argv0, path, arg[0]);
+								fprintf(stderr, "%s: %s: %s takes 1 argument or more\n", argv0, path, arg[0]);
 
 								fail = 1;
 							}
@@ -235,7 +237,15 @@ static fpr_bool parse(const char* path) {
 									free(p);
 								}
 							} else {
-								fprintf(stderr, "%s: %s: %s takes 1 argument or more\n", argv0, path, arg[0]);
+								fprintf(stderr, "%s: %s: %s takes 2 argument or more\n", argv0, path, arg[0]);
+
+								fail = 1;
+							}
+						} else if(strcmp(arg[0], "SetHandler") == 0) {
+							if(arg_len(arg) == 2) {
+								util_stringkv_set(&config_current->kv, "Handler", arg[1]);
+							} else {
+								fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, arg[0]);
 
 								fail = 1;
 							}
@@ -269,7 +279,7 @@ static fpr_bool parse(const char* path) {
 								fail = fpr_true;
 							}
 						} else if(strcmp(arg[0], "VirtualHost") == 0) {
-							if(arg_len(arg) > 1) {
+							if(arg_len(arg) >= 2) {
 								config_current = new_config(config_current, arg[0]);
 
 								config_current->section.vhost.entry = NULL;
@@ -280,6 +290,18 @@ static fpr_bool parse(const char* path) {
 								}
 							} else {
 								fprintf(stderr, "%s: %s: VirtualHost takes 1 argument or more\n", argv0, path);
+
+								fail = fpr_true;
+							}
+						} else if(strcmp(arg[0], "FilesMatch") == 0) {
+							if(arg_len(arg) == 2) {
+								char* s;
+
+								config_current = new_config(config_current, arg[0]);
+
+								config_current->section.match.pattern = fpr_strdup(arg[1]);
+							} else {
+								fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, arg[0]);
 
 								fail = fpr_true;
 							}
@@ -342,4 +364,8 @@ fr_config_t* config_vhost_match(const char* host, int port) {
 	free(n);
 
 	return NULL;
+}
+
+int config_children_length(fr_config_t* config) {
+	return arrlen(config->children);
 }

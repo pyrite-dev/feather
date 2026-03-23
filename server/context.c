@@ -1,9 +1,17 @@
 #include <fhttpd.h>
 
+#include <stb_ds.h>
+#include <pcre.h>
+
 #define LOOKUP(x) \
 	if(context->x != NULL && (v = util_stringkv_lookup(context->x->kv, key)) != NULL) return v;
 char* context_config_lookup(fr_context_t* context, const char* key) {
 	char* v;
+	int   i;
+
+	for(i = 0; context->config_matches[i] != NULL; i++) {
+		LOOKUP(config_matches[i]);
+	}
 
 	LOOKUP(config_vhost);
 
@@ -20,6 +28,11 @@ char* context_config_lookup(fr_context_t* context, const char* key) {
 	}
 char** context_config_lookup_array(fr_context_t* context, const char* key, int* len) {
 	char** v = NULL;
+	int    i;
+
+	for(i = 0; context->config_matches[i] != NULL; i++) {
+		LOOKUP(config_matches[i]);
+	}
 
 	LOOKUP(config_vhost);
 
@@ -34,6 +47,8 @@ void context_init(fr_context_t* context) {
 
 	context->config_root	= config_root;
 	context->config_current = config_current;
+	context->config_matches = NULL;
+	arrput(context->config_matches, NULL);
 
 	context->argv0 = argv0;
 
@@ -62,9 +77,41 @@ void context_init(fr_context_t* context) {
 	context->stringarraykv_push   = util_stringarraykv_push;
 	context->stringarraykv_length = util_stringarraykv_length;
 
-	context->config_lookup	     = context_config_lookup;
-	context->config_lookup_array = context_config_lookup_array;
+	context->config_lookup		= context_config_lookup;
+	context->config_lookup_array	= context_config_lookup_array;
+	context->config_children_length = config_children_length;
 }
 
 void context_save(fr_context_t* context) {
+	arrfree(context->config_matches);
+}
+
+static void context_match_config(fr_context_t* context, fr_request_t* req, fr_config_t* config) {
+	int i;
+
+	arrfree(context->config_matches);
+
+	for(i = 0; i < context->config_children_length(config); i++) {
+		if(strcmp(config->children[i]->name, "FilesMatch") == 0) {
+			const char* errStr;
+			int	    errOffset;
+			pcre*	    re = pcre_compile(config->children[i]->section.match.pattern, PCRE_EXTENDED, &errStr, &errOffset, NULL);
+			int	    matched;
+			int	    ovector = 0;
+			if(re == NULL) continue;
+
+			matched = pcre_exec(re, NULL, req->path_translated, strlen(req->path_translated2), 0, 0, &ovector, 1);
+			pcre_free(re);
+
+			if(matched >= 0) {
+				arrput(context->config_matches, config->children[i]);
+			}
+		}
+	}
+	arrput(context->config_matches, NULL);
+}
+
+void context_match(fr_context_t* context, fr_request_t* req) {
+	if(context->config_vhost != NULL) context_match_config(context, req, context->config_vhost);
+	context_match_config(context, req, context->config_root);
 }

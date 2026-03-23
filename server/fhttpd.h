@@ -50,6 +50,7 @@ typedef struct fr_request	       fr_request_t;
 typedef struct fr_response	       fr_response_t;
 typedef union fr_config_section_union  fr_config_section_union_t;
 typedef struct fr_config_section_vhost fr_config_section_vhost_t;
+typedef struct fr_config_section_match fr_config_section_match_t;
 typedef struct fr_config	       fr_config_t;
 typedef struct fr_context	       fr_context_t;
 
@@ -121,8 +122,13 @@ struct fr_config_section_vhost {
 	char** entry;
 };
 
+struct fr_config_section_match {
+	char* pattern;
+};
+
 union fr_config_section_union {
 	fr_config_section_vhost_t vhost;
+	fr_config_section_match_t match;
 };
 
 struct fr_config {
@@ -138,9 +144,10 @@ struct fr_config {
 };
 
 struct fr_context {
-	fr_config_t* config_root;
-	fr_config_t* config_current;
-	fr_config_t* config_vhost;
+	fr_config_t*  config_root;
+	fr_config_t*  config_current;
+	fr_config_t*  config_vhost;
+	fr_config_t** config_matches;
 
 	const char* config_path;
 	const char* argv0;
@@ -173,6 +180,7 @@ struct fr_context {
 
 	char* (*config_lookup)(fr_context_t* context, const char* key);
 	char** (*config_lookup_array)(fr_context_t* context, const char* key, int* len);
+	int (*config_children_length)(fr_config_t* config);
 };
 
 #if defined(_FHTTPD)
@@ -267,6 +275,7 @@ void	     config_init(void);
 fpr_bool     config_parse(const char* path);
 void	     config_close(void);
 fr_config_t* config_vhost_match(const char* host, int port);
+int	     config_children_length(fr_config_t* config);
 
 /* path.c */
 char* path_transform(const char* path);
@@ -331,6 +340,7 @@ void module_register_hook(fr_hook_t handler, int order);
 /* context.c */
 void   context_init(fr_context_t* context);
 void   context_save(fr_context_t* context);
+void   context_match(fr_context_t* context, fr_request_t* req);
 char*  context_config_lookup(fr_context_t* context, const char* key);
 char** context_config_lookup_array(fr_context_t* context, const char* key, int* len);
 

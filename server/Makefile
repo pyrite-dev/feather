@@ -11,7 +11,7 @@ OBJS += stb_ds$(O)
 all: fhttpd$(E)
 
 .c$(O):
-	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../fpr $(INCDIR). $(INCDIR)../external/stb -c -o $@ $<
+	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../fpr $(INCDIR). $(INCDIR)../external/stb $(INCDIR)../external/pcre -c -o $@ $<
 
 .relink:
 	touch $@
