@@ -11,13 +11,13 @@ OBJS += stb_ds$(O)
 all: fhttpd$(E)
 
 .c$(O):
-	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../fpr $(INCDIR). $(INCDIR)../external/stb $(INCDIR)../external/pcre -c -o $@ $<
+	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../fpr $(INCDIR). $(INCDIR)../external/stb $(INCDIR)../external/hsregex -c -o $@ $<
 
 .relink:
 	touch $@
 
 fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) ../external/pcre/$(LIB)pcre$(A) $(RESFILE) .relink
-	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../external/pcre -o $@ $(OBJS) $(SSL) $(THREAD) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(PCRE) $(LIBS)
+	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../external/hsregex -o $@ $(OBJS) $(SSL) $(THREAD) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(REGEX) $(LIBS)
 	$(AFTER)
 
 fhttpd.res: fhttpd.rc

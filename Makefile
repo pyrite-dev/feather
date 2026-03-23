@@ -1,5 +1,5 @@
 .PHONY: all format pre distclean clean install
-.PHONY: fpr external/pcre package/install.exe package/fhttpd.pbp package/fhttpd-psp.zip package module
+.PHONY: fpr external/hsregex package/install.exe package/fhttpd.pbp package/fhttpd-psp.zip package module
 
 all: pre fpr server module
 
@@ -15,7 +15,7 @@ pre:
 fpr: pre
 	cd $@ ; $(MAKE)
 
-external/pcre: pre
+external/hsregex: pre
 	cd $@ ; $(MAKE)
 
 package/install.exe package/fhttpd.pbp: module server
@@ -25,7 +25,7 @@ package/fhttpd-psp.zip: module server
 	cd server ; $(MAKE) fhttpd_strip.elf
 	cd package ; $(MAKE) `echo $@ | cut -d/ -f2-`
 
-server: pre fpr module external/pcre
+server: pre fpr module external/hsregex
 	cd $@ ; $(MAKE)
 
 module: pre fpr
@@ -41,7 +41,7 @@ clean:
 	-cd server ; $(MAKE) clean
 	-cd module ; $(MAKE) clean
 	-cd package ; $(MAKE) clean
-	-cd external/pcre ; $(MAKE) clean
+	-cd external/hsregex ; $(MAKE) clean
 
 distclean: clean
 	rm -f config.h config.mk local.mk

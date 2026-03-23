@@ -1,7 +1,7 @@
 #include <fhttpd.h>
 
 #include <stb_ds.h>
-#include <pcre.h>
+#include <hsregex.h>
 
 #define LOOKUP(x) \
 	if(context->x != NULL && (v = util_stringkv_lookup(context->x->kv, key)) != NULL) return v;
@@ -94,18 +94,20 @@ static void context_match_config(fr_context_t* context, fr_request_t* req, fr_co
 
 	for(i = 0; i < context->config_children_length(config); i++) {
 		if(strcmp(config->children[i]->name, "FilesMatch") == 0) {
-			const char* errStr;
-			int	    errOffset;
-			pcre*	    re = pcre_compile(config->children[i]->section.match.pattern, PCRE_EXTENDED, &errStr, &errOffset, NULL);
-			int	    matched;
-			int	    ovector;
-			if(re == NULL) continue;
+			regex_t re;
+			regmatch_t match;
 
-			ovector = 0;
-			matched = pcre_exec(re, NULL, req->path_virtual, strlen(req->path_virtual), 0, 0, &ovector, 1);
-			if(matched >= 0) arrput(context->config_matches, config->children[i]);
+			if(hsregcomp(&re, config->children[i]->section.match.pattern, REG_EXTENDED) != 0){
+				continue;
+			}
 
-			pcre_free(re);
+			re.re_nsub = 1;
+
+			if(hsregexec(&re, req->path_translated, 1, &match, 0) == 0){	
+				arrput(context->config_matches, config->children[i]);
+			}
+			
+			hsregfree(&re);
 		}
 	}
 
