@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 static int body_stream(fr_response_t* res, unsigned char* buffer, int size) {
 	int n = fpr_process_read(res->body_opaque, buffer, size);
@@ -26,6 +27,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	char   ch[2];
 	char*  h;
 	int    nl = 0;
+	char** headers;
 
 	/* ref: http://hoohoo.ncsa.uiuc.edu/cgi/env.html */
 
@@ -57,21 +59,44 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual, NULL);
 	arrput(envs, s);
 
-	if(strlen(req->query) > 0){
+	if(strlen(req->query) > 0) {
 		s = fpr_strvacat("QUERY_STRING=", &req->query[1], NULL);
 		arrput(envs, s);
 	}
 
-	if((h = context->request_get_header(req, "content-type")) != NULL){
+	if((h = context->request_get_header(req, "content-type")) != NULL) {
 		s = fpr_strvacat("CONTENT_TYPE=", h, NULL);
 		arrput(envs, s);
 	}
 
-	if(req->body_size > 0){
+	if(req->body_size > 0) {
 		sprintf(buf, "%d", req->body_size, NULL);
 		s = fpr_strvacat("CONTENT_LENGTH=", buf, NULL);
 		arrput(envs, s);
 	}
+
+	headers = context->stringkv_keys(req->headers);
+	for(i = 0; headers[i] != NULL; i++) {
+		int j;
+
+		if(strcmp(headers[i], "content-type") == 0) continue;
+
+		h = malloc(strlen(headers[i]) + 1);
+		for(j = 0; headers[i][j] != 0; j++) {
+			if(headers[i][j] == '-') {
+				h[j] = '_';
+			} else {
+				h[j] = toupper(headers[i][j]);
+			}
+		}
+		h[j] = 0;
+
+		s = fpr_strvacat("HTTP_", h, "=", context->request_get_header(req, headers[i]), NULL);
+		arrput(envs, s);
+
+		free(h);
+	}
+	free(headers);
 
 	/* Apache extension, needed to make PHP work */
 	sprintf(buf, "%d", res->status_code == 0 ? 200 : res->status_code);

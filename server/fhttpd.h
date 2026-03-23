@@ -159,6 +159,7 @@ struct fr_context {
 
 	char* (*stringkv_lookup)(fr_stringkv_t* kv, const char* key);
 	void (*stringkv_set)(fr_stringkv_t** kv, const char* key, const char* value);
+	char** (*stringkv_keys)(fr_stringkv_t* kv); /* NULL-terminated, simply free() array */
 
 	char** (*stringarraykv_lookup)(fr_stringarraykv_t* arraykv, const char* key);
 	void (*stringarraykv_push)(fr_stringarraykv_t* kv, const char* key, const char* value);
@@ -176,6 +177,8 @@ struct fr_context {
 #include <time.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <locale.h>
+
 #if !defined(_WIN32)
 #include <unistd.h>
 #include <signal.h>
@@ -327,6 +330,7 @@ char** context_config_lookup_array(fr_context_t* context, const char* key, int* 
 /* util.c */
 char*  util_stringkv_lookup(fr_stringkv_t* kv, const char* key);
 void   util_stringkv_set(fr_stringkv_t** kv, const char* key, const char* value);
+char** util_stringkv_keys(fr_stringkv_t* kv);
 char** util_stringarraykv_lookup(fr_stringarraykv_t* arraykv, const char* key);
 void   util_stringarraykv_push(fr_stringarraykv_t* kv, const char* key, const char* value);
 int    util_stringarraykv_length(fr_stringarraykv_t* arraykv, const char* key);

@@ -56,6 +56,7 @@ void context_init(fr_context_t* context) {
 
 	context->stringkv_lookup = util_stringkv_lookup;
 	context->stringkv_set	 = util_stringkv_set;
+	context->stringkv_keys	 = util_stringkv_keys;
 
 	context->stringarraykv_lookup = util_stringarraykv_lookup;
 	context->stringarraykv_push   = util_stringarraykv_push;

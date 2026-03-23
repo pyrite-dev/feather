@@ -45,6 +45,8 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	setlocale(LC_ALL, "");
+
 #if defined(_PSP)
 	psp_init();
 #endif

@@ -15,6 +15,17 @@ void util_stringkv_set(fr_stringkv_t** kv, const char* key, const char* value) {
 	shput(*kv, key, v);
 }
 
+char** util_stringkv_keys(fr_stringkv_t* kv) {
+	int    len = shlen(kv);
+	int    i;
+	char** r = malloc(sizeof(*r) * (len + 1));
+
+	for(i = 0; i < len; i++) r[i] = kv[i].key;
+	r[i] = NULL;
+
+	return r;
+}
+
 char** util_stringarraykv_lookup(fr_stringarraykv_t* arraykv, const char* key) {
 	int ind;
 
