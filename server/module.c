@@ -8,9 +8,10 @@ MODULES
 
 fr_module_t** module_modules = NULL;
 
-fr_hook_t* module_first_hooks  = NULL;
-fr_hook_t* module_middle_hooks = NULL;
-fr_hook_t* module_last_hooks   = NULL;
+fr_hook_t* module_first_hooks	= NULL;
+fr_hook_t* module_middle_hooks	= NULL;
+fr_hook_t* module_last_hooks	= NULL;
+fr_hook_t* module_rewrite_hooks = NULL;
 
 void module_init(void) {
 	int		   i	   = 0;
@@ -62,10 +63,15 @@ void module_close(void) {
 
 	arrfree(module_last_hooks);
 	module_last_hooks = NULL;
+
+	arrfree(module_rewrite_hooks);
+	module_rewrite_hooks = NULL;
 }
 
 void module_register_hook(fr_hook_t handler, int order) {
-	if(order == FR_MODULE_HOOK_FIRST) {
+	if(order == FR_MODULE_HOOK_REWRITE) {
+		arrput(module_rewrite_hooks, handler);
+	} else if(order == FR_MODULE_HOOK_FIRST) {
 		arrput(module_first_hooks, handler);
 	} else if(order == FR_MODULE_HOOK_LAST) {
 		arrput(module_last_hooks, handler);

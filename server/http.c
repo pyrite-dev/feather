@@ -260,14 +260,17 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, fr_context_t* context,
 }
 
 void http_req(client_t* c) {
-	int	     loop = 1;
-	fr_config_t* config;
-	const char*  host = http_req_get_header(&c->request, "host");
-	char	     hostname[1024];
-	const char*  s;
-	int	     ok = 1;
-	fr_context_t context;
-	int	     first = 1;
+	int		loop = 1;
+	fr_config_t*	config;
+	const char*	host = http_req_get_header(&c->request, "host");
+	char		hostname[1024];
+	const char*	s;
+	int		ok = 1;
+	fr_context_t	context;
+	int		first = 1;
+	struct fpr_stat st;
+	char		path1[MAX_PATH_LENGTH + 1];
+	char		path2[MAX_PATH_LENGTH + 1];
 
 	fpr_gethostname(hostname, 1024);
 
@@ -285,7 +288,6 @@ void http_req(client_t* c) {
 	if(context.config_vhost != NULL && s == NULL) s = util_stringkv_lookup(context.config_vhost->kv, "DocumentRoot");
 	if(context.config_root != NULL && s == NULL) s = util_stringkv_lookup(context.config_root->kv, "DocumentRoot");
 
-	do {
 #define PATH_THING(to, from) \
 	if(s == NULL || (strlen(s) + 1 + strlen(c->request.from)) >= MAX_PATH_LENGTH) { \
 		ok = 0; \
@@ -299,10 +301,70 @@ void http_req(client_t* c) {
 \
 		free(p); \
 	}
-		PATH_THING(path_translated, path_virtual);
-		PATH_THING(path_translated2, path_virtual2);
 
-		http_req_assume_handler(&c->request, &context);
+#define PROCESS_PATH \
+	PATH_THING(path_translated, path_virtual); \
+	PATH_THING(path_translated2, path_virtual2);
+
+	PROCESS_PATH;
+
+	http_req_assume_handler(&c->request, &context);
+
+#define RUN_REWRITE \
+	do { \
+		PROCESS_PATH; \
+\
+		proc_hooks(module_rewrite_hooks, c, &context, &loop); \
+	} while(loop);
+
+	RUN_REWRITE;
+
+	http_req_assume_handler(&c->request, &context);
+
+	if(strlen(c->request.path_info) == 0) {
+		fpr_bool cond;
+		char*	 n = NULL;
+
+		strcpy(path1, c->request.path_virtual);
+		strcpy(path2, c->request.path_virtual2);
+		while((cond = ((fpr_stat(c->request.path_translated, &st) != 0 || FPR_S_ISDIR(st.st_mode)) && strlen(c->request.path_virtual) > 1))) {
+			n = strrchr(c->request.path_virtual, '/');
+
+			if(n == NULL || n == c->request.path_virtual) {
+				strcpy(c->request.path_virtual, path1);
+
+				PROCESS_PATH;
+				break;
+			}
+
+			n[0] = 0;
+
+			PROCESS_PATH;
+
+			http_req_assume_handler(&c->request, &context);
+
+			RUN_REWRITE;
+
+			http_req_assume_handler(&c->request, &context);
+		}
+
+		if(!cond && n != NULL) {
+			strcpy(c->request.path_info, &path1[n - c->request.path_virtual]);
+		}
+	}
+
+	http_req_assume_handler(&c->request, &context);
+
+#undef RUN_REWRITE
+
+	do {
+		PROCESS_PATH;
+
+		if(first) {
+			http_req_assume_handler(&c->request, &context);
+
+			first = 0;
+		}
 
 		if(ok && proc_hooks(module_first_hooks, c, &context, &loop)) {
 		} else if(ok && proc_hooks(module_middle_hooks, c, &context, &loop)) {
@@ -329,6 +391,9 @@ void http_req(client_t* c) {
 
 		context.loop++;
 	} while(loop);
+
+#undef PROCESS_PATH
+#undef PATH_THING
 
 	context_save(&context);
 

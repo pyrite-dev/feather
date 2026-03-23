@@ -8,7 +8,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	if(s != NULL && strcmp(req->path_virtual, s) != 0) { /* this is to prevent infinite loop */
 		free(p);
 		strcpy(req->path_virtual, s);
-		return FR_MODULE_LOOP;
+		return FR_MODULE_DECLINE;
 	}
 
 	free(p);
@@ -37,7 +37,7 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 }
 
 static void register_stuff(fr_context_t* context) {
-	context->register_hook(hook, FR_MODULE_HOOK_FIRST);
+	context->register_hook(hook, FR_MODULE_HOOK_REWRITE);
 }
 
 static fr_module_t module = {

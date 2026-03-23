@@ -38,7 +38,8 @@ enum fr_module_return {
 enum fr_module_hook_order {
 	FR_MODULE_HOOK_FIRST = 0,
 	FR_MODULE_HOOK_MIDDLE,
-	FR_MODULE_HOOK_LAST
+	FR_MODULE_HOOK_LAST,
+	FR_MODULE_HOOK_REWRITE
 };
 
 typedef struct fr_module	       fr_module_t;
@@ -83,6 +84,7 @@ struct fr_request {
 	char	       path_raw[MAX_PATH_LENGTH + 1];	      /* raw HTTP path */
 	char	       path_virtual[MAX_PATH_LENGTH + 1];     /* virtual path */
 	char	       path_virtual2[MAX_PATH_LENGTH + 1];    /* virtual path */
+	char	       path_info[MAX_PATH_LENGTH + 1];
 	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];
 	fr_stringkv_t* headers;
@@ -316,6 +318,7 @@ extern fr_module_t** module_modules;
 extern fr_hook_t*    module_first_hooks;
 extern fr_hook_t*    module_middle_hooks;
 extern fr_hook_t*    module_last_hooks;
+extern fr_hook_t*    module_rewrite_hooks;
 
 void module_init(void);
 void module_load(fr_module_t* module);

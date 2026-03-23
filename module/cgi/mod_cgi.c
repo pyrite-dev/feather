@@ -50,8 +50,10 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("REQUEST_METHOD=", req->method, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("PATH_INFO=", req->path, NULL);
-	arrput(envs, s);
+	if(strlen(req->path_info) > 0) {
+		s = fpr_strvacat("PATH_INFO=", req->path_info, NULL);
+		arrput(envs, s);
+	}
 
 	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated2, NULL);
 	arrput(envs, s);
