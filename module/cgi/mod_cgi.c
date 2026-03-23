@@ -166,6 +166,8 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	struct fpr_stat st;
 
+	if(req->path[0] != '/') return FR_MODULE_DECLINE;
+
 	if(fpr_stat(req->path_translated, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
 
 	if(strcmp(req->handler, "cgi-script") == 0) {

@@ -12,6 +12,8 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	struct fpr_stat st;
 	int		i;
 
+	if(req->path[0] != '/') return FR_MODULE_DECLINE;
+
 	arr = context->config_lookup_array(context, "DirectoryIndex", &len);
 
 	for(i = 0; i < len; i++) {
