@@ -16,8 +16,8 @@ all: fhttpd$(E)
 .relink:
 	touch $@
 
-fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) $(RESFILE) .relink
-	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr -o $@ $(OBJS) $(SSL) $(THREAD) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(LIBS)
+fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) ../external/pcre/$(LIB)pcre$(A) $(RESFILE) .relink
+	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../external/pcre -o $@ $(OBJS) $(SSL) $(THREAD) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(PCRE) $(LIBS)
 	$(AFTER)
 
 fhttpd.res: fhttpd.rc
@@ -43,4 +43,4 @@ install: all
 	cp *.h $(DESTDIR)$(PREFIX)/include/
 
 clean:
-	rm -f fhttpd$(E) fhttpd_strip$(E) *$(O) *.res .relink install.exe
+	rm -f fhttpd$(E) fhttpd_strip$(E) *$(O) pcre/*$(O) *.res .relink install.exe

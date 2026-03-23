@@ -23,6 +23,7 @@ RPATH='-Wl,-R$(PREFIX)/lib'
 SSL=''
 THREAD='$(LINK)pthread'
 FPR='$(LINK)fpr'
+PCRE='$(LINK)pcre'
 
 A='.a'
 SO='.so'
@@ -182,6 +183,9 @@ THREAD	= $THREAD
 
 # Linker flag for FPR
 FPR	= $FPR
+
+# Linker flag for PCRE
+PCRE	= $PCRE
 
 # Linker flag for dynamic library
 SHARED	= -shared
