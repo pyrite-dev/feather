@@ -267,6 +267,7 @@ void http_req(client_t* c) {
 	struct fpr_stat st;
 	char		path1[MAX_PATH_LENGTH + 1];
 	char		path2[MAX_PATH_LENGTH + 1];
+	int		i;
 
 	fpr_gethostname(hostname, 1024);
 
@@ -312,7 +313,7 @@ void http_req(client_t* c) {
 		c->request.to[strlen(c->request.to) - strlen(c->request.path_info)] = 0; \
 	}
 
-#define RUN_REWRITE \
+#define REWRITE \
 	do { \
 		PROCESS_PATH; \
 \
@@ -327,39 +328,39 @@ void http_req(client_t* c) {
 		STRIP_PATH_INFO(path_virtual4); \
 	} while(loop);
 
-	strcpy(c->request.path_virtual3, c->request.path_virtual);
+	for(i = 0; i < 2; i++) {
+		REWRITE;
 
-	RUN_REWRITE;
+		if(i == 0) {
+			if(strlen(c->request.path_info) == 0) {
+				fpr_bool cond;
+				char*	 n = NULL;
 
-	if(strlen(c->request.path_info) == 0) {
-		fpr_bool cond;
-		char*	 n = NULL;
+				strcpy(path1, c->request.path_virtual);
+				strcpy(path2, c->request.path_virtual2);
+				while((cond = ((fpr_stat(c->request.path_translated, &st) != 0 || FPR_S_ISDIR(st.st_mode)) && strlen(c->request.path_virtual) > 1))) {
+					n = strrchr(c->request.path_virtual, '/');
 
-		strcpy(path1, c->request.path_virtual);
-		strcpy(path2, c->request.path_virtual2);
-		while((cond = ((fpr_stat(c->request.path_translated, &st) != 0 || FPR_S_ISDIR(st.st_mode)) && strlen(c->request.path_virtual) > 1))) {
-			n = strrchr(c->request.path_virtual, '/');
+					if(n == NULL || n == c->request.path_virtual) {
+						break;
+					}
 
-			if(n == NULL || n == c->request.path_virtual) {
-				break;
+					n[0] = 0;
+
+					strcpy(c->request.path_virtual3, c->request.path_virtual);
+
+					REWRITE;
+				}
+
+				if(!cond && n != NULL) {
+					strcpy(c->request.path_info, &path1[n - c->request.path_virtual]);
+				}
+
+				strcpy(c->request.path_virtual, path1);
+				strcpy(c->request.path_virtual2, path2);
 			}
-
-			n[0] = 0;
-
-			RUN_REWRITE;
-
-			strcpy(c->request.path_virtual3, c->request.path_virtual);
 		}
-
-		if(!cond && n != NULL) {
-			strcpy(c->request.path_info, &path1[n - c->request.path_virtual]);
-		}
-
-		strcpy(c->request.path_virtual, path1);
-		strcpy(c->request.path_virtual2, path2);
 	}
-
-	RUN_REWRITE;
 
 	do {
 		if(first) {
@@ -394,7 +395,6 @@ void http_req(client_t* c) {
 		context.loop++;
 	} while(loop);
 
-#undef RUN_REWRITE
 #undef PROCESS_PATH
 #undef PATH_THING
 

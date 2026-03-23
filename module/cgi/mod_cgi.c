@@ -31,7 +31,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 
 	/* ref: http://hoohoo.ncsa.uiuc.edu/cgi/env.html */
 
-	s = fpr_strvacat("SERVER_SOFTWARE=", FR_VERSION_TEXT, NULL);
+	s = fpr_strvacat("SERVER_SOFTWARE=", FR_VERSION, NULL);
 	arrput(envs, s);
 
 	s = fpr_strvacat("SERVER_NAME=", req->server_name, NULL);
@@ -50,15 +50,18 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("REQUEST_METHOD=", req->method, NULL);
 	arrput(envs, s);
 
-	if(strlen(req->path_info) > 0) {
+	if(strlen(req->path_info) == 0) {
+		s = fpr_strvacat("PATH_INFO=", req->path, NULL);
+		arrput(envs, s);
+	} else {
 		s = fpr_strvacat("PATH_INFO=", req->path_info, NULL);
 		arrput(envs, s);
 	}
 
-	s = fpr_strvacat("PATH_TRANSLATED=", strlen(req->path_translated_info) > 0 ? req->path_translated_info : req->path_translated4, NULL);
+	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated4, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual4, NULL);
+	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual3, NULL);
 	arrput(envs, s);
 
 	if(strlen(req->query) > 0) {
@@ -105,8 +108,23 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("REDIRECT_STATUS=", buf, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_FILENAME=", req->path_translated4, NULL);
+	s = fpr_strvacat("REDIRECT_URL=", req->path_virtual2, NULL);
 	arrput(envs, s);
+
+	s = fpr_strvacat("SCRIPT_FILENAME=", req->path_translated3, NULL);
+	arrput(envs, s);
+
+	s = fpr_strvacat("REQUEST_URI=", req->path_raw, strlen(req->query) > 0 ? "?" : "", req->query, NULL);
+	arrput(envs, s);
+
+	if((h = context->config_lookup(context, "DocumentRoot")) != NULL) {
+		char* h2 = context->path_transform(h);
+
+		s = fpr_strvacat("DOCUMENT_ROOT=", h2, NULL);
+		arrput(envs, s);
+
+		free(h2);
+	}
 
 	s = NULL;
 	arrput(envs, s);
