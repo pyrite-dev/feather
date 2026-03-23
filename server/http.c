@@ -289,6 +289,8 @@ void http_req(client_t* c) {
 #define PATH_THING(to, from) \
 	if(s == NULL || (strlen(s) + 1 + strlen(c->request.from)) >= MAX_PATH_LENGTH) { \
 		ok = 0; \
+	} else if(c->request.from[0] != '/') { \
+		strcpy(c->request.to, c->request.from); \
 	} else { \
 		char* p = path_transform(s); \
 \
@@ -423,7 +425,7 @@ fpr_bool http_send(client_t* c) {
 		char  chunk[BUFFER_SIZE];
 		char* r = c->response.body;
 		int   l, n;
-		char num[512];
+		char  num[512];
 
 		if(strcmp(c->request.method, "HEAD") == 0) {
 			c->state = CS_CONNECTED;
@@ -449,7 +451,7 @@ fpr_bool http_send(client_t* c) {
 					c->state = CS_CONNECTED;
 				}
 			}
-		}else{
+		} else {
 			c->state = CS_CONNECTED;
 		}
 
