@@ -144,6 +144,7 @@ struct fr_context {
 	fr_stringkv_t* mime_types;
 
 	int loop;
+	int loop2; /* incremented when one of last modules return FR_MODULE_LOOP */
 
 	char* (*path_transform)(const char* path);
 	void (*log)(const char* fmt, ...);

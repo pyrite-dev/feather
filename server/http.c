@@ -305,6 +305,7 @@ void http_req(client_t* c) {
 		if(ok && proc_hooks(module_first_hooks, c, &context, &loop)) {
 		} else if(ok && proc_hooks(module_middle_hooks, c, &context, &loop)) {
 		} else if(ok && proc_hooks(module_last_hooks, c, &context, &loop)) {
+			if(loop) context.loop2++;
 		} else {
 			c->response.status_code = 500;
 			strcpy(c->response.status_text, "Internal Server Error");
@@ -359,6 +360,8 @@ char* http_res_get_header(fr_response_t* res, const char* key) {
 }
 
 fpr_bool http_send(client_t* c) {
+	fpr_bool is_chunked = strcmp(c->request.version, "HTTP/1.1") == 0 && c->response.body_size == -1;
+
 	if(c->state == CS_GOT_BODY) {
 		char*	    txt;
 		const char* h;
@@ -382,6 +385,16 @@ fpr_bool http_send(client_t* c) {
 		if((h = http_req_get_header(&c->request, "connection")) != NULL) {
 			char* txt = malloc(strlen("Connection: ") + strlen(h) + 2 + 1);
 			sprintf(txt, "Connection: %s\r\n", h);
+			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+				free(txt);
+				return fpr_false;
+			}
+			free(txt);
+		}
+
+		if(is_chunked) {
+			char* txt = malloc(strlen("Transfer-Encoding: chunked") + 2 + 1);
+			strcpy(txt, "Transfer-Encoding: chunked\r\n");
 			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
 				free(txt);
 				return fpr_false;
@@ -425,19 +438,28 @@ fpr_bool http_send(client_t* c) {
 		}
 
 		if(l > 0) {
+			char num[512];
+
 			if(c->response.body != NULL) {
 				memcpy(chunk, r, l);
 
 				n = l;
 			} else if(c->response.body_stream != NULL) {
-				if((n = c->response.body_stream(&c->response, chunk, l)) == 0) {
+				if((n = c->response.body_stream(&c->response, chunk, l)) <= 0) {
 					c->state = CS_CONNECTED;
 				}
 			}
-			if(server_write(c, chunk, n) < n) return fpr_false;
+
+			if(n < 0) n = 0;
+
+			sprintf(num, "%x\r\n", n);
+
+			if(is_chunked && server_write(c, num, strlen(num)) < strlen(num)) return fpr_false;
+			if(n > 0 && server_write(c, chunk, n) < n) return fpr_false;
+			if(is_chunked && server_write(c, "\r\n", 2) < 2) return fpr_false;
 		}
 
-		c->response.body_seek += l;
+		if(n > 0) c->response.body_seek += n;
 		if(c->response.body_size != -1 && c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;
 	}
 

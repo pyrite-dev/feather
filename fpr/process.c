@@ -4,6 +4,7 @@
 typedef struct process {
 #if defined(FPR_IS_WIN32)
 	HANDLE process;
+	HANDLE thread;
 	HANDLE h_stdin;
 	HANDLE h_stdout;
 	HANDLE h_stderr;
@@ -98,14 +99,12 @@ void* fpr_process_create(const char* exec, char** env) {
 
 		return NULL;
 	} else {
-		CloseHandle(pi.hProcess);
-		CloseHandle(pi.hThread);
-
 		CloseHandle(pipe_stdin[0]);
 		CloseHandle(pipe_stdout[1]);
 		CloseHandle(pipe_stderr[1]);
 
 		proc->process  = pi.hProcess;
+		proc->thread   = pi.hThread;
 		proc->h_stdin  = pipe_stdin[1];
 		proc->h_stdout = pipe_stdout[0];
 		proc->h_stderr = pipe_stderr[0];
@@ -230,6 +229,9 @@ void fpr_process_destroy(void* handle) {
 	process_t* proc = handle;
 #if defined(FPR_IS_WIN32)
 	WaitForSingleObject(proc->process, INFINITE);
+
+	CloseHandle(proc->process);
+	CloseHandle(proc->thread);
 
 	if(proc->h_stdin != NULL) CloseHandle(proc->h_stdin);
 	CloseHandle(proc->h_stdout);

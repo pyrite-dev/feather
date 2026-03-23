@@ -7,7 +7,13 @@
 #include <string.h>
 
 static int body_stream(fr_response_t* res, unsigned char* buffer, int size) {
-	return fpr_process_read(res->body_opaque, buffer, size);
+	int n = fpr_process_read(res->body_opaque, buffer, size);
+
+	return n;
+}
+
+static void cleanup(fr_response_t* res) {
+	fpr_process_destroy(res->body_opaque);
 }
 
 static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
@@ -59,8 +65,12 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("REDIRECT_STATUS=", buf, NULL);
 	arrput(envs, s);
 
+	s = NULL;
+	arrput(envs, s);
+
 	if((proc = fpr_process_create(req->path_translated, envs)) == NULL) {
-		for(i = 0; i < arrlen(envs); i++) free(envs[i]);
+		for(i = 0; i < arrlen(envs) - 1; i++) free(envs[i]);
+		arrfree(envs);
 
 		res->status_code = 500;
 		strcpy(res->status_text, "Internal Server Error");
@@ -68,13 +78,16 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 		return FR_MODULE_DECLINE;
 	}
 
-	for(i = 0; i < arrlen(envs); i++) free(envs[i]);
+	for(i = 0; i < arrlen(envs) - 1; i++) free(envs[i]);
+	arrfree(envs);
 
 	context->request_set_header(req, "connection", "close");
 
 	res->body_opaque = proc;
 
 	fpr_process_close(res->body_opaque);
+
+	res->cleanup = cleanup;
 
 	h    = malloc(1);
 	h[0] = 0;
@@ -83,7 +96,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	while(1) {
 		n = fpr_process_read(res->body_opaque, ch, 1);
 
-		if(n == 0) {
+		if(n <= 0) {
 			res->status_code = 500;
 			strcpy(res->status_text, "Internal Server Error");
 
@@ -111,9 +124,9 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 								res->status_code = atoi(v);
 								if(strlen(v2) <= MAX_STATUS_TEXT_LENGTH) strcpy(res->status_text, v2);
 							}
+						} else {
+							context->response_set_header(res, h, v);
 						}
-
-						context->response_set_header(res, h, v);
 					}
 				}
 			}

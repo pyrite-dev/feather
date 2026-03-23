@@ -129,7 +129,6 @@ static int socket_recv(client_t* c, fpr_bool* changed) {
 		len = server_read(c, buf, BUFFER_SIZE);
 
 		if(len <= 0) {
-			kill_client(c);
 			return 1;
 		} else {
 			/* handle data */
