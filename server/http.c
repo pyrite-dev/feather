@@ -267,8 +267,6 @@ void http_req(client_t* c) {
 	struct fpr_stat st;
 	char		path1[MAX_PATH_LENGTH + 1];
 	char		path2[MAX_PATH_LENGTH + 1];
-	char*		n;
-	int		i;
 
 	fpr_gethostname(hostname, 1024);
 
@@ -322,7 +320,7 @@ void http_req(client_t* c) {
 
 	if(strlen(c->request.path_info) == 0) {
 		fpr_bool cond;
-		n = NULL;
+		char*	 n = NULL;
 
 		strcpy(path1, c->request.path_virtual);
 		strcpy(path2, c->request.path_virtual2);
@@ -565,10 +563,10 @@ static void http_assume_handler(char* handler, const char* path, fr_context_t* c
 void http_req_assume_handler(fr_request_t* req, fr_context_t* context) {
 	char* n;
 
-	http_assume_handler(req->handler, req->path_translated, context);
-	http_assume_handler(req->handler3, req->path_translated3, context);
-
-	if((n = context->config_lookup(context, "Handler")) != NULL) {
+	if((n = context->config_lookup(context, "Handler")) == NULL) {
+		http_assume_handler(req->handler, req->path_translated, context);
+		http_assume_handler(req->handler3, req->path_translated3, context);
+	} else {
 		strcpy(req->handler, n);
 		strcpy(req->handler3, n);
 	}
