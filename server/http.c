@@ -303,6 +303,7 @@ void http_req(client_t* c) {
 	PATH_THING(path_translated2, path_virtual2); \
 	PATH_THING(path_translated3, path_virtual3); \
 	PATH_THING(path_translated4, path_virtual4); \
+	if(strlen(req->path_info) > 0) PATH_THING(path_translated_info, path_info); \
 \
 	context_match(&context, &c->request);
 

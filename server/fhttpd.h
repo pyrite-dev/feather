@@ -82,8 +82,9 @@ struct fr_request {
 	char	       path[MAX_PATH_LENGTH + 1];		  /* decoded HTTP path, do not modify */
 	char	       path_translated[MAX_PATH_LENGTH + 1];	  /* physical path */
 	char	       path_translated2[MAX_PATH_LENGTH + 1];	  /* physical path, but calculated from path_virtual2 */
-	char	       path_translated3[MAX_PATH_LENGTH + 1]; /* physical path, but calculated from path_virtual3 */
-	char	       path_translated4[MAX_PATH_LENGTH + 1]; /* physical path, but calculated from path_virtual4 */
+	char	       path_translated3[MAX_PATH_LENGTH + 1];	  /* physical path, but calculated from path_virtual3 */
+	char	       path_translated4[MAX_PATH_LENGTH + 1];	  /* physical path, but calculated from path_virtual4 */
+	char	       path_translated_info[MAX_PATH_LENGTH + 1]; /* physical path, but calculated from path_info */
 	char	       path_raw[MAX_PATH_LENGTH + 1];		  /* raw HTTP path */
 	char	       path_virtual[MAX_PATH_LENGTH + 1];	  /* virtual path */
 	char	       path_virtual2[MAX_PATH_LENGTH + 1];	  /* virtual path */
@@ -145,9 +146,9 @@ struct fr_config {
 };
 
 struct fr_context {
-	fr_config_t*  config_root;
-	fr_config_t*  config_current;
-	fr_config_t*  config_vhost;
+	fr_config_t* config_root;
+	fr_config_t* config_current;
+	fr_config_t* config_vhost;
 
 	fr_config_t** config_matches; /* matches */
 

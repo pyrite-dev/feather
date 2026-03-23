@@ -94,19 +94,19 @@ static void context_match_config(fr_context_t* context, fr_request_t* req, fr_co
 
 	for(i = 0; i < context->config_children_length(config); i++) {
 		if(strcmp(config->children[i]->name, "FilesMatch") == 0) {
-			regex_t re;
+			regex_t	   re;
 			regmatch_t match;
 
-			if(hsregcomp(&re, config->children[i]->section.match.pattern, REG_EXTENDED) != 0){
+			if(hsregcomp(&re, config->children[i]->section.match.pattern, REG_EXTENDED) != 0) {
 				continue;
 			}
 
 			re.re_nsub = 1;
 
-			if(hsregexec(&re, req->path_translated3, 1, &match, 0) == 0){
+			if(hsregexec(&re, req->path_translated3, 1, &match, 0) == 0) {
 				arrput(context->config_matches, config->children[i]);
 			}
-			
+
 			hsregfree(&re);
 		}
 	}
