@@ -78,12 +78,14 @@ struct fr_module {
  */
 struct fr_request {
 	char	       method[MAX_METHOD_LENGTH + 1];
-	char	       path[MAX_PATH_LENGTH + 1];	      /* decoded HTTP path, do not modify */
-	char	       path_translated[MAX_PATH_LENGTH + 1];  /* physical path */
-	char	       path_translated2[MAX_PATH_LENGTH + 1]; /* physical path, but calculated from path_virtual2 */
-	char	       path_raw[MAX_PATH_LENGTH + 1];	      /* raw HTTP path */
-	char	       path_virtual[MAX_PATH_LENGTH + 1];     /* virtual path */
-	char	       path_virtual2[MAX_PATH_LENGTH + 1];    /* virtual path */
+	char	       path[MAX_PATH_LENGTH + 1];		  /* decoded HTTP path, do not modify */
+	char	       path_translated[MAX_PATH_LENGTH + 1];	  /* physical path */
+	char	       path_translated2[MAX_PATH_LENGTH + 1];	  /* physical path, but calculated from path_virtual2 */
+	char	       path_translated3[MAX_PATH_LENGTH * 2 + 1]; /* physical path, but calculated from path_virtual3 */
+	char	       path_raw[MAX_PATH_LENGTH + 1];		  /* raw HTTP path */
+	char	       path_virtual[MAX_PATH_LENGTH + 1];	  /* virtual path */
+	char	       path_virtual2[MAX_PATH_LENGTH + 1];	  /* virtual path */
+	char	       path_virtual3[MAX_PATH_LENGTH * 2 + 1];	  /* virtual path without path_info */
 	char	       path_info[MAX_PATH_LENGTH + 1];
 	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];

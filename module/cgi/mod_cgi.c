@@ -58,7 +58,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated2, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual, NULL);
+	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual3, NULL);
 	arrput(envs, s);
 
 	if(strlen(req->query) > 0) {
@@ -108,7 +108,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = NULL;
 	arrput(envs, s);
 
-	if((proc = fpr_process_create(req->path_translated, envs)) == NULL) {
+	if((proc = fpr_process_create(req->path_translated3, envs)) == NULL) {
 		for(i = 0; i < arrlen(envs) - 1; i++) free(envs[i]);
 		arrfree(envs);
 
@@ -210,7 +210,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
-	if(fpr_stat(req->path_translated, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
+	if(fpr_stat(req->path_translated3, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
 
 	if(strcmp(req->handler, "cgi-script") == 0) {
 		return create_cgi(context, req, res);

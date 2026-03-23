@@ -304,11 +304,8 @@ void http_req(client_t* c) {
 
 #define PROCESS_PATH \
 	PATH_THING(path_translated, path_virtual); \
-	PATH_THING(path_translated2, path_virtual2);
-
-	PROCESS_PATH;
-
-	http_req_assume_handler(&c->request, &context);
+	PATH_THING(path_translated2, path_virtual2); \
+	PATH_THING(path_translated3, path_virtual3);
 
 #define RUN_REWRITE \
 	do { \
@@ -317,9 +314,15 @@ void http_req(client_t* c) {
 		proc_hooks(module_rewrite_hooks, c, &context, &loop); \
 	} while(loop);
 
-	RUN_REWRITE;
-
+#define PATH_SET \
+	PROCESS_PATH; \
+	http_req_assume_handler(&c->request, &context); \
+	RUN_REWRITE; \
 	http_req_assume_handler(&c->request, &context);
+
+	strcpy(c->request.path_virtual3, c->request.path_virtual);
+
+	PATH_SET;
 
 	if(strlen(c->request.path_info) == 0) {
 		fpr_bool cond;
@@ -331,31 +334,30 @@ void http_req(client_t* c) {
 			n = strrchr(c->request.path_virtual, '/');
 
 			if(n == NULL || n == c->request.path_virtual) {
-				strcpy(c->request.path_virtual, path1);
-
-				PROCESS_PATH;
 				break;
 			}
 
 			n[0] = 0;
 
-			PROCESS_PATH;
+			PATH_SET;
 
-			http_req_assume_handler(&c->request, &context);
-
-			RUN_REWRITE;
-
-			http_req_assume_handler(&c->request, &context);
+			strcpy(c->request.path_virtual3, c->request.path_virtual);
 		}
 
 		if(!cond && n != NULL) {
 			strcpy(c->request.path_info, &path1[n - c->request.path_virtual]);
 		}
+
+		strcpy(c->request.path_virtual, path1);
+		strcpy(c->request.path_virtual2, path2);
 	}
 
-	http_req_assume_handler(&c->request, &context);
+	strcpy(c->request.path_virtual3, c->request.path_virtual);
 
-#undef RUN_REWRITE
+	PATH_SET;
+
+	strcpy(c->request.path_virtual3, c->request.path_virtual);
+	c->request.path_virtual3[strlen(c->request.path_virtual3) - strlen(c->request.path_info)] = 0;
 
 	do {
 		PROCESS_PATH;
@@ -392,6 +394,8 @@ void http_req(client_t* c) {
 		context.loop++;
 	} while(loop);
 
+#undef PATH_SET
+#undef RUN_REWRITE
 #undef PROCESS_PATH
 #undef PATH_THING
 
@@ -535,23 +539,22 @@ fpr_bool http_send(client_t* c) {
 	return fpr_true;
 }
 
-void http_req_assume_handler(fr_request_t* req, fr_context_t* context) {
+static void http_assume_handler(char* handler, const char* path, fr_context_t* context) {
 	char* n;
 
-	req->handler[0] = 0;
+	handler[0] = 0;
 
-	/* this should be always non-NULL tho */
-	if((n = strrchr(req->path_translated, '/')) != NULL) {
+	if((n = strrchr(path, '/')) != NULL) {
 		char* dot;
 
 		n = fpr_strdup(n + 1);
 
 		if((dot = strrchr(n, '.')) != NULL) {
 			char* p = fpr_strvacat("Handler_", dot, NULL);
-			char* handler;
+			char* chandler;
 
-			if((handler = context_config_lookup(context, p)) != NULL && strlen(handler) <= MAX_HANDLER_LENGTH) {
-				strcpy(req->handler, handler);
+			if((chandler = context_config_lookup(context, p)) != NULL && strlen(handler) <= MAX_HANDLER_LENGTH) {
+				strcpy(handler, chandler);
 			}
 
 			free(p);
@@ -559,4 +562,11 @@ void http_req_assume_handler(fr_request_t* req, fr_context_t* context) {
 
 		free(n);
 	}
+}
+
+void http_req_assume_handler(fr_request_t* req, fr_context_t* context) {
+	req->handler[0] = 0;
+
+	if(strlen(req->handler) == 0) http_assume_handler(req->handler, req->path_translated3, context);
+	if(strlen(req->handler) == 0) http_assume_handler(req->handler, req->path_translated, context);
 }
