@@ -302,8 +302,14 @@ void http_req(client_t* c) {
 	PATH_THING(path_translated, path_virtual); \
 	PATH_THING(path_translated2, path_virtual2); \
 	PATH_THING(path_translated3, path_virtual3); \
+	PATH_THING(path_translated4, path_virtual4); \
 \
 	context_match(&context, &c->request);
+
+#define STRIP_PATH_INFO(to) \
+	if(strlen(c->request.to) > strlen(c->request.path_info) && strcmp(&c->request.to[strlen(c->request.to) - strlen(c->request.path_info)], c->request.path_info) == 0) { \
+		c->request.to[strlen(c->request.to) - strlen(c->request.path_info)] = 0; \
+	}
 
 #define RUN_REWRITE \
 	do { \
@@ -312,6 +318,12 @@ void http_req(client_t* c) {
 		http_req_assume_handler(&c->request, &context); \
 \
 		proc_hooks(module_rewrite_hooks, c, &context, &loop); \
+\
+		strcpy(c->request.path_virtual3, c->request.path_virtual); \
+		strcpy(c->request.path_virtual4, c->request.path_virtual2); \
+\
+		STRIP_PATH_INFO(path_virtual3); \
+		STRIP_PATH_INFO(path_virtual4); \
 	} while(loop);
 
 	strcpy(c->request.path_virtual3, c->request.path_virtual);
@@ -344,16 +356,6 @@ void http_req(client_t* c) {
 
 		strcpy(c->request.path_virtual, path1);
 		strcpy(c->request.path_virtual2, path2);
-	}
-
-	strcpy(c->request.path_virtual3, c->request.path_virtual);
-
-	RUN_REWRITE;
-
-	strcpy(c->request.path_virtual3, c->request.path_virtual);
-
-	if(strlen(c->request.path_virtual3) > strlen(c->request.path_info) && strcmp(&c->request.path_virtual3[strlen(c->request.path_virtual3) - strlen(c->request.path_info)], c->request.path_info) == 0) {
-		c->request.path_virtual3[strlen(c->request.path_virtual3) - strlen(c->request.path_info)] = 0;
 	}
 
 	RUN_REWRITE;

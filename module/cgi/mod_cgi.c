@@ -55,10 +55,10 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 		arrput(envs, s);
 	}
 
-	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated2, NULL);
+	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated4, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual2, NULL);
+	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual4, NULL);
 	arrput(envs, s);
 
 	if(strlen(req->query) > 0) {
