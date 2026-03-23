@@ -48,6 +48,7 @@ void context_init(fr_context_t* context) {
 	context->config_root	= config_root;
 	context->config_current = config_current;
 	context->config_matches = NULL;
+
 	arrput(context->config_matches, NULL);
 
 	context->argv0 = argv0;
@@ -97,17 +98,17 @@ static void context_match_config(fr_context_t* context, fr_request_t* req, fr_co
 			int	    errOffset;
 			pcre*	    re = pcre_compile(config->children[i]->section.match.pattern, PCRE_EXTENDED, &errStr, &errOffset, NULL);
 			int	    matched;
-			int	    ovector = 0;
+			int	    ovector;
 			if(re == NULL) continue;
 
-			matched = pcre_exec(re, NULL, req->path_translated, strlen(req->path_translated2), 0, 0, &ovector, 1);
-			pcre_free(re);
+			ovector = 0;
+			matched = pcre_exec(re, NULL, req->path_virtual, strlen(req->path_virtual), 0, 0, &ovector, 1);
+			if(matched >= 0) arrput(context->config_matches, config->children[i]);
 
-			if(matched >= 0) {
-				arrput(context->config_matches, config->children[i]);
-			}
+			pcre_free(re);
 		}
 	}
+
 	arrput(context->config_matches, NULL);
 }
 

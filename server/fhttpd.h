@@ -39,8 +39,7 @@ enum fr_module_hook_order {
 	FR_MODULE_HOOK_FIRST = 0,
 	FR_MODULE_HOOK_MIDDLE,
 	FR_MODULE_HOOK_LAST,
-	FR_MODULE_HOOK_REWRITE,
-	FR_MODULE_HOOK_PATH_INFO_CHECK
+	FR_MODULE_HOOK_REWRITE
 };
 
 typedef struct fr_module	       fr_module_t;
@@ -147,7 +146,8 @@ struct fr_context {
 	fr_config_t*  config_root;
 	fr_config_t*  config_current;
 	fr_config_t*  config_vhost;
-	fr_config_t** config_matches;
+
+	fr_config_t** config_matches; /* matches */
 
 	const char* config_path;
 	const char* argv0;
