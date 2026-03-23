@@ -10,6 +10,7 @@ install.exe: ../server/fhttpd$(E) install.nsi
 	mv tmp/C:/Feather/etc tmp/etc
 	mv tmp/C:/Feather/www tmp/www
 	sed -i 's%/usr/fhttpd%$(PREFIX)%g' tmp/etc/fhttpd/fhttpd.conf
+	sed -i 's/\.so/.dll/g' tmp/etc/fhttpd/fhttpd.conf
 	makensis install.nsi
 	rm -rf tmp
 
