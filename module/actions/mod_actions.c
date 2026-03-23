@@ -5,9 +5,9 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	char* p = fpr_strvacat("Action_", req->handler, NULL);
 	char* s = context->config_lookup(context, p);
 
-	if(s != NULL && strcmp(req->path_virtual2, s) != 0) { /* this is to prevent infinite loop */
+	if(s != NULL && strcmp(req->path_virtual, s) != 0) { /* this is to prevent infinite loop */
 		free(p);
-		strcpy(req->path_virtual2, s);
+		strcpy(req->path_virtual, s);
 		return FR_MODULE_LOOP;
 	}
 

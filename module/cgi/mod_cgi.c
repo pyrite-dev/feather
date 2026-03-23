@@ -45,10 +45,10 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("PATH_INFO=", req->path, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated, NULL);
+	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated2, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual2, NULL);
+	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual, NULL);
 	arrput(envs, s);
 
 	s = fpr_strvacat("QUERY_STRING=", strlen(req->query) > 0 ? (&req->query[1]) : "", NULL);
@@ -59,7 +59,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("REDIRECT_STATUS=", buf, NULL);
 	arrput(envs, s);
 
-	if((proc = fpr_process_create(req->path_translated2, envs)) == NULL) {
+	if((proc = fpr_process_create(req->path_translated, envs)) == NULL) {
 		for(i = 0; i < arrlen(envs); i++) free(envs[i]);
 
 		res->status_code = 500;

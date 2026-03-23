@@ -450,7 +450,7 @@ void http_req_assume_handler(fr_request_t* req, fr_context_t* context) {
 	req->handler[0] = 0;
 
 	/* this should be always non-NULL tho */
-	if((n = strrchr(req->path_translated2, '/')) != NULL) {
+	if((n = strrchr(req->path_translated, '/')) != NULL) {
 		char* dot;
 
 		n = fpr_strdup(n + 1);

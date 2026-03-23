@@ -70,8 +70,8 @@ struct fr_module {
 	void (*register_stuff)(fr_context_t* context);
 };
 
-/* read path_translated if you want to read "normal" path, which is what you most likely want
- * read path_translated2 if you want to read "alternative" path or "normal" path (e.g. Script that Action wants to run)
+/* read path_translated if you want to read "alternative" path or "normal" path, which is most likely what you want
+ * read path_translated2 if you want to read "normal" path (e.g. Script (not executable) Action wants to run)
  *
  * AddHandler handlers are decided from path_translated2
  */
