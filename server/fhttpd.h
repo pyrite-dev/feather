@@ -200,7 +200,7 @@ enum client_state {
 	CS_GOT_VERSION,
 	CS_GOT_HEADER,
 	CS_GOT_BODY,
-	CS_SENT_HEADER,
+	CS_SENT_HEADER
 };
 
 typedef struct port	port_t;

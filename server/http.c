@@ -423,6 +423,7 @@ fpr_bool http_send(client_t* c) {
 		char  chunk[BUFFER_SIZE];
 		char* r = c->response.body;
 		int   l, n;
+		char num[512];
 
 		if(strcmp(c->request.method, "HEAD") == 0) {
 			c->state = CS_CONNECTED;
@@ -437,9 +438,8 @@ fpr_bool http_send(client_t* c) {
 			if(l > BUFFER_SIZE) l = BUFFER_SIZE;
 		}
 
+		n = 0;
 		if(l > 0) {
-			char num[512];
-
 			if(c->response.body != NULL) {
 				memcpy(chunk, r, l);
 
@@ -449,15 +449,15 @@ fpr_bool http_send(client_t* c) {
 					c->state = CS_CONNECTED;
 				}
 			}
-
-			if(n < 0) n = 0;
-
-			sprintf(num, "%x\r\n", n);
-
-			if(is_chunked && server_write(c, num, strlen(num)) < strlen(num)) return fpr_false;
-			if(n > 0 && server_write(c, chunk, n) < n) return fpr_false;
-			if(is_chunked && server_write(c, "\r\n", 2) < 2) return fpr_false;
+		}else{
+			c->state = CS_CONNECTED;
 		}
+
+		if(n < 0) n = 0;
+
+		if(is_chunked && server_write(c, num, strlen(num)) < strlen(num)) return fpr_false;
+		if(n > 0 && server_write(c, chunk, n) < n) return fpr_false;
+		if(is_chunked && server_write(c, "\r\n", 2) < 2) return fpr_false;
 
 		if(n > 0) c->response.body_seek += n;
 		if(c->response.body_size != -1 && c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;

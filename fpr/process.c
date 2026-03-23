@@ -228,24 +228,24 @@ int fpr_process_read(void* handle, void* data, int len) {
 void fpr_process_destroy(void* handle) {
 	process_t* proc = handle;
 #if defined(FPR_IS_WIN32)
+	if(proc->h_stdin != NULL) CloseHandle(proc->h_stdin);
+	CloseHandle(proc->h_stdout);
+	CloseHandle(proc->h_stderr);
+
 	WaitForSingleObject(proc->process, INFINITE);
 
 	CloseHandle(proc->process);
 	CloseHandle(proc->thread);
-
-	if(proc->h_stdin != NULL) CloseHandle(proc->h_stdin);
-	CloseHandle(proc->h_stdout);
-	CloseHandle(proc->h_stderr);
 #elif defined(FPR_IS_UNIX)
 	int st;
-
-	do {
-		waitpid(proc->pid, &st, 0);
-	} while(!WIFEXITED(st));
 
 	if(proc->fd_stdin >= 0) close(proc->fd_stdin);
 	close(proc->fd_stdout);
 	close(proc->fd_stderr);
+
+	do {
+		waitpid(proc->pid, &st, 0);
+	} while(!WIFEXITED(st));
 #endif
 	free(proc);
 }
