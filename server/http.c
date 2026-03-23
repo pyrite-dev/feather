@@ -365,8 +365,6 @@ void http_req(client_t* c) {
 		if(first) {
 			http_req_assume_handler(&c->request, &context);
 
-			printf("%s %s %s\n", c->request.path_virtual, c->request.path_virtual2, c->request.path_virtual3);
-
 			first = 0;
 		}
 
