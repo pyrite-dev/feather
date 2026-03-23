@@ -180,6 +180,7 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 
 void fpr_socket_close(int d) {
 #if defined(FPR_IS_WIN32)
+	shutdown(d, SD_BOTH);
 	closesocket(d);
 #elif defined(FPR_IS_UNIX)
 	close(d);

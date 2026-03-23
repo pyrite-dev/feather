@@ -455,6 +455,8 @@ fpr_bool http_send(client_t* c) {
 
 		if(n < 0) n = 0;
 
+		sprintf(num, "%x\r\n", n);
+
 		if(is_chunked && server_write(c, num, strlen(num)) < strlen(num)) return fpr_false;
 		if(n > 0 && server_write(c, chunk, n) < n) return fpr_false;
 		if(is_chunked && server_write(c, "\r\n", 2) < 2) return fpr_false;
