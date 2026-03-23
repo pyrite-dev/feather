@@ -70,6 +70,7 @@ void* fpr_process_create(const char* exec, char** env) {
 		strcpy(envs + envs_len, env[i]);
 		envs_len += strlen(env[i]) + 1;
 	}
+	FreeEnvironmentStrings(d_envs);
 
 	envs[envs_len] = 0;
 
