@@ -6,7 +6,7 @@
 
 #define TRY_LOOKUPARR(x, y) ((x) == NULL ? NULL : context->stringarraykv_lookup((x)->arraykv, (y)))
 
-static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
+static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	char**		arr = NULL;
 	int		len;
 	struct fpr_stat st;
@@ -37,6 +37,10 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	return FR_MODULE_DECLINE;
 }
 
+static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
+	return FR_MODULE_DECLINE;
+}
+
 static int directive(fr_context_t* context, int argc, char** argv) {
 	if(strcmp(argv[0], "DirectoryIndex") == 0) {
 		if(argc >= 2) {
@@ -58,6 +62,7 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 }
 
 static void register_stuff(fr_context_t* context) {
+	context->register_hook(hook_rewrite, FR_MODULE_HOOK_REWRITE);
 	context->register_hook(hook, FR_MODULE_HOOK_FIRST);
 }
 
