@@ -60,6 +60,11 @@ int fpr_socket(int domain, int type, int protocol) {
 	if(s == INVALID_SOCKET) s = -1;
 #endif
 
+	if(s >= 0){
+		int yes = 1;
+		setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (void*)&yes, sizeof(yes));
+	}
+
 	return s;
 }
 
