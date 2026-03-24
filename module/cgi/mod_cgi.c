@@ -232,6 +232,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
 	if(fpr_stat(req->path_translated3, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
+	if(fpr_stat(req->path_translated4, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
 
 	if(strcmp(req->handler3, "cgi-script") == 0) {
 		return create_cgi(context, req, res);
