@@ -106,7 +106,7 @@ void config_close(void) {
 \
 			handled = fpr_true; \
 		} else { \
-			fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, direc); \
+			log_srv2("%s: %s: %s takes 1 argument", argv0, path, direc); \
 \
 			fail = fpr_true; \
 		} \
@@ -121,7 +121,7 @@ void config_close(void) {
 \
 			handled = fpr_true; \
 		} else { \
-			fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, direc); \
+			log_srv2("%s: %s: %s takes 1 argument", argv0, path, direc); \
 \
 			fail = fpr_true; \
 		} \
@@ -140,7 +140,7 @@ static fpr_bool parse(const char* path) {
 	p = path_transform(path);
 	if((fp = fpr_fopen(p, "r")) == NULL) {
 		free(p);
-		fprintf(stderr, "%s: %s does not exist\n", argv0, path);
+		log_srv2("%s: %s does not exist", argv0, path);
 		return fpr_false;
 	}
 	free(p);
@@ -191,9 +191,9 @@ static fpr_bool parse(const char* path) {
 
 						if(strcmp(arg[0], "ForceLog") == 0) {
 							if(arg_len(arg) == 2) {
-								fprintf(stderr, "%s: %s: %s", argv0, path, arg[1]);
+								log_srv2("%s: %s: %s", argv0, path, arg[1]);
 							} else {
-								fprintf(stderr, "%s: %s: ForceLog takes 1 argument\n", argv0, path);
+								log_srv2("%s: %s: ForceLog takes 1 argument", argv0, path);
 
 								fail = fpr_true;
 							}
@@ -209,7 +209,7 @@ static fpr_bool parse(const char* path) {
 
 #if !defined(HAS_SSL)
 									if(p.ssl) {
-										fprintf(stderr, "%s: %s: HTTPd is missing SSL/TLS support\n", argv0, path);
+										log_srv2("%s: %s: HTTPd is missing SSL/TLS support", argv0, path);
 
 										fail = fpr_true;
 									} else
@@ -221,7 +221,7 @@ static fpr_bool parse(const char* path) {
 									if(fail) break;
 								}
 							} else {
-								fprintf(stderr, "%s: %s: %s takes 1 argument or more\n", argv0, path, arg[0]);
+								log_srv2("%s: %s: %s takes 1 argument or more", argv0, path, arg[0]);
 
 								fail = 1;
 							}
@@ -237,7 +237,7 @@ static fpr_bool parse(const char* path) {
 									free(p);
 								}
 							} else {
-								fprintf(stderr, "%s: %s: %s takes 2 argument or more\n", argv0, path, arg[0]);
+								log_srv2("%s: %s: %s takes 2 argument or more", argv0, path, arg[0]);
 
 								fail = 1;
 							}
@@ -245,7 +245,7 @@ static fpr_bool parse(const char* path) {
 							if(arg_len(arg) == 2) {
 								util_stringkv_set(&config_current->kv, "Handler", arg[1]);
 							} else {
-								fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, arg[0]);
+								log_srv2("%s: %s: %s takes 1 argument", argv0, path, arg[0]);
 
 								fail = 1;
 							}
@@ -269,12 +269,12 @@ static fpr_bool parse(const char* path) {
 							if(config_current->name != NULL && strcmp(config_current->name, arg[0] + 1) == 0) {
 								config_current = config_current->parent;
 								if(config_current == NULL) {
-									fprintf(stderr, "%s: %s: Closing tag does not match\n", argv0, path);
+									log_srv2("%s: %s: Closing tag does not match", argv0, path);
 
 									fail = fpr_true;
 								}
 							} else {
-								fprintf(stderr, "%s: %s: Closing tag does not match\n", argv0, path);
+								log_srv2("%s: %s: Closing tag does not match", argv0, path);
 
 								fail = fpr_true;
 							}
@@ -289,7 +289,7 @@ static fpr_bool parse(const char* path) {
 									arrput(config_current->section.vhost.entry, s);
 								}
 							} else {
-								fprintf(stderr, "%s: %s: VirtualHost takes 1 argument or more\n", argv0, path);
+								log_srv2("%s: %s: VirtualHost takes 1 argument or more", argv0, path);
 
 								fail = fpr_true;
 							}
@@ -301,7 +301,7 @@ static fpr_bool parse(const char* path) {
 
 								config_current->section.match.pattern = fpr_strdup(arg[1]);
 							} else {
-								fprintf(stderr, "%s: %s: %s takes 1 argument\n", argv0, path, arg[0]);
+								log_srv2("%s: %s: %s takes 1 argument", argv0, path, arg[0]);
 
 								fail = fpr_true;
 							}
@@ -315,7 +315,7 @@ static fpr_bool parse(const char* path) {
 				if(fail) goto cleanup;
 			} else if(buffer[i] != '\r') {
 				if(strlen(linebuf) == LINE_SIZE) {
-					fprintf(stderr, "%s: %s: line too long; sorry\n", argv0, path);
+					log_srv2("%s: %s: line too long; sorry", argv0, path);
 					fail = fpr_true;
 					goto cleanup;
 				}

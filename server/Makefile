@@ -5,7 +5,8 @@ include ../config.mk
 .PHONY: all clean install
 .SUFFIXES: .c $(O)
 
-OBJS = main$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) mime$(O) module$(O) context$(O) util$(O) machdep_psp$(O)
+OBJS = main$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) mime$(O) module$(O) context$(O) util$(O)
+OBJS += machdep_psp$(O)
 OBJS += stb_ds$(O)
 
 all: fhttpd$(E)
@@ -16,7 +17,7 @@ all: fhttpd$(E)
 .relink:
 	touch $@
 
-fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) ../external/pcre/$(LIB)pcre$(A) $(RESFILE) .relink
+fhttpd$(E): $(OBJS) ../fpr/$(LIB)fpr$(A) ../external/hsregex/$(LIB)hsregex$(A) $(RESFILE) .relink
 	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../external/hsregex -o $@ $(OBJS) $(SSL) $(THREAD) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(REGEX) $(LIBS)
 	$(AFTER)
 

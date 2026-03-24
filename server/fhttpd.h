@@ -291,7 +291,8 @@ int    arg_len(char** args);
 /* log.c */
 void log_init(void);
 void log_srv(const char* fmt, ...);
-void log_vasrv(const char* fmt, va_list va);
+void log_srv2(const char* fmt, ...);
+void log_vasrv(const char* fmt, int both, va_list va);
 void log_nofile(void);
 void log_close(void);
 
@@ -356,14 +357,14 @@ void   util_stringarraykv_push(fr_stringarraykv_t* kv, const char* key, const ch
 int    util_stringarraykv_length(fr_stringarraykv_t* arraykv, const char* key);
 
 /* machdep_psp.c */
-#if defined(_PSP)
+#if defined(FPR_IS_PSP)
 void psp_init(void);
 void psp_wait(void);
 void psp_exit(int x);
 #endif
 
 /* wait routine for exit */
-#if defined(_PSP)
+#if defined(FPR_IS_PSP)
 #define EXIT(x) \
 	{ \
 		psp_wait(); \

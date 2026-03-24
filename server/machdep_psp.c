@@ -1,6 +1,6 @@
-#if defined(_PSP)
 #include <fhttpd.h>
 
+#if defined(FPR_IS_PSP)
 #include <pspkernel.h>
 #include <pspdebug.h>
 #include <pspsdk.h>

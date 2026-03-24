@@ -34,20 +34,20 @@ int main(int argc, char** argv) {
 			EXIT(0);
 		} else if(strcmp(argv[i], "-C") == 0) {
 			if((conf = argv[++i]) == NULL) {
-				fprintf(stderr, "%s: -C needs argument\n", argv[0]);
+				log_srv2("%s: -C needs argument", argv[0]);
 				EXIT(1);
 			}
 		} else if(strcmp(argv[i], "-d") == 0) {
 			daemonize = fpr_false;
 		} else {
-			fprintf(stderr, "%s: %s -- unknown option\n", argv[0], argv[i]);
+			log_srv2("%s: %s -- unknown option", argv[0], argv[i]);
 			EXIT(1);
 		}
 	}
 
 	setlocale(LC_ALL, "");
 
-#if defined(_PSP)
+#if defined(FPR_IS_PSP)
 	psp_init();
 #endif
 

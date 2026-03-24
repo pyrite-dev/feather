@@ -92,8 +92,8 @@ int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
 		addr4.sin_port	      = addr->sin_port;
 
 		st = bind(s, (struct sockaddr*)&addr4, sizeof(addr4));
-	} else if(name->sa_family == FPR_AF_INET6 && namelen == sizeof(struct fpr_sockaddr_in6)) {
 #if defined(FPR_HAS_IPV6)
+	} else if(name->sa_family == FPR_AF_INET6 && namelen == sizeof(struct fpr_sockaddr_in6)) {
 		struct fpr_sockaddr_in6* addr = (struct fpr_sockaddr_in6*)name;
 		struct sockaddr_in6	 addr6;
 
@@ -102,11 +102,9 @@ int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
 		addr6.sin6_port = addr->sin6_port;
 
 		st = bind(s, (struct sockaddr*)&addr6, sizeof(addr6));
-#else
-		st = -1;
 #endif
-	} else if(name->sa_family == FPR_AF_UNIX && namelen == sizeof(struct fpr_sockaddr_un)) {
 #if defined(FPR_HAS_UNIX_SOCKET)
+	} else if(name->sa_family == FPR_AF_UNIX && namelen == sizeof(struct fpr_sockaddr_un)) {
 		struct fpr_sockaddr_un* addr = (struct fpr_sockaddr_un*)name;
 		struct sockaddr_un	addru;
 
@@ -114,8 +112,6 @@ int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
 		strcpy(addru.sun_path, addr->sun_path);
 
 		st = bind(s, (struct sockaddr*)&addru, sizeof(addru));
-#else
-		st = -1;
 #endif
 	}
 
@@ -152,8 +148,8 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 		taddr->sin_port		    = addr4->sin_port;
 
 		*addrlen = sizeof(*taddr);
-	} else if(sa->sa_family == AF_INET6) {
 #if defined(FPR_HAS_IPV6)
+	} else if(sa->sa_family == AF_INET6) {
 		struct fpr_sockaddr_in6* taddr = (struct fpr_sockaddr_in6*)addr;
 		struct sockaddr_in6*	 addr6 = (struct sockaddr_in6*)buffer;
 
@@ -163,8 +159,8 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 
 		*addrlen = sizeof(*taddr);
 #endif
-	} else if(sa->sa_family == AF_UNIX) {
 #if defined(FPR_HAS_UNIX_SOCKET)
+	} else if(sa->sa_family == AF_UNIX) {
 		struct fpr_sockaddr_un* taddr = (struct fpr_sockaddr_un*)addr;
 		struct sockaddr_un*	addru = (struct sockaddr_un*)buffer;
 

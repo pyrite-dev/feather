@@ -18,7 +18,7 @@
 #include <dlfcn.h>
 #endif
 
-#if defined(_PSP)
+#if defined(FPR_IS_PSP)
 #include <unistd.h>
 #endif
 
