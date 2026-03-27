@@ -26,7 +26,6 @@ const char* fpr_inet_ntop(struct fpr_sockaddr* src, char* dst) {
 		for(i = 0; i < 16; i += 2) {
 			if(i > 0) strcat(dst, ":");
 
-			if(!(addr->sin6_addr.u.addr8[i + 0] & 0xf0)) strcat(dst, "0");
 			sprintf(dst + strlen(dst), "%x", (int)addr->sin6_addr.u.addr8[i + 0]);
 			if(!(addr->sin6_addr.u.addr8[i + 1] & 0xf0)) strcat(dst, "0");
 			sprintf(dst + strlen(dst), "%x", (int)addr->sin6_addr.u.addr8[i + 1]);
