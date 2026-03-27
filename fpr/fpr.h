@@ -173,6 +173,7 @@ void fpr_socket_uninit(void);
 
 /* arpa.c */
 fpr_uint16_t fpr_htons(fpr_uint16_t host16);
+const char*  fpr_inet_ntop(struct fpr_sockaddr* src, char* dst);
 
 /* string.c */
 char* fpr_strdup(const char* str);

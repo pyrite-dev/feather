@@ -58,7 +58,7 @@ void log_vasrv(const char* fmt, int both, va_list va) {
 
 	sprintf(out, "[%s %s %.2d %02d:%02d:%02d UTC] %s", day[tm->tm_wday], mon[tm->tm_mon], tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, buf);
 
-	if(log_file != NULL){
+	if(log_file != NULL) {
 		nl = fpr_newline;
 
 		fpr_fwrite(out, 1, strlen(out), log_file);

@@ -4,8 +4,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define TRY_LOOKUPARR(x, y) ((x) == NULL ? NULL : context->stringarraykv_lookup((x)->arraykv, (y)))
-
 static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	char**		arr = NULL;
 	int		len;

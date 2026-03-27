@@ -278,6 +278,10 @@ void http_req(client_t* c) {
 	c->request.server_name = fpr_strdup(host == NULL ? hostname : host);
 	c->request.port	       = c->port;
 
+	if(fpr_inet_ntop((struct fpr_sockaddr*)&c->address, c->request.realip) == NULL) {
+		c->request.realip[0] = 0;
+	}
+
 	context_init(&context);
 	context.config_vhost = config_vhost_match(c->request.server_name, c->port);
 
@@ -400,7 +404,7 @@ void http_req(client_t* c) {
 
 	context_save(&context);
 
-	log_srv("\"%s %s %s\" %d", c->request.method, c->request.path_raw, c->request.version, c->response.status_code);
+	log_srv("%s - \"%s %s %s\" %d", c->request.realip, c->request.method, c->request.path_raw, c->request.version, c->response.status_code);
 
 	c->state = CS_GOT_BODY;
 }

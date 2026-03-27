@@ -95,6 +95,8 @@ struct fr_request {
 	char	       version[MAX_VERSION_LENGTH + 1];
 	fr_stringkv_t* headers;
 
+	char realip[256];
+
 	char* server_name;
 	int   port;
 
