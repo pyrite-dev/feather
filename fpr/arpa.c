@@ -18,7 +18,7 @@ const char* fpr_inet_ntop(struct fpr_sockaddr* src, char* dst) {
 		}
 		return dst;
 	} else if(src->sa_family == FPR_AF_INET6) {
-		struct fpr_sockaddr_in6* addr = (struct fpr_sockaddr_in*)src;
+		struct fpr_sockaddr_in6* addr = (struct fpr_sockaddr_in6*)src;
 		int			 i;
 
 		dst[0] = 0;
