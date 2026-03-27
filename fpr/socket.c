@@ -179,6 +179,7 @@ void fpr_socket_close(int d) {
 	shutdown(d, SD_BOTH);
 	closesocket(d);
 #elif defined(FPR_IS_UNIX)
+	shutdown(d, SHUT_RD);
 	close(d);
 #endif
 }
