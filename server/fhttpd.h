@@ -377,10 +377,14 @@ void ps2_init(void);
 		psp_wait(); \
 		psp_exit((x)); \
 	}
-#else
+#elif defined(FPR_IS_PS2)
 #define EXIT(x) \
 	{ \
 		while(1); \
+	}
+#else
+#define EXIT(x) \
+	{ \
 		exit((x)); \
 	}
 #endif
