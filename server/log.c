@@ -2,6 +2,8 @@
 
 #if defined(FPR_IS_PSP)
 #include <pspdebug.h>
+#elif defined(FPR_IS_PS2)
+#include <debug.h>
 #endif
 
 static FPR_FILE* log_file = NULL;
@@ -69,6 +71,8 @@ void log_vasrv(const char* fmt, int both, va_list va) {
 
 #if defined(FPR_IS_PSP)
 	pspDebugScreenPrintf("%s" fpr_newline, out);
+#elif defined(FPR_IS_PS2)
+	scr_printf("%s" fpr_newline, out);
 #else
 	fprintf(stderr, "%s" fpr_newline, out);
 #endif

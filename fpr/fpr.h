@@ -7,6 +7,8 @@
 #define FPR_IS_WIN32
 #elif defined(_PSP)
 #define FPR_IS_PSP
+#elif defined(_EE)
+#define FPR_IS_PS2
 #endif
 
 #if defined(FPR_IS_WIN32)

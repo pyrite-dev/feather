@@ -365,6 +365,11 @@ void psp_wait(void);
 void psp_exit(int x);
 #endif
 
+/* machdep_ps2.c */
+#if defined(FPR_IS_PS2)
+void ps2_init(void);
+#endif
+
 /* wait routine for exit */
 #if defined(FPR_IS_PSP)
 #define EXIT(x) \
@@ -375,6 +380,7 @@ void psp_exit(int x);
 #else
 #define EXIT(x) \
 	{ \
+		while(1); \
 		exit((x)); \
 	}
 #endif

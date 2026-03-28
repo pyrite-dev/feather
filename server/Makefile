@@ -6,7 +6,7 @@ include ../config.mk
 .SUFFIXES: .c $(O)
 
 OBJS = config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) mime$(O) module$(O) context$(O) util$(O)
-OBJS += machdep_psp$(O)
+OBJS += machdep_psp$(O) machdep_ps2$(O)
 OBJS += stb_ds$(O)
 
 all: fhttpd$(E)

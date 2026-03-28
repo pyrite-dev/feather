@@ -49,6 +49,8 @@ int main(int argc, char** argv) {
 
 #if defined(FPR_IS_PSP)
 	psp_init();
+#elif defined(FPR_IS_PS2)
+	ps2_init();
 #endif
 
 #if !defined(_WIN32)
