@@ -218,10 +218,10 @@ static fpr_bool parse(const char* path) {
 									{
 										arrput(config_ports, p);
 
-#if defined(FPR_HAS_IPV6)
-										p.ipv6 = fpr_true;
-										arrput(config_ports, p);
-#endif
+										if(fpr_socket_has_ipv6()){
+											p.ipv6 = fpr_true;
+											arrput(config_ports, p);
+										}
 									}
 
 									if(fail) break;
