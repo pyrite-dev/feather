@@ -184,6 +184,24 @@ void fpr_socket_close(int d) {
 #endif
 }
 
+fpr_bool fpr_socket_has_ipv6(void) {
+#if defined(FPR_HAS_IPV6)
+#if defined(FPR_IS_WIN32)
+	DWORD v = GetVersion();
+	DWORD majorv, minorv;
+
+	majorv = LOBYTE(LOWORD(v));
+	minorv = HIBYTE(LOWORD(v));
+
+	if(majorv > 5 && (majorv == 5 && minorv >= 1)) return fpr_true;
+
+	return fpr_false;
+#endif
+#else
+	return fpr_false;
+#endif
+}
+
 struct fpr_in_addr fpr_inaddr_any = {
     {0, 0, 0, 0}};
 
