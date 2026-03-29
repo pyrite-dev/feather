@@ -4,17 +4,6 @@ char*	 argv0;
 fpr_bool running = fpr_true;
 char	 server[2048];
 
-static void Print(char* r, unsigned char* digest) {
-	int i;
-
-	r[0] = 0;
-	for(i = 0; i < 32; i++) {
-		if(!(digest[i] & 0xf0)) strcat(r, "0");
-
-		sprintf(r + strlen(r), "%x", (int)digest[i]);
-	}
-}
-
 int main(int argc, char** argv) {
 	int	    i;
 	const char* conf      = PREFIX "/etc/fhttpd/fhttpd.conf";
@@ -22,12 +11,6 @@ int main(int argc, char** argv) {
 #if defined(FPR_HAS_FORK)
 	pid_t pid;
 #endif
-	char	      n[65];
-	unsigned char b[64];
-
-	fpr_sha256(b, "Hello", 5);
-	Print(n, b);
-	printf("%s\n", n);
 
 	argv0 = argv[0];
 

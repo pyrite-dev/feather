@@ -42,40 +42,36 @@ typedef unsigned char fpr_bool;
 #define fpr_false 0
 #define fpr_true 1
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__WATCOMC__)
 typedef unsigned __int8	 fpr_uint8_t;
 typedef unsigned __int16 fpr_uint16_t;
 typedef unsigned __int32 fpr_uint32_t;
-typedef unsigned __int64 fpr_uint64_t;
 
 typedef __int8	fpr_int8_t;
 typedef __int16 fpr_int16_t;
 typedef __int32 fpr_int32_t;
-typedef __int64 fpr_int64_t;
-#define FPR_RELIABLE_INT64
+
+typedef __int64 fpr_size_t;
 #elif !defined(__STRICT_ANSI__) && (defined(__GNUC__) || defined(__clang__))
 typedef unsigned char	   fpr_uint8_t;
 typedef unsigned short	   fpr_uint16_t;
 typedef unsigned int	   fpr_uint32_t;
-typedef unsigned long long fpr_uint64_t;
 
 typedef signed char fpr_int8_t;
 typedef short	    fpr_int16_t;
 typedef int	    fpr_int32_t;
-typedef long long   fpr_int64_t;
-#define FPR_RELIABLE_INT64
+
+typedef long long   fpr_size_t;
 #else
 typedef unsigned char  fpr_uint8_t;
 typedef unsigned short fpr_uint16_t;
 typedef unsigned int   fpr_uint32_t;
-typedef unsigned long  fpr_uint64_t;
 
 typedef signed char fpr_int8_t;
 typedef short	    fpr_int16_t;
 typedef int	    fpr_int32_t;
-typedef long	    fpr_int64_t;
-#endif
 
-typedef fpr_int64_t fpr_size_t;
+typedef long   fpr_size_t;
+#endif
 
 #endif
