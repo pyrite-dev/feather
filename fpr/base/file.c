@@ -1,6 +1,5 @@
 #include <fpr.h>
 #include <fpr_int.h>
-#include <fcntl.h>
 
 FPR_FILE* fpr_fopen(const char* path, const char* mode) {
 #if defined(FPR_IS_WIN32)

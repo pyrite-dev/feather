@@ -218,7 +218,7 @@ static fpr_bool parse(const char* path) {
 									{
 										arrput(config_ports, p);
 
-										if(fpr_socket_has_ipv6()){
+										if(fpr_socket_has_ipv6()) {
 											p.ipv6 = fpr_true;
 											arrput(config_ports, p);
 										}
