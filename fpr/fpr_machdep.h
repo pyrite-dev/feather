@@ -52,6 +52,16 @@ typedef __int8 fpr_int8_t;
 typedef __int16 fpr_int16_t;
 typedef __int32 fpr_int32_t;
 typedef __int64 fpr_int64_t;
+#elif !defined(__STRICT_ANSI__) && (defined(__GNUC__) || defined(__clang__))
+typedef unsigned char  fpr_uint8_t;
+typedef unsigned short fpr_uint16_t;
+typedef unsigned int   fpr_uint32_t;
+typedef unsigned long long  fpr_uint64_t;
+
+typedef signed char fpr_int8_t;
+typedef short	    fpr_int16_t;
+typedef int	    fpr_int32_t;
+typedef long long    fpr_int64_t;
 #else
 typedef unsigned char  fpr_uint8_t;
 typedef unsigned short fpr_uint16_t;
