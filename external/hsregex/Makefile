@@ -1,5 +1,5 @@
 TOP = ..
-MODE = regex
+MODE = hsregex
 include ../../config.mk
 
 .PHONY: all clean

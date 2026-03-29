@@ -85,10 +85,11 @@ void fpr_md5_init(fpr_md5_context_t* mdContext) {
 	mdContext->buf[3] = (fpr_uint32_t)0x10325476;
 }
 
-void fpr_md5_update(fpr_md5_context_t* mdContext, unsigned char* inBuf, unsigned int inLen) {
+void fpr_md5_update(fpr_md5_context_t* mdContext, const void* inBuf, unsigned int inLen) {
 	fpr_uint32_t	     in[16];
-	int	     mdi;
-	unsigned int i, ii;
+	int		     mdi;
+	unsigned int	     i, ii;
+	const unsigned char* buf = inBuf;
 
 	/* compute number of bytes mod 64 */
 	mdi = (int)((mdContext->i[0] >> 3) & 0x3F);
@@ -101,7 +102,7 @@ void fpr_md5_update(fpr_md5_context_t* mdContext, unsigned char* inBuf, unsigned
 
 	while(inLen--) {
 		/* add new character to buffer, increment mdi */
-		mdContext->in[mdi++] = *inBuf++;
+		mdContext->in[mdi++] = *buf++;
 
 		/* transform if necessary */
 		if(mdi == 0x40) {
@@ -117,7 +118,7 @@ void fpr_md5_update(fpr_md5_context_t* mdContext, unsigned char* inBuf, unsigned
 }
 
 void fpr_md5_final(fpr_md5_context_t* mdContext) {
-	fpr_uint32_t	     in[16];
+	fpr_uint32_t in[16];
 	int	     mdi;
 	unsigned int i, ii;
 	unsigned int padLen;
@@ -250,4 +251,15 @@ static void Transform(fpr_uint32_t* buf, fpr_uint32_t* in) {
 	buf[1] += b;
 	buf[2] += c;
 	buf[3] += d;
+}
+
+static void Print(char* r, unsigned char* digest) {
+	int i;
+
+	r[0] = 0;
+	for(i = 0; i < 16; i++) {
+		if(!(digest[i] & 0xf0)) strcat(r, "0");
+
+		sprintf(r + strlen(r), "%x", (int)digest[i]);
+	}
 }

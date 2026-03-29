@@ -30,14 +30,14 @@
 typedef struct fpr_md5_context fpr_md5_context_t;
 
 struct fpr_md5_context {
-  fpr_uint32_t i[2];                   /* number of _bits_ handled mod 2^64 */
-  fpr_uint32_t buf[4];                                    /* scratch buffer */
-  unsigned char in[64];                              /* input buffer */
-  unsigned char digest[16];     /* actual digest after MD5Final call */
+	fpr_uint32_t  i[2];	  /* number of _bits_ handled mod 2^64 */
+	fpr_uint32_t  buf[4];	  /* scratch buffer */
+	unsigned char in[64];	  /* input buffer */
+	unsigned char digest[16]; /* actual digest after MD5Final call */
 };
 
 void fpr_md5_init(fpr_md5_context_t* mdContext);
-void fpr_md5_update(fpr_md5_context_t* mdContext, unsigned char* inBuf, unsigned int inLen);
+void fpr_md5_update(fpr_md5_context_t* mdContext, const void* inBuf, unsigned int inLen);
 void fpr_md5_final(fpr_md5_context_t* mdContext);
 
 #endif
