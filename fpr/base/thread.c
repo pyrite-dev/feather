@@ -49,7 +49,7 @@ void* fpr_thread_create(void (*entry)(void* param), void* param) {
 	arg->entry = entry;
 	arg->param = param;
 
-	return
+	return (void*)
 #if defined(FPR_USE_CREATETHREAD)
 	    CreateThread
 #else
