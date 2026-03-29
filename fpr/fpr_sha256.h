@@ -3,6 +3,6 @@
 
 #include <fpr_machdep.h>
 
-void fpr_sha256(void* output, const void* data, fpr_uint64_t len);
+void fpr_sha256(void* output, const void* data, fpr_size_t len);
 
 #endif

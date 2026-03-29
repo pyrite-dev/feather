@@ -252,14 +252,3 @@ static void Transform(fpr_uint32_t* buf, fpr_uint32_t* in) {
 	buf[2] += c;
 	buf[3] += d;
 }
-
-static void Print(char* r, unsigned char* digest) {
-	int i;
-
-	r[0] = 0;
-	for(i = 0; i < 16; i++) {
-		if(!(digest[i] & 0xf0)) strcat(r, "0");
-
-		sprintf(r + strlen(r), "%x", (int)digest[i]);
-	}
-}

@@ -3,7 +3,7 @@
 
 #include <fpr_base.h>
 
-/* crypto */
+/* hash */
 #include <fpr_sha256.h>
 #include <fpr_md5.h>
 

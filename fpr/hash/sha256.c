@@ -16,17 +16,6 @@ const fpr_uint32_t sha256_round_k[64] = {0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe
 					 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
 					 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
 
-static void sha256_endian_reverse64(fpr_uint64_t input, fpr_uint8_t* output) {
-	output[7] = (input >> 0) & 0xff;
-	output[6] = (input >> 8) & 0xff;
-	output[5] = (input >> 16) & 0xff;
-	output[4] = (input >> 24) & 0xff;
-	output[3] = (input >> 32) & 0xff;
-	output[2] = (input >> 40) & 0xff;
-	output[1] = (input >> 48) & 0xff;
-	output[0] = (input >> 56) & 0xff;
-}
-
 static fpr_uint32_t sha256_endian_read32(fpr_uint8_t* input) {
 	fpr_uint32_t output = 0;
 	output |= (input[0] << 24);
@@ -37,32 +26,31 @@ static fpr_uint32_t sha256_endian_read32(fpr_uint8_t* input) {
 	return output;
 }
 
-static void sha256_endian_reverse32(fpr_uint32_t input, fpr_uint8_t* output) {
-	output[3] = (input >> 0) & 0xff;
-	output[2] = (input >> 8) & 0xff;
-	output[1] = (input >> 16) & 0xff;
-	output[0] = (input >> 24) & 0xff;
-}
-
 static fpr_uint32_t sha256_ror(fpr_uint32_t input, fpr_uint32_t by) {
 	return (input >> by) | (((input & ((1 << by) - 1))) << (32 - by));
 }
 
-void fpr_sha256(void* output, const void* data, fpr_uint64_t len) {
-	fpr_uint8_t  padding[80];
-	fpr_uint64_t current = (len + 1) % 64;
+void fpr_sha256(void* output, const void* data, fpr_size_t len) {
+	fpr_uint8_t padding[80];
+	fpr_size_t  current = (len + 1) % 64;
 	/* want to be == 56 % 64. */
-	fpr_uint64_t needed = (64 + 56 - current) % 64;
-	fpr_uint64_t extra  = needed + 9;
-	fpr_uint64_t total  = len + extra;
+	fpr_size_t   needed = (64 + 56 - current) % 64;
+	fpr_size_t   extra  = needed + 9;
+	fpr_size_t   total  = len + extra;
 	int	     i, j;
-	fpr_uint64_t cursor;
+	fpr_size_t   cursor;
 	fpr_uint32_t v[8];
+	fpr_size_t   l;
 
 	for(i = 1; i < 80; i++)
 		padding[i] = 0;
 	padding[0] = 0x80;
-	sha256_endian_reverse64(len * 8, padding + total - len - 8);
+
+	l = len * 8;
+	for(i = 7; i >= 0; i--) {
+		padding[total - len - 8 + i] = l & 0xff;
+		l			     = l >> 8;
+	}
 
 	for(i = 0; i < 8; i++)
 		v[i] = sha256_initial_h[i];
@@ -80,11 +68,11 @@ void fpr_sha256(void* output, const void* data, fpr_uint64_t len) {
 			}
 		} else {
 			if(cursor * 64 < len) {
-				fpr_uint64_t size = len - cursor * 64;
+				fpr_size_t size = len - cursor * 64;
 				if(size > 0) memcpy(w, (fpr_uint8_t*)data + cursor * 64, size);
 				memcpy((fpr_uint8_t*)w + size, padding, 64 - size);
 			} else {
-				fpr_uint64_t off = (cursor * 64 - len) % 64;
+				fpr_size_t off = (cursor * 64 - len) % 64;
 				memcpy((fpr_uint8_t*)w, padding + off, 64);
 			}
 
@@ -118,10 +106,16 @@ void fpr_sha256(void* output, const void* data, fpr_uint64_t len) {
 			t[0] = t1 + t2;
 		}
 
-		for(i = 0; i < 8; i++)
-			v[i] += t[i];
+		for(i = 0; i < 8; i++) v[i] += t[i];
 	}
 
-	for(i = 0; i < 8; i++)
-		sha256_endian_reverse32(v[i], (fpr_uint8_t*)output + i * 4);
+	for(i = 0; i < 8; i++) {
+		fpr_uint8_t* out = (fpr_uint8_t*)output + i * 4;
+		fpr_uint32_t val = v[i];
+
+		for(j = 3; j >= 0; j--) {
+			out[j] = val & 0xff;
+			val    = val >> 8;
+		}
+	}
 }

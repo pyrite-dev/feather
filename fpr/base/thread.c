@@ -49,10 +49,11 @@ void* fpr_thread_create(void (*entry)(void* param), void* param) {
 	arg->entry = entry;
 	arg->param = param;
 
+	return
 #if defined(FPR_USE_CREATETHREAD)
-	CreateThread
+	    CreateThread
 #else
-	_beginthreadex
+	    _beginthreadex
 #endif
 	    (NULL, 0, thread_entry, arg, 0, &id);
 #elif defined(FPR_IS_UNIX)
