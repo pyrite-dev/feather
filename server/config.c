@@ -205,6 +205,7 @@ static fpr_bool parse(const char* path) {
 									port_t p;
 									p.port = atoi(arg[j]);
 									p.ssl  = strcmp(arg[0], "ListenSSL") == 0;
+									p.ipv6 = fpr_false;
 									p.fd   = -1;
 
 #if !defined(HAS_SSL)
@@ -216,6 +217,11 @@ static fpr_bool parse(const char* path) {
 #endif
 									{
 										arrput(config_ports, p);
+
+#if defined(FPR_HAS_IPV6)
+										p.ipv6 = fpr_true;
+										arrput(config_ports, p);
+#endif
 									}
 
 									if(fail) break;

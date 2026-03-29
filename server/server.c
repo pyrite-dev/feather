@@ -13,18 +13,31 @@ fpr_bool server_init(void) {
 
 	for(i = 0; i < arrlen(config_ports); i++) {
 		if(config_ports[i].fd == -1) {
-			struct fpr_sockaddr_in addr;
+			struct fpr_sockaddr_in	addr;
+			struct fpr_sockaddr_in6 addr6;
+			struct fpr_sockaddr*	sa;
+			int			sz;
 
-			if((config_ports[i].fd = fpr_socket(FPR_PF_INET, FPR_SOCK_STREAM, FPR_IPPROTO_TCP)) < 0) {
+			if((config_ports[i].fd = fpr_socket(config_ports[i].ipv6 ? FPR_PF_INET6 : FPR_PF_INET, FPR_SOCK_STREAM, FPR_IPPROTO_TCP)) < 0) {
 				log_srv("Failed to create socket");
 				return fpr_false;
 			}
 
-			addr.sin_family = FPR_AF_INET;
-			addr.sin_addr	= fpr_inaddr_any;
-			addr.sin_port	= fpr_htons(config_ports[i].port);
+			if(config_ports[i].ipv6) {
+				addr6.sin6_family = FPR_AF_INET6;
+				addr6.sin6_addr	  = fpr_in6addr_any;
+				addr6.sin6_port	  = fpr_htons(config_ports[i].port);
+				sa		  = (struct fpr_sockaddr*)&addr6;
+				sz		  = sizeof(addr6);
+			} else {
+				addr.sin_family = FPR_AF_INET;
+				addr.sin_addr	= fpr_inaddr_any;
+				addr.sin_port	= fpr_htons(config_ports[i].port);
+				sa		= (struct fpr_sockaddr*)&addr;
+				sz		= sizeof(addr);
+			}
 
-			if(fpr_bind(config_ports[i].fd, (struct fpr_sockaddr*)&addr, sizeof(addr)) < 0) {
+			if(fpr_bind(config_ports[i].fd, sa, sz) < 0) {
 				log_srv("Failed to bind socket");
 				return fpr_false;
 			}
@@ -34,7 +47,7 @@ fpr_bool server_init(void) {
 				return fpr_false;
 			}
 
-			log_srv("Listening to port %d%s", config_ports[i].port, config_ports[i].ssl ? " (SSL)" : "");
+			log_srv("Listening to port %d%s%s", config_ports[i].port, config_ports[i].ssl ? " (SSL)" : "", config_ports[i].ipv6 ? " (IPv6)" : "");
 		}
 	}
 
@@ -53,7 +66,7 @@ void server_close(void) {
 
 #if !defined(MULTITHREAD)
 	for(i = 0; i < hmlen(server_clients); i++) {
-		fpr_socket_close(config_ports[i].fd);
+		fpr_socket_close(server_clients[i].value.fd);
 	}
 	arrfree(server_clients);
 	server_clients = NULL;
@@ -307,7 +320,7 @@ void server_loop(void) {
 
 #if !defined(MULTITHREAD)
 				/* client sockets */
-				for(i = srv_count; i < arrlen(pfd); i++) {
+				for(i = srv_count * div; i < arrlen(pfd); i++) {
 					int ind = hmgeti(server_clients, pfd[i].fd);
 
 					if(socket_main(&server_clients[ind].value, &changed, &pfd[i])) {

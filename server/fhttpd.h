@@ -232,6 +232,7 @@ typedef struct clientkv clientkv_t;
 struct port {
 	int	 port;
 	fpr_bool ssl;
+	fpr_bool ipv6;
 	int	 fd;
 };
 
