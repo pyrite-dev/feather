@@ -27,7 +27,7 @@ static void sha256_endian_reverse64(fpr_uint64_t input, fpr_uint8_t* output) {
 	output[0] = (input >> 56) & 0xff;
 }
 
-static fpr_uint32_t sha256_endian_read32(uint8_t* input) {
+static fpr_uint32_t sha256_endian_read32(fpr_uint8_t* input) {
 	fpr_uint32_t output = 0;
 	output |= (input[0] << 24);
 	output |= (input[1] << 16);
