@@ -119,6 +119,7 @@ int	 fpr_socket(int domain, int type, int protocol);
 int	 fpr_recv(int s, void* buf, int len, int flags);
 int	 fpr_send(int s, const void* msg, int len, int flags);
 int	 fpr_bind(int s, const struct fpr_sockaddr* name, int namelen);
+int	 fpr_connect(int s, const struct fpr_sockaddr* name, int namelen);
 int	 fpr_listen(int s, int backlog);
 int	 fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen);
 void	 fpr_socket_close(int d);

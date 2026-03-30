@@ -77,42 +77,74 @@ int fpr_send(int s, const void* msg, int len, int flags) {
 	return send(s, msg, len, 0);
 }
 
-int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
-	int st	= -1;
-	int yes = 1;
+static struct sockaddr* conv_to_sa(int* outlen, const struct fpr_sockaddr* input, int namelen) {
+	struct sockaddr* out = NULL;
 
-	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (void*)&yes, sizeof(yes));
-
-	if(name->sa_family == FPR_AF_INET && namelen == sizeof(struct fpr_sockaddr_in)) {
-		struct fpr_sockaddr_in* addr = (struct fpr_sockaddr_in*)name;
+	if(input->sa_family == FPR_AF_INET && namelen == sizeof(struct fpr_sockaddr_in)) {
+		struct fpr_sockaddr_in* addr = (struct fpr_sockaddr_in*)input;
 		struct sockaddr_in	addr4;
 
 		addr4.sin_family      = AF_INET;
 		addr4.sin_addr.s_addr = addr->sin_addr.u.addr32[0];
 		addr4.sin_port	      = addr->sin_port;
 
-		st = bind(s, (struct sockaddr*)&addr4, sizeof(addr4));
+		out = malloc(sizeof(addr4));
+		memcpy(out, &addr4, sizeof(addr4));
+		*outlen = sizeof(addr4);
 #if defined(FPR_HAS_IPV6)
-	} else if(name->sa_family == FPR_AF_INET6 && namelen == sizeof(struct fpr_sockaddr_in6)) {
-		struct fpr_sockaddr_in6* addr = (struct fpr_sockaddr_in6*)name;
+	} else if(input->sa_family == FPR_AF_INET6 && namelen == sizeof(struct fpr_sockaddr_in6)) {
+		struct fpr_sockaddr_in6* addr = (struct fpr_sockaddr_in6*)input;
 		struct sockaddr_in6	 addr6;
 
 		addr6.sin6_family = AF_INET6;
 		memcpy(addr6.sin6_addr.s6_addr, &addr->sin6_addr.u.addr8, 16);
 		addr6.sin6_port = addr->sin6_port;
 
-		st = bind(s, (struct sockaddr*)&addr6, sizeof(addr6));
+		out = malloc(sizeof(addr6));
+		memcpy(out, &addr6, sizeof(addr6));
+		*outlen = sizeof(addr6);
 #endif
 #if defined(FPR_HAS_UNIX_SOCKET)
-	} else if(name->sa_family == FPR_AF_UNIX && namelen == sizeof(struct fpr_sockaddr_un)) {
-		struct fpr_sockaddr_un* addr = (struct fpr_sockaddr_un*)name;
+	} else if(input->sa_family == FPR_AF_UNIX && namelen == sizeof(struct fpr_sockaddr_un)) {
+		struct fpr_sockaddr_un* addr = (struct fpr_sockaddr_un*)input;
 		struct sockaddr_un	addru;
 
 		addru.sun_family = AF_UNIX;
 		strcpy(addru.sun_path, addr->sun_path);
 
-		st = bind(s, (struct sockaddr*)&addru, sizeof(addru));
+		out = malloc(sizeof(addru));
+		memcpy(out, &addru, sizeof(addru));
+		*outlen = sizeof(addru);
 #endif
+	}
+
+	return out;
+}
+
+int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
+	int		 st  = -1;
+	int		 yes = 1;
+	struct sockaddr* sa;
+	int		 len;
+
+	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (void*)&yes, sizeof(yes));
+	if((sa = conv_to_sa(&len, name, namelen)) != NULL) {
+		st = bind(s, sa, len);
+		free(sa);
+	}
+
+	return st;
+}
+
+int fpr_connect(int s, const struct fpr_sockaddr* name, int namelen) {
+	int		 st  = -1;
+	int		 yes = 1;
+	struct sockaddr* sa;
+	int		 len;
+
+	if((sa = conv_to_sa(&len, name, namelen)) != NULL) {
+		st = connect(s, sa, len);
+		free(sa);
 	}
 
 	return st;
