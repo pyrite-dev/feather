@@ -378,6 +378,14 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 			}
 			free(h);
 
+			if((h = context->config_lookup(context, "DocumentRoot")) != NULL) {
+				char* h2 = context->path_transform(h);
+
+				if(send_param(fd, "DOCUMENT_ROOT", h2) < 0) goto error;
+
+				free(h2);
+			}
+
 			send_packet(fd, FCGI_PARAMS, "", 0);
 
 			if(req->body_size > 0) {
