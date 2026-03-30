@@ -49,6 +49,7 @@ struct fcgi {
 
 static int send_packet(int fd, int type, void* data, int length) {
 	int seek = 0;
+	unsigned char* input = data;
 
 	do {
 		unsigned char* pkt;
@@ -68,7 +69,7 @@ static int send_packet(int fd, int type, void* data, int length) {
 		pkt[5] = (pktsz >> 0) & 0xff;
 		pkt[6] = pad;
 		pkt[7] = 0;
-		if(pktsz > 0) memcpy(pkt + 8, data + seek, pktsz);
+		if(pktsz > 0) memcpy(pkt + 8, input + seek, pktsz);
 		memset(pkt + 8 + pktsz, 0, pad);
 
 		n = fpr_send(fd, pkt, 8 + pktsz + pad, 0);
