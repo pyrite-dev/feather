@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	struct fpr_stat st;
@@ -15,6 +16,21 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 		fpr_url_init(&url);
 		if(fpr_url_parse(&url, req->handler3 + 5)) {
+			if(strcmp(url.scheme, "unix") == 0) {
+				int fd = fpr_socket(FPR_PF_UNIX, FPR_SOCK_STREAM, 0);
+
+				if(fd < 0) {
+					res->status_code = 500;
+					strcpy(res->status_text, "Internal Server Error");
+
+					return FR_MODULE_DECLINE;
+				}
+			} else {
+				res->status_code = 500;
+				strcpy(res->status_text, "Internal Server Error");
+
+				return FR_MODULE_DECLINE;
+			}
 		}
 		fpr_url_deinit(&url); /* just to be sure */
 	}

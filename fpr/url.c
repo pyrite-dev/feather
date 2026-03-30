@@ -73,11 +73,11 @@ enum STATE {
 };
 
 fpr_bool fpr_url_parse(fpr_url_t* url, const char* str) {
-	char*	 st; /* tmp */
-	char*	 sp; /* pointer */
-	fpr_bool has_userinfo = fpr_false;
-	int	 state	      = 0;
-	fpr_bool br	      = fpr_false;
+	const char* st; /* tmp */
+	const char* sp; /* pointer */
+	fpr_bool    has_userinfo = fpr_false;
+	int	    state	 = 0;
+	fpr_bool    br		 = fpr_false;
 
 	if((st = strstr(str, "://")) == NULL) return fpr_false;
 
@@ -139,11 +139,13 @@ fpr_bool fpr_url_parse(fpr_url_t* url, const char* str) {
 			memcpy(url->host, str, sp - str);
 			url->host[sp - str] = 0;
 
-			str = sp + 1;
-
 			if(c == ':') {
+				str = sp + 1;
+
 				state = PORT;
 			} else {
+				str = sp;
+
 				state = PATH;
 			}
 		} else if(state == PORT && c == '/') {

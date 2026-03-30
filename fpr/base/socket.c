@@ -32,12 +32,12 @@ int fpr_socket(int domain, int type, int protocol) {
 
 	if(domain == FPR_PF_INET) {
 		d = PF_INET;
-	} else if(domain == FPR_PF_INET6) {
 #if defined(FPR_HAS_IPV6)
+	} else if(domain == FPR_PF_INET6) {
 		d = PF_INET6;
 #endif
-	} else if(domain == FPR_PF_UNIX) {
 #if defined(FPR_HAS_UNIX_SOCKET)
+	} else if(domain == FPR_PF_UNIX) {
 		d = PF_UNIX;
 #endif
 	}
@@ -60,7 +60,7 @@ int fpr_socket(int domain, int type, int protocol) {
 	if(s == INVALID_SOCKET) s = -1;
 #endif
 
-	if(s >= 0) {
+	if(s >= 0 && t == SOCK_STREAM && p == IPPROTO_TCP) {
 		int yes = 1;
 		setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (void*)&yes, sizeof(yes));
 	}

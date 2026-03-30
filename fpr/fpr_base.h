@@ -38,7 +38,7 @@ enum fpr_socket_type {
 };
 
 enum fpr_socket_ip_protocol {
-	FPR_IPPROTO_TCP = 0,
+	FPR_IPPROTO_TCP = 1,
 	FPR_IPPROTO_UDP
 };
 
