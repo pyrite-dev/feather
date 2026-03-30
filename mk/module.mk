@@ -12,7 +12,7 @@ mod_$(MODULE)$(A): $(OBJS)
 	touch ../../server/.relink
 
 mod_$(MODULE)$(SO): $(OBJS) ../../fpr/$(LIB)fpr$(A)
-	$(CC) $(LDFLAGS) $(RPATH) $(SHARED) $(LIBDIR)../../fpr -o $@ $(OBJS) $(FPR) $(LIBS)
+	$(CC) $(LDFLAGS) $(RPATH) $(SHARED) $(LIBDIR)../../fpr -o $@ $(OBJS) $(FPR)
 
 .c$(O):
 	$(CC) $(CFLAGS) $(PIC) $(INCDIR)../../fpr $(INCDIR)../../server $(INCDIR)../../external/stb -c -o $@ $<

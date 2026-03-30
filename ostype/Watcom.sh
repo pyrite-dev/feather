@@ -6,7 +6,9 @@ ARFLAGS='-q -b -n -fo'
 
 RPATH=''
 
-LIBS="$LIBS ws2_32.lib"
+LIBS="$LIBS"
+
+FPR="$FPR ws2_32.lib"
 
 SO='.dll'
 

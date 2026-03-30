@@ -36,11 +36,11 @@
 #define FCGI_OVERLOADED 2
 #define FCGI_UNKNOWN_ROLE 3
 
-static void send_packet(int fd, int type, int length, void* data) {
+static void send_packet(int fd, int type, void* data, int length) {
 	int	       pad = 8 - (length % 8);
 	unsigned char* pkt = malloc(8 + length + pad);
 
-	pkt[0] = 1; /* version 1 */
+	pkt[0] = FCGI_VERSION_1;
 	pkt[1] = type;
 	pkt[2] = 0;
 	pkt[3] = 0;
@@ -54,6 +54,18 @@ static void send_packet(int fd, int type, int length, void* data) {
 	fpr_send(fd, pkt, 8 + length + pad, 0);
 
 	free(pkt);
+}
+
+static void big2(unsigned char* out, int n){
+	out[0] = (n >> 8) & 0xff;
+	out[1] = (n >> 0) & 0xff;
+}
+
+static void big4(unsigned char* out, int n){
+	out[0] = (n >> 24) & 0xff;
+	out[1] = (n >> 16) & 0xff;
+	out[2] = (n >> 8) & 0xff;
+	out[3] = (n >> 0) & 0xff;
 }
 
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
@@ -70,6 +82,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 		if(fpr_url_parse(&url, req->handler3 + 5)) {
 			if(strcmp(url.scheme, "unix") == 0) {
 				int fd = fpr_socket(FPR_PF_UNIX, FPR_SOCK_STREAM, 0);
+				unsigned char begin[8];
 
 				if(fd < 0) {
 					res->status_code = 500;
@@ -77,6 +90,11 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 					return FR_MODULE_DECLINE;
 				}
+
+				memset(begin, 0, 8);
+				big2(begin, FCGI_RESPONDER);
+				begin[2] = 0;
+				send_packet(fd, FCGI_BEGIN_REQUEST, begin, 8);
 			} else {
 				res->status_code = 500;
 				strcpy(res->status_text, "Internal Server Error");
