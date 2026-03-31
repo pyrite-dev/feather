@@ -94,7 +94,6 @@ static void* recv_packet(int fd, int* type, int* size) {
 	int	       n = 0;
 	int	       l = 0;
 
-	printf("?\n");
 	while(l < 8) {
 		if((n = fpr_recv(fd, header + l, 8 - l, 0)) <= 0) return NULL;
 
@@ -267,10 +266,10 @@ static void cleanup(fr_response_t* res) {
 
 static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* input) {
 	fpr_url_t url;
+	int	       fd = -1;
 
 	fpr_url_init(&url);
 	if(fpr_url_parse(&url, input)) {
-		int	       fd = -1;
 		unsigned char  begin[8];
 		char	       buf[128];
 		char*	       h;
@@ -510,6 +509,8 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 	return FR_MODULE_DECLINE;
 
 error:;
+	if(fd >= 0) fpr_socket_close(fd);
+
 	fpr_url_deinit(&url);
 
 	res->status_code = 500;
