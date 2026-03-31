@@ -74,9 +74,9 @@ const char* fpr_inet_ntop(struct fpr_sockaddr* src, char* dst) {
 
 		dst[0] = 0;
 		for(i = 0; i < max; i++) {
-			if(i > 0) strcat(dst, ":");
+			if(i > 0 || l[0][1] == 8) strcat(dst, ":");
 			if(i == l[0][0] && l[0][1] > 0) {
-				if(i == 0) strcat(dst, ":");
+				if(i == 0 || (i + l[0][1] - 1) == (max - 1)) strcat(dst, ":");
 
 				i += l[0][1] - 1;
 			} else {
@@ -145,7 +145,93 @@ struct fpr_sockaddr* fpr_inet_addr(const char* addr, int* len) {
 
 	/* IPv6 */
 	if(addr[i] == 0) {
-		/* TODO */
+		const char*		 b    = addr;
+		int			 e    = 0;
+		struct fpr_sockaddr_in6* in6  = malloc(sizeof(*in6));
+		int			 incr = 0;
+
+		in6->sin6_family = FPR_AF_INET6;
+
+		memset(in6->sin6_addr.u.addr8, 0, 16);
+
+		for(i = 0;; i++) {
+			if(addr[i] == 0 || addr[i] == ']' || addr[i] == ':') {
+				char* n = malloc(&addr[i] - b + 1);
+
+				n[&addr[i] - b] = 0;
+				memcpy(n, b, &addr[i] - b);
+
+				if(strlen(n) == 0) {
+					e++;
+				} else {
+					int j;
+					int f	= strlen(n) - 1;
+					int old = incr;
+					int inc = 0;
+
+					e = 0;
+
+					incr++;
+					for(j = f; j >= 0; j--) {
+						char byte = n[j];
+
+						if('0' <= byte && byte <= '9') {
+							byte = byte - '0';
+						} else if('a' <= byte && byte <= 'f') {
+							byte = byte - 'a' + 10;
+						} else if('A' <= byte && byte <= 'F') {
+							byte = byte - 'A' + 10;
+						}
+
+						in6->sin6_addr.u.addr8[incr] = in6->sin6_addr.u.addr8[incr] | (byte << (4 * inc));
+						inc++;
+
+						if(j == (f - 1)) {
+							incr--;
+							inc = 0;
+						}
+					}
+
+					incr = old + 2;
+
+					if(incr > 16) {
+						free(n);
+						free(in6);
+						return NULL;
+					}
+				}
+
+				free(n);
+
+				if(e == 2) {
+					int len = 16 - incr;
+					int c	= 0;
+					int j;
+
+					for(j = i + 1; addr[j] != ']' && addr[j] != 0; j++) {
+						if(j == (i + 1) && !(addr[j] == ']' || addr[j] == 0)) c++;
+						if(addr[j] == ':') c++;
+					}
+
+					incr += len - c * 2;
+
+					if(incr > 16) {
+						free(in6);
+						return NULL;
+					}
+				}
+
+				b = &addr[i + 1];
+
+				if(addr[i] == 0 || addr[i] == ']') break;
+			} else if(addr[i] == '[') {
+				b = &addr[i + 1];
+			}
+		}
+
+		*len = sizeof(*in6);
+
+		return in6;
 	}
 
 	return NULL;
