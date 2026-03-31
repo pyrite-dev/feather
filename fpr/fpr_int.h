@@ -38,6 +38,14 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <ws2ipdef.h>
+
+#ifndef IPPROTO_IPV6
+#define IPPROTO_IPV6 41
+#endif
+
+#ifndef IPV6_V6ONLY
+#define IPV6_V6ONLY 27
+#endif
 #else
 #if defined(FPR_HAS_POLL)
 #include <poll.h>
