@@ -337,7 +337,9 @@ static void thread_main(void* param) {
 
 			if((time(NULL) - c.last) >= 10) {
 				kill_client(&c);
+				break;
 			} else if(socket_main(&c, NULL, &pfds[i])) {
+				break;
 			} else {
 				c.last = time(NULL);
 			}
