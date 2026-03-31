@@ -137,15 +137,8 @@ static void kill_client(client_t* c) {
 	fpr_socket_close(c->fd);
 #if defined(MULTITHREAD)
 	for(i = 0; i < arrlen(server_workers); i++) {
-		int j;
-
 		fpr_mutex_lock(server_workers[i].mutex);
-		for(j = 0; j < hmlen(server_workers[i].clients); j++) {
-			if(server_workers[i].clients[j].key == c->fd) {
-				hmdel(server_workers[i].clients, c->fd);
-				break;
-			}
-		}
+		hmdel(server_workers[i].clients, c->fd);
 		fpr_mutex_unlock(server_workers[i].mutex);
 	}
 #else
@@ -337,9 +330,9 @@ static void thread_main(void* param) {
 
 			if((time(NULL) - c.last) >= 10) {
 				kill_client(&c);
-				break;
+				continue;
 			} else if(socket_main(&c, NULL, &pfds[i])) {
-				break;
+				continue;
 			} else {
 				c.last = time(NULL);
 			}
