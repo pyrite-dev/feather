@@ -64,8 +64,7 @@ static void register_stuff(fr_context_t* context) {
 	context->register_hook(hook, FR_MODULE_HOOK_FIRST);
 }
 
-static fr_module_t module = {
+FR_MODULE_DATA fr_module_t dir_module = {
     FR_MODULE_VERSION_00,
     directive,
     register_stuff};
-FR_MODULE_DATA fr_module_t* dir_module = &module;
