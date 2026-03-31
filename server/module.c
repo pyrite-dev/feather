@@ -6,7 +6,7 @@
 MODULES
 #undef LOAD
 
-fr_module_t* module_modules = NULL;
+fr_module_t** module_modules = NULL;
 
 fr_hook_t* module_first_hooks	= NULL;
 fr_hook_t* module_middle_hooks	= NULL;
@@ -14,7 +14,7 @@ fr_hook_t* module_last_hooks	= NULL;
 fr_hook_t* module_rewrite_hooks = NULL;
 
 void module_init(void) {
-#define LOAD(x) module_load(x##_module);
+#define LOAD(x) module_load(&x##_module);
 	MODULES
 #undef LOAD
 
@@ -25,11 +25,11 @@ void module_init(void) {
 #endif
 }
 
-void module_load(fr_module_t module) {
+void module_load(fr_module_t* module) {
 	fr_context_t context;
 
 	context_init(&context);
-	SAFECALL(module.register_stuff)(&context);
+	SAFECALL(module->register_stuff)(&context);
 	context_save(&context);
 
 	arrput(module_modules, module);

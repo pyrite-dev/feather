@@ -26,7 +26,7 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 				return FR_MODULE_ERROR;
 			}
 
-			module_load(*mod);
+			module_load(mod);
 
 			free(p);
 		} else {

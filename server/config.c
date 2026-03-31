@@ -262,7 +262,7 @@ static fpr_bool parse(const char* path) {
 							for(j = 0; j < arrlen(module_modules); j++) {
 								context_init(&context);
 								context.config_path = path;
-								SAFECALL_RET(x, module_modules[j].directive)(&context, arg_len(arg), arg);
+								SAFECALL_RET(x, module_modules[j]->directive)(&context, arg_len(arg), arg);
 								context_save(&context);
 
 								if(x != FR_MODULE_DECLINE) break;
