@@ -139,12 +139,14 @@ static void kill_client(client_t* c) {
 	for(i = 0; i < arrlen(server_workers); i++) {
 		int j;
 
+		fpr_mutex_lock(server_workers[i].mutex);
 		for(j = 0; j < hmlen(server_workers[i].clients); j++) {
 			if(server_workers[i].clients[j].key == c->fd) {
 				hmdel(server_workers[i].clients, c->fd);
 				break;
 			}
 		}
+		fpr_mutex_unlock(server_workers[i].mutex);
 	}
 #else
 	hmdel(server_clients, fd);
@@ -294,10 +296,12 @@ static void thread_main(void* param) {
 
 	free(param);
 
+	fpr_mutex_lock(global_mutex);
+	fpr_mutex_unlock(global_mutex);
+
 	while(1) {
 		int s;
 
-		fpr_mutex_lock(global_mutex);
 		fpr_mutex_lock(server_workers[n].mutex);
 
 		clients = hmlen(server_workers[n].clients);
@@ -312,31 +316,36 @@ static void thread_main(void* param) {
 		}
 
 		fpr_mutex_unlock(server_workers[n].mutex);
-		fpr_mutex_unlock(global_mutex);
 
 		s = fpr_poll(pfds, clients, 100);
 
 		if(s < 0) break;
 
-		fpr_mutex_lock(global_mutex);
-		fpr_mutex_lock(server_workers[n].mutex);
-
 		for(i = 0; i < clients; i++) {
-			int ind = hmgeti(server_workers[n].clients, pfds[i].fd);
-			if(ind == -1) continue;
+			int ind;
+			client_t c;
 
-			if((time(NULL) - server_workers[n].clients[ind].value.last) >= 10) {
-				kill_client(&server_workers[n].clients[ind].value);
-				i--;
-			} else if(socket_main(&server_workers[n].clients[ind].value, NULL, &pfds[i])) {
-				i--;
-			} else {
-				server_workers[n].clients[ind].value.last = time(NULL);
+			fpr_mutex_lock(server_workers[n].mutex);
+			ind = hmgeti(server_workers[n].clients, pfds[i].fd);
+			if(ind == -1){
+				fpr_mutex_unlock(server_workers[n].mutex);
+				continue;
 			}
-		}
 
-		fpr_mutex_unlock(server_workers[n].mutex);
-		fpr_mutex_unlock(global_mutex);
+			c = server_workers[n].clients[ind].value;
+			fpr_mutex_unlock(server_workers[n].mutex);
+
+			if((time(NULL) - c.last) >= 10) {
+				kill_client(&c);
+			} else if(socket_main(&c, NULL, &pfds[i])) {
+			} else {
+				c.last = time(NULL);
+			}
+
+			fpr_mutex_lock(server_workers[n].mutex);
+			hmput(server_workers[n].clients, pfds[i].fd, c);
+			fpr_mutex_unlock(server_workers[n].mutex);
+		}
 
 		arrfree(pfds);
 	}
@@ -387,7 +396,6 @@ void server_loop(void) {
 						http_init(&c);
 
 #if defined(MULTITHREAD)
-						fpr_mutex_lock(global_mutex);
 						server_worker = server_worker % arrlen(server_workers);
 
 						fpr_mutex_lock(server_workers[server_worker].mutex);
@@ -395,7 +403,6 @@ void server_loop(void) {
 						fpr_mutex_unlock(server_workers[server_worker].mutex);
 
 						server_worker++;
-						fpr_mutex_unlock(global_mutex);
 #else
 						hmput(server_clients, fd, c);
 #endif

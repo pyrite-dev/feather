@@ -413,6 +413,9 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 			p = recv_packet(fd, &type, &size);
 
 			if(p == NULL) {
+				free(p);
+				free(h);
+				goto error;
 			} else if(type == FCGI_END_REQUEST) {
 				free(p);
 				free(h);
