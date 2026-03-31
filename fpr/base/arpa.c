@@ -128,7 +128,7 @@ struct fpr_sockaddr* fpr_inet_addr(const char* addr, int* len) {
 
 		*len = sizeof(*in);
 
-		return in;
+		return (struct fpr_sockaddr*)in;
 	}
 
 	for(i = 0; addr[i] != 0; i++) {
