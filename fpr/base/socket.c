@@ -65,13 +65,6 @@ int fpr_socket(int domain, int type, int protocol) {
 		setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (void*)&yes, sizeof(yes));
 	}
 
-#if defined(FPR_HAS_IPV6)
-	if(s >= 0 && d == PF_INET6){
-		int yes = 1;
-		setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&yes, sizeof(yes));
-	}
-#endif
-
 	return s;
 }
 

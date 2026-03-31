@@ -320,7 +320,7 @@ void server_loop(void) {
 
 #if !defined(MULTITHREAD)
 				/* client sockets */
-				for(i = srv_count * div; i < arrlen(pfd); i++) {
+				for(i = srv_count; i < arrlen(pfd); i++) {
 					int ind = hmgeti(server_clients, pfd[i].fd);
 
 					if(socket_main(&server_clients[ind].value, &changed, &pfd[i])) {

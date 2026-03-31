@@ -21,6 +21,12 @@ static unsigned int WINAPI thread_entry(void* _param) {
 
 	entry(param);
 
+#if defined(FPR_USE_CREATETHREAD)
+	ExitThread(0);
+#else
+	_endthreadex(0);
+#endif
+
 	return 0;
 }
 #elif defined(FPR_IS_UNIX)
@@ -33,6 +39,7 @@ static void* thread_entry(void* _param) {
 
 	entry(param);
 
+	pthread_exit(NULL);
 	return NULL;
 }
 #endif
