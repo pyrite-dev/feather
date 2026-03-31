@@ -287,7 +287,7 @@ static int socket_main(client_t* c, fpr_bool* changed, struct fpr_pollfd* pfd) {
 static void thread_main(void* param) {
 	client_t*	   c = param;
 	int		   n = *(int*)param;
-	struct fpr_pollfd* pfds;
+	struct fpr_pollfd* pfds = NULL;
 	struct fpr_pollfd  pfd;
 	int		   clients = 0;
 	int		   i;
