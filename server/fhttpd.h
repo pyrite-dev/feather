@@ -228,6 +228,7 @@ enum client_state {
 typedef struct port	port_t;
 typedef struct client	client_t;
 typedef struct clientkv clientkv_t;
+typedef struct worker	worker_t;
 
 struct port {
 	int	 port;
@@ -261,6 +262,12 @@ struct client {
 struct clientkv {
 	int	 key;
 	client_t value;
+};
+
+struct worker {
+	void*	    mutex;
+	void*	    thread;
+	clientkv_t* clients;
 };
 
 /* main.c */
@@ -300,7 +307,9 @@ void log_nofile(void);
 void log_close(void);
 
 /* server.c */
-#if !defined(MULTITHREAD)
+#if defined(MULTITHREAD)
+extern worker_t* server_workers;
+#else
 extern clientkv_t* server_clients;
 #endif
 

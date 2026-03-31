@@ -28,7 +28,7 @@
 #if !defined(FPR_USE_CREATETHREAD)
 #include <process.h>
 #endif
-#else
+#elif defined(FPR_IS_UNIX) || defined(FPR_IS_PSP)
 #include <pthread.h>
 #endif
 #endif

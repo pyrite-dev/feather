@@ -148,9 +148,14 @@ int fpr_stat(const char* path, struct fpr_stat* s);
 
 /* thread.c */
 void* fpr_thread_create(void (*entry)(void* param), void* param);
-void  fpr_thread_detach(void* handle); /* this also frees the thread */
 void  fpr_thread_join(void* handle);
 void  fpr_thread_destroy(void* handle);
+
+/* mutex */
+void* fpr_mutex_create(void);
+void  fpr_mutex_lock(void* handle);
+void  fpr_mutex_unlock(void* handle);
+void  fpr_mutex_destroy(void* handle);
 
 /* process.c */
 void* fpr_process_create(const char* exec, char** env);

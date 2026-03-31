@@ -5,7 +5,8 @@ include ../config.mk
 .PHONY: all install clean
 .SUFFIXES: .c $(O)
 
-OBJS = base/poll$(O) base/file$(O) base/socket$(O) base/arpa$(O) base/string$(O) base/dlfcn$(O) base/unistd$(O) base/stat$(O) base/thread$(O) base/process$(O)
+OBJS = base/poll$(O) base/file$(O) base/socket$(O) base/arpa$(O) base/string$(O) base/dlfcn$(O) base/unistd$(O) base/stat$(O)
+OBJS += base/mutex$(O) base/thread$(O) base/process$(O)
 OBJS += hash/md5$(O) hash/sha256$(O)
 OBJS += url$(O)
 OBJS += wildcard$(O)
