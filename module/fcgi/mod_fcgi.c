@@ -241,7 +241,7 @@ repeat:;
 
 			if(type == FCGI_END_REQUEST) {
 				free(pkt);
-				return 0;
+				break;
 			} else if(type == FCGI_STDOUT) {
 				f->buf	= pkt;
 				f->seek = 0;
