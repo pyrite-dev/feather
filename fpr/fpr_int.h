@@ -36,6 +36,7 @@
 /* socket section */
 #if defined(FPR_IS_WIN32)
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <ws2ipdef.h>
 #else
 #if defined(FPR_HAS_POLL)
