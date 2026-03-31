@@ -48,7 +48,7 @@ struct fcgi {
 };
 
 static int send_packet(int fd, int type, void* data, int length) {
-	int seek = 0;
+	int	       seek  = 0;
 	unsigned char* input = data;
 
 	do {
@@ -264,235 +264,228 @@ static void cleanup(fr_response_t* res) {
 	free(f);
 }
 
-static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
-	struct fpr_stat st;
-	fpr_url_t	url;
+static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* input) {
+	fpr_url_t url;
 
-	if(req->path[0] != '/') return FR_MODULE_DECLINE;
+	fpr_url_init(&url);
+	if(fpr_url_parse(&url, input)) {
+		int	       fd = -1;
+		unsigned char  begin[8];
+		char	       buf[128];
+		char*	       h;
+		char**	       headers;
+		int	       i;
+		int	       type;
+		int	       size;
+		unsigned char* p;
+		fcgi_t*	       f;
+		unsigned char* savebuf = NULL;
+		int	       seek    = 0;
+		int	       nl      = 0;
 
-	if(fpr_stat(req->path_translated3, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
+		if(strcmp(url.scheme, "unix") == 0) {
+			struct fpr_sockaddr_un addr;
 
-	if(strstr(req->handler3, "fcgi|") == req->handler3) {
-		fpr_url_init(&url);
-		if(fpr_url_parse(&url, req->handler3 + 5)) {
-			int	       fd = -1;
-			unsigned char  begin[8];
-			char	       buf[128];
-			char*	       h;
-			char**	       headers;
-			int	       i;
-			int	       type;
-			int	       size;
-			unsigned char* p;
-			fcgi_t*	       f;
-			unsigned char* savebuf = NULL;
-			int	       seek    = 0;
-			int	       nl      = 0;
+			fd = fpr_socket(FPR_PF_UNIX, FPR_SOCK_STREAM, 0);
 
-			if(strcmp(url.scheme, "unix") == 0) {
-				struct fpr_sockaddr_un addr;
+			if(fd < 0) goto error;
 
-				fd = fpr_socket(FPR_PF_UNIX, FPR_SOCK_STREAM, 0);
+			addr.sun_family = FPR_AF_UNIX;
+			strcpy(addr.sun_path, url.path);
 
-				if(fd < 0) goto error;
+			if(fpr_connect(fd, (struct fpr_sockaddr*)&addr, sizeof(addr)) < 0) goto error;
+		} else {
+			goto error;
+		}
 
-				addr.sun_family = FPR_AF_UNIX;
-				strcpy(addr.sun_path, url.path);
+		memset(begin, 0, 8);
+		big2(begin, FCGI_RESPONDER);
+		begin[2] = 0;
 
-				if(fpr_connect(fd, (struct fpr_sockaddr*)&addr, sizeof(addr)) < 0) goto error;
-			} else {
-				goto error;
-			}
+		if(send_packet(fd, FCGI_BEGIN_REQUEST, begin, 8) < 0) goto error;
 
-			memset(begin, 0, 8);
-			big2(begin, FCGI_RESPONDER);
-			begin[2] = 0;
+		/* ref: http://hoohoo.ncsa.uiuc.edu/cgi/env.html */
 
-			if(send_packet(fd, FCGI_BEGIN_REQUEST, begin, 8) < 0) goto error;
+		if(send_param(fd, "SERVER_SOFTWARE", FR_VERSION) < 0) goto error;
+		if(send_param(fd, "SERVER_NAME", req->server_name) < 0) goto error;
+		if(send_param(fd, "GATEWAY_INTERFACE", "CGI/1.1") < 0) goto error;
+		if(send_param(fd, "SERVER_PROTOCOL", req->version) < 0) goto error;
 
-			/* ref: http://hoohoo.ncsa.uiuc.edu/cgi/env.html */
+		sprintf(buf, "%d", req->port);
+		if(send_param(fd, "SERVER_PORT", buf) < 0) goto error;
 
-			if(send_param(fd, "SERVER_SOFTWARE", FR_VERSION) < 0) goto error;
-			if(send_param(fd, "SERVER_NAME", req->server_name) < 0) goto error;
-			if(send_param(fd, "GATEWAY_INTERFACE", "CGI/1.1") < 0) goto error;
-			if(send_param(fd, "SERVER_PROTOCOL", req->version) < 0) goto error;
+		if(send_param(fd, "REQUEST_METHOD", req->method) < 0) goto error;
+		if(send_param(fd, "PATH_INFO", strlen(req->path_info) == 0 ? req->path : req->path_info) < 0) goto error;
+		if(send_param(fd, "PATH_TRANSLATED", req->path_translated4) < 0) goto error;
+		if(send_param(fd, "SCRIPT_NAME", req->path_virtual3) < 0) goto error;
+		if(strlen(req->query) > 0 && send_param(fd, "QUERY_STRING", req->query) < 0) goto error;
 
-			sprintf(buf, "%d", req->port);
-			if(send_param(fd, "SERVER_PORT", buf) < 0) goto error;
-
-			if(send_param(fd, "REQUEST_METHOD", req->method) < 0) goto error;
-			if(send_param(fd, "PATH_INFO", strlen(req->path_info) == 0 ? req->path : req->path_info) < 0) goto error;
-			if(send_param(fd, "PATH_TRANSLATED", req->path_translated4) < 0) goto error;
-			if(send_param(fd, "SCRIPT_NAME", req->path_virtual3) < 0) goto error;
-			if(strlen(req->query) > 0 && send_param(fd, "QUERY_STRING", req->query) < 0) goto error;
-
-			if((h = context->request_get_header(req, "content-type")) != NULL && send_param(fd, "CONTENT_TYPE", h) < 0) {
-				free(h);
-				goto error;
-			}
+		if((h = context->request_get_header(req, "content-type")) != NULL && send_param(fd, "CONTENT_TYPE", h) < 0) {
 			free(h);
+			goto error;
+		}
+		free(h);
 
-			sprintf(buf, "%d", req->body_size);
-			if(req->body_size > 0 && send_param(fd, "BODY_SIZE", buf) < 0) goto error;
+		sprintf(buf, "%d", req->body_size);
+		if(req->body_size > 0 && send_param(fd, "BODY_SIZE", buf) < 0) goto error;
 
-			headers = context->stringkv_keys(req->headers);
-			for(i = 0; headers[i] != NULL; i++) {
-				int   j;
-				char* s;
+		headers = context->stringkv_keys(req->headers);
+		for(i = 0; headers[i] != NULL; i++) {
+			int   j;
+			char* s;
 
-				if(strcmp(headers[i], "content-type") == 0) continue;
+			if(strcmp(headers[i], "content-type") == 0) continue;
 
-				h = malloc(strlen(headers[i]) + 1);
-				for(j = 0; headers[i][j] != 0; j++) {
-					if(headers[i][j] == '-') {
-						h[j] = '_';
-					} else {
-						h[j] = toupper(headers[i][j]);
-					}
+			h = malloc(strlen(headers[i]) + 1);
+			for(j = 0; headers[i][j] != 0; j++) {
+				if(headers[i][j] == '-') {
+					h[j] = '_';
+				} else {
+					h[j] = toupper(headers[i][j]);
 				}
-				h[j] = 0;
+			}
+			h[j] = 0;
 
-				s = fpr_strvacat("HTTP_", h, NULL);
+			s = fpr_strvacat("HTTP_", h, NULL);
 
-				if(send_param(fd, s, context->request_get_header(req, headers[i])) < 0) {
-					free(s);
-					free(h);
-
-					goto error;
-				}
-
+			if(send_param(fd, s, context->request_get_header(req, headers[i])) < 0) {
 				free(s);
 				free(h);
-			}
 
-			/* Apache extension, needed to make PHP work */
-			sprintf(buf, "%d", res->status_code == 0 ? 200 : res->status_code);
-			if(send_param(fd, "REDIRECT_STATUS", buf) < 0) goto error;
-
-			if(send_param(fd, "REDIRECT_URL", req->path_virtual2) < 0) goto error;
-			if(send_param(fd, "SCRIPT_FILENAME", req->path_translated3) < 0) goto error;
-
-			h = fpr_strvacat(req->path_raw, strlen(req->query) > 0 ? "?" : "", req->query, NULL);
-			if(send_param(fd, "REQUEST_URI", h) < 0) {
-				free(h);
 				goto error;
 			}
+
+			free(s);
 			free(h);
+		}
 
-			if((h = context->config_lookup(context, "DocumentRoot")) != NULL) {
-				char* h2 = context->path_transform(h);
+		/* Apache extension, needed to make PHP work */
+		sprintf(buf, "%d", res->status_code == 0 ? 200 : res->status_code);
+		if(send_param(fd, "REDIRECT_STATUS", buf) < 0) goto error;
 
-				if(send_param(fd, "DOCUMENT_ROOT", h2) < 0) goto error;
+		if(send_param(fd, "REDIRECT_URL", req->path_virtual2) < 0) goto error;
+		if(send_param(fd, "SCRIPT_FILENAME", req->path_translated3) < 0) goto error;
 
-				free(h2);
-			}
+		h = fpr_strvacat(req->path_raw, strlen(req->query) > 0 ? "?" : "", req->query, NULL);
+		if(send_param(fd, "REQUEST_URI", h) < 0) {
+			free(h);
+			goto error;
+		}
+		free(h);
 
-			send_packet(fd, FCGI_PARAMS, "", 0);
+		if((h = context->config_lookup(context, "DocumentRoot")) != NULL) {
+			char* h2 = context->path_transform(h);
 
-			if(req->body_size > 0) {
-				send_packet(fd, FCGI_STDIN, req->body, req->body_size);
-			}
-			send_packet(fd, FCGI_STDIN, "", 0);
+			if(send_param(fd, "DOCUMENT_ROOT", h2) < 0) goto error;
 
-			savebuf = NULL;
+			free(h2);
+		}
 
-			h    = malloc(1);
-			h[0] = 0;
+		send_packet(fd, FCGI_PARAMS, "", 0);
 
-			while(1) {
-				p = recv_packet(fd, &type, &size);
+		if(req->body_size > 0) {
+			send_packet(fd, FCGI_STDIN, req->body, req->body_size);
+		}
+		send_packet(fd, FCGI_STDIN, "", 0);
 
-				if(p == NULL) {
-				} else if(type == FCGI_END_REQUEST) {
-					free(p);
-					free(h);
-					goto error;
-				} else if(type == FCGI_STDOUT) {
-					for(i = 0; i < size; i++) {
-						if(p[i] == '\n') {
-							if(strlen(h) > 0) {
-								char* colon = strchr(h, ':');
-								char* v	    = NULL;
+		savebuf = NULL;
 
-								if(colon != NULL) colon[0] = 0;
+		h    = malloc(1);
+		h[0] = 0;
 
-								if(colon != NULL) {
-									for(v = colon + 1; ((*v) == ' ' || (*v) == '\t') && ((*v) != 0); v++);
+		while(1) {
+			p = recv_packet(fd, &type, &size);
 
-									if((*v) != 0) {
-										if(strcmp(h, "Status") == 0) {
-											char* v2 = strchr(v, ' ');
-											if(v2 != NULL) {
-												v2[0] = 0;
+			if(p == NULL) {
+			} else if(type == FCGI_END_REQUEST) {
+				free(p);
+				free(h);
+				goto error;
+			} else if(type == FCGI_STDOUT) {
+				for(i = 0; i < size; i++) {
+					if(p[i] == '\n') {
+						if(strlen(h) > 0) {
+							char* colon = strchr(h, ':');
+							char* v	    = NULL;
 
-												res->status_code = atoi(v);
-												if(strlen(v2) <= MAX_STATUS_TEXT_LENGTH) strcpy(res->status_text, v2);
-											}
-										} else {
-											context->response_set_header(res, h, v);
+							if(colon != NULL) colon[0] = 0;
+
+							if(colon != NULL) {
+								for(v = colon + 1; ((*v) == ' ' || (*v) == '\t') && ((*v) != 0); v++);
+
+								if((*v) != 0) {
+									if(strcmp(h, "Status") == 0) {
+										char* v2 = strchr(v, ' ');
+										if(v2 != NULL) {
+											v2[0] = 0;
+
+											res->status_code = atoi(v);
+											if(strlen(v2) <= MAX_STATUS_TEXT_LENGTH) strcpy(res->status_text, v2);
 										}
+									} else {
+										context->response_set_header(res, h, v);
 									}
 								}
 							}
-
-							free(h);
-							h    = malloc(1);
-							h[0] = 0;
-
-							nl++;
-
-							if(nl == 2) {
-								if((i + 1) != size) {
-									savebuf = p;
-									seek	= i + 1;
-								}
-								goto pass;
-							}
-						} else if(p[i] != '\r') {
-							char* old = h;
-							char  s[2];
-
-							s[0] = p[i];
-							s[1] = 0;
-
-							h = fpr_strvacat(old, s, NULL);
-							free(old);
-
-							nl = 0;
 						}
+
+						free(h);
+						h    = malloc(1);
+						h[0] = 0;
+
+						nl++;
+
+						if(nl == 2) {
+							if((i + 1) != size) {
+								savebuf = p;
+								seek	= i + 1;
+							}
+							goto pass;
+						}
+					} else if(p[i] != '\r') {
+						char* old = h;
+						char  s[2];
+
+						s[0] = p[i];
+						s[1] = 0;
+
+						h = fpr_strvacat(old, s, NULL);
+						free(old);
+
+						nl = 0;
 					}
 				}
-
-				free(p);
 			}
 
-		pass:;
-			free(h);
-
-			f = malloc(sizeof(*f));
-
-			f->fd	= fd;
-			f->buf	= savebuf;
-			f->seek = seek;
-			f->size = size;
-
-			res->body_opaque = f;
-			res->body_stream = body_stream;
-			res->cleanup	 = cleanup;
-
-			context->request_set_header(req, "connection", "close");
-
-			fpr_url_deinit(&url);
-
-			if(res->status_code == 0) {
-				res->status_code = 200;
-				strcpy(res->status_text, "OK");
-			}
-
-			return FR_MODULE_OK;
+			free(p);
 		}
-		fpr_url_deinit(&url); /* just to be sure */
+
+	pass:;
+		free(h);
+
+		f = malloc(sizeof(*f));
+
+		f->fd	= fd;
+		f->buf	= savebuf;
+		f->seek = seek;
+		f->size = size;
+
+		res->body_opaque = f;
+		res->body_stream = body_stream;
+		res->cleanup	 = cleanup;
+
+		context->request_set_header(req, "connection", "close");
+
+		fpr_url_deinit(&url);
+
+		if(res->status_code == 0) {
+			res->status_code = 200;
+			strcpy(res->status_text, "OK");
+		}
+
+		return FR_MODULE_OK;
 	}
+	fpr_url_deinit(&url); /* just to be sure */
 
 	return FR_MODULE_DECLINE;
 
@@ -501,6 +494,20 @@ error:;
 
 	res->status_code = 500;
 	strcpy(res->status_text, "Internal Server Error");
+
+	return FR_MODULE_DECLINE;
+}
+
+static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
+	struct fpr_stat st;
+
+	if(req->path[0] != '/') return FR_MODULE_DECLINE;
+
+	if(fpr_stat(req->path_translated3, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
+
+	if(strstr(req->handler3, "fcgi|") == req->handler3) {
+		return connect_fcgi(context, req, res, req->handler3 + 5);
+	}
 
 	return FR_MODULE_DECLINE;
 }
