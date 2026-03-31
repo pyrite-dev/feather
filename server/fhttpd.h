@@ -344,10 +344,10 @@ void mime_close(void);
 
 /* module.c */
 extern fr_module_t* module_modules;
-extern fr_hook_t*    module_first_hooks;
-extern fr_hook_t*    module_middle_hooks;
-extern fr_hook_t*    module_last_hooks;
-extern fr_hook_t*    module_rewrite_hooks;
+extern fr_hook_t*   module_first_hooks;
+extern fr_hook_t*   module_middle_hooks;
+extern fr_hook_t*   module_last_hooks;
+extern fr_hook_t*   module_rewrite_hooks;
 
 void module_init(void);
 void module_load(fr_module_t module);

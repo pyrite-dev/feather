@@ -67,13 +67,13 @@ int fpr_socket(int domain, int type, int protocol) {
 	}
 
 #if defined(FPR_HAS_IPV6)
-	if(s >= 0 && d == PF_INET6){
+	if(s >= 0 && d == PF_INET6) {
 		int yes = 1;
 		setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&yes, sizeof(yes));
 	}
 #endif
 
-	if(s >= 0){
+	if(s >= 0) {
 		nbyt = 65535;
 		setsockopt(s, SOL_SOCKET, SO_RCVBUF, (char*)&nbyt, sizeof(nbyt));
 		nbyt = 65535;

@@ -280,8 +280,8 @@ static int socket_main(client_t* c, fpr_bool* changed, struct fpr_pollfd* pfd) {
 
 #if defined(MULTITHREAD)
 static void thread_main(void* param) {
-	client_t*	   c = param;
-	int		   n = *(int*)param;
+	client_t*	   c	= param;
+	int		   n	= *(int*)param;
 	struct fpr_pollfd* pfds = NULL;
 	struct fpr_pollfd  pfd;
 	int		   clients = 0;
@@ -315,12 +315,12 @@ static void thread_main(void* param) {
 		if(s < 0) break;
 
 		for(i = 0; i < clients; i++) {
-			int ind;
+			int	 ind;
 			client_t c;
 
 			fpr_mutex_lock(server_workers[n].mutex);
 			ind = hmgeti(server_workers[n].clients, pfds[i].fd);
-			if(ind == -1){
+			if(ind == -1) {
 				fpr_mutex_unlock(server_workers[n].mutex);
 				continue;
 			}

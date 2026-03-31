@@ -7,13 +7,13 @@
 static int directive(fr_context_t* context, int argc, char** argv) {
 	if(strcmp(argv[0], "LoadModule") == 0) {
 		if(argc == 3) {
-			char*	      p = context->path_transform(argv[2]);
-			void*	      h = fpr_dlopen(p); /* XXX: this leaks! but we don't know good ways to solve... yet */
+			char*	     p	 = context->path_transform(argv[2]);
+			void*	     h	 = fpr_dlopen(p); /* XXX: this leaks! but we don't know good ways to solve... yet */
 			fr_module_t* mod = fpr_dlsym(h, argv[1]);
-			char*	      s;
+			char*	     s;
 
 			if(mod == NULL) {
-				s      = fpr_strvacat("_", argv[1], NULL); /* watcom likes to export this way */
+				s   = fpr_strvacat("_", argv[1], NULL); /* watcom likes to export this way */
 				mod = fpr_dlsym(h, s);
 				free(s);
 			}

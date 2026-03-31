@@ -266,7 +266,7 @@ static void cleanup(fr_response_t* res) {
 
 static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* input) {
 	fpr_url_t url;
-	int	       fd = -1;
+	int	  fd = -1;
 
 	fpr_url_init(&url);
 	if(fpr_url_parse(&url, input)) {
