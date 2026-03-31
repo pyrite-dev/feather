@@ -127,8 +127,9 @@ void	 fpr_socket_uninit(void);
 fpr_bool fpr_socket_has_ipv6(void);
 
 /* arpa.c */
-fpr_uint16_t fpr_htons(fpr_uint16_t host16);
-const char*  fpr_inet_ntop(struct fpr_sockaddr* src, char* dst);
+fpr_uint16_t	     fpr_htons(fpr_uint16_t host16);
+const char*	     fpr_inet_ntop(struct fpr_sockaddr* src, char* dst);
+struct fpr_sockaddr* fpr_inet_addr(const char* addr, int* len);
 
 /* string.c */
 char* fpr_strdup(const char* str);

@@ -294,6 +294,22 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 			strcpy(addr.sun_path, url.path);
 
 			if(fpr_connect(fd, (struct fpr_sockaddr*)&addr, sizeof(addr)) < 0) goto error;
+		} else if(strcmp(url.scheme, "tcp") == 0 && url.host != NULL && url.port != 0) {
+			int		     len;
+			struct fpr_sockaddr* addr = fpr_inet_addr(url.host, &len);
+			if(addr == NULL) goto error;
+
+			fd = fpr_socket(addr->sa_family == FPR_AF_INET ? FPR_PF_INET : FPR_PF_INET6, FPR_SOCK_STREAM, 0);
+
+			if(fd < 0) goto error;
+
+			if(addr->sa_family == FPR_AF_INET) {
+				((struct fpr_sockaddr_in*)addr)->sin_port = fpr_htons(url.port);
+			} else {
+				((struct fpr_sockaddr_in6*)addr)->sin6_port = fpr_htons(url.port);
+			}
+
+			if(fpr_connect(fd, addr, len) < 0) goto error;
 		} else {
 			goto error;
 		}

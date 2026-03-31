@@ -100,3 +100,53 @@ const char* fpr_inet_ntop(struct fpr_sockaddr* src, char* dst) {
 
 	return NULL;
 }
+
+struct fpr_sockaddr* fpr_inet_addr(const char* addr, int* len) {
+	int	    d = 0;
+	int	    i;
+	const char* v4[4];
+
+	v4[0] = addr;
+
+	for(i = 0; addr[i] != 0; i++) {
+		if(addr[i] == '.') {
+			d++;
+
+			v4[d] = &addr[i + 1];
+		} else if('0' <= addr[i] && addr[i] <= '9') {
+		} else {
+			break;
+		}
+	}
+
+	/* IPv4 */
+	if(d == 3 && addr[i] == 0) {
+		struct fpr_sockaddr_in* in = malloc(sizeof(*in));
+
+		in->sin_family = FPR_AF_INET;
+		for(i = 0; i < 4; i++) in->sin_addr.u.addr8[i] = atoi(v4[i]);
+
+		*len = sizeof(*in);
+
+		return in;
+	}
+
+	for(i = 0; addr[i] != 0; i++) {
+		if(addr[i] == '[' && i == 0) {
+		} else if(addr[i] == ']' && i == (strlen(addr) - 1)) {
+		} else if(addr[i] == ':') {
+		} else if('0' <= addr[i] && addr[i] <= '9') {
+		} else if('a' <= addr[i] && addr[i] <= 'f') {
+		} else if('A' <= addr[i] && addr[i] <= 'F') {
+		} else {
+			break;
+		}
+	}
+
+	/* IPv6 */
+	if(addr[i] == 0) {
+		/* TODO */
+	}
+
+	return NULL;
+}

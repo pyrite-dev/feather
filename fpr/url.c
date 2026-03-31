@@ -104,7 +104,7 @@ fpr_bool fpr_url_parse(fpr_url_t* url, const char* str) {
 
 	str = st + 3;
 
-	if((st = strchr(str, '/')) == NULL) return fpr_false;
+	if((st = strchr(str, '/')) == NULL) st = str + strlen(str);
 
 	for(sp = str; sp != st; sp++) {
 		if((*sp) == '@') {
@@ -134,12 +134,14 @@ fpr_bool fpr_url_parse(fpr_url_t* url, const char* str) {
 			br = fpr_true;
 		} else if(state == HOST && br && c == ']') {
 			br = fpr_false;
-		} else if(state == HOST && !br && (c == ':' || c == '/')) {
+		} else if(state == HOST && !br && (c == 0 || c == ':' || c == '/')) {
 			url->host = malloc(sp - str + 1);
 			memcpy(url->host, str, sp - str);
 			url->host[sp - str] = 0;
 
-			if(c == ':') {
+			if(c == 0) {
+				break;
+			} else if(c == ':') {
 				str = sp + 1;
 
 				state = PORT;
@@ -148,18 +150,22 @@ fpr_bool fpr_url_parse(fpr_url_t* url, const char* str) {
 
 				state = PATH;
 			}
-		} else if(state == PORT && c == '/') {
+		} else if(state == PORT && (c == 0 || c == '/')) {
 			char* p = malloc(sp - str + 1);
 			memcpy(p, str, sp - str);
 			p[sp - str] = 0;
 
 			url->port = atoi(p);
 
-			str = sp; /* intended */
-
 			free(p);
 
-			state = PATH;
+			if(c == 0) {
+				break;
+			} else {
+				str = sp; /* intended */
+
+				state = PATH;
+			}
 		} else if(state == PATH && (c == 0 || c == '?' || c == '#')) {
 			url->path = malloc(sp - str + 1);
 			memcpy(url->path, str, sp - str);
