@@ -88,10 +88,8 @@ int main(int argc, char** argv) {
 		char	  buf[512];
 		sprintf(buf, "%ld", (long)pid);
 
-		if(f != NULL){
-			fpr_fwrite(buf, 1, strlen(buf), f);
-			fpr_fclose(f);
-		}
+		fpr_fwrite(buf, 1, strlen(buf), f);
+		fpr_fclose(f);
 
 		EXIT(0);
 	}

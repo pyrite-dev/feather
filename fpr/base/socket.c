@@ -29,6 +29,7 @@ void fpr_socket_uninit(void) {
 int fpr_socket(int domain, int type, int protocol) {
 	int d = PF_UNSPEC, t = 0, p = 0;
 	int s;
+	int nbyt;
 
 	if(domain == FPR_PF_INET) {
 		d = PF_INET;
@@ -71,6 +72,13 @@ int fpr_socket(int domain, int type, int protocol) {
 		setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&yes, sizeof(yes));
 	}
 #endif
+
+	if(s >= 0){
+		nbyt = 65535;
+		setsockopt(s, SOL_SOCKET, SO_RCVBUF, (char*)&nbyt, sizeof(nbyt));
+		nbyt = 65535;
+		setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char*)&nbyt, sizeof(nbyt));
+	}
 
 	return s;
 }

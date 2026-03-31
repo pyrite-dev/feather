@@ -94,8 +94,9 @@ static void* recv_packet(int fd, int* type, int* size) {
 	int	       n = 0;
 	int	       l = 0;
 
+	printf("?\n");
 	while(l < 8) {
-		if((n = fpr_recv(fd, header, 8 - l, 0)) <= 0) return NULL;
+		if((n = fpr_recv(fd, header + l, 8 - l, 0)) <= 0) return NULL;
 
 		l += n;
 	}
