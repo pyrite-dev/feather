@@ -316,7 +316,7 @@ static void thread_main(void* param) {
 		if(arrlen(pfds) > 0) {
 			s = fpr_poll(pfds, arrlen(pfds), 100);
 		} else {
-			fpr_msleep(1000);
+			fpr_msleep(10);
 			s = 0;
 		}
 
