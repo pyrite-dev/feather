@@ -265,6 +265,7 @@ struct clientkv {
 };
 
 struct worker {
+	fpr_bool   shutdown;
 	void*	   mutex;
 	void*	   thread;
 	client_t** clients;

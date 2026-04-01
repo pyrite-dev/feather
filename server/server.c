@@ -29,9 +29,10 @@ fpr_bool server_init(void) {
 
 		*n = i;
 
-		worker.thread  = fpr_thread_create(thread_main, n);
-		worker.mutex   = fpr_mutex_create();
-		worker.clients = NULL;
+		worker.shutdown = fpr_false;
+		worker.thread	= fpr_thread_create(thread_main, n);
+		worker.mutex	= fpr_mutex_create();
+		worker.clients	= NULL;
 
 		arrput(server_workers, worker);
 	}
@@ -148,8 +149,15 @@ void server_close(void) {
 		}
 		arrfree(server_workers[i].clients);
 
+		fpr_mutex_lock(server_workers[i].mutex);
+		server_workers[i].shutdown = fpr_true;
+		fpr_mutex_unlock(server_workers[i].mutex);
+
+		fpr_thread_join(server_workers[i].thread);
+
 		fpr_mutex_destroy(server_workers[i].mutex);
 	}
+	arrfree(server_workers);
 
 	fpr_mutex_destroy(global_mutex);
 #else
@@ -307,7 +315,7 @@ static void thread_main(void* param) {
 	fpr_mutex_lock(global_mutex);
 	fpr_mutex_unlock(global_mutex);
 
-	while(1) {
+	while(!server_workers[n].shutdown) {
 		int s;
 
 		arrfree(pfds);
