@@ -265,9 +265,9 @@ struct clientkv {
 };
 
 struct worker {
-	void*	    mutex;
-	void*	    thread;
-	clientkv_t* clients;
+	void*	   mutex;
+	void*	   thread;
+	client_t** clients;
 };
 
 /* main.c */

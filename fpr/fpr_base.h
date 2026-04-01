@@ -12,6 +12,8 @@ struct fpr_pollfd {
 	int   fd;
 	short events;
 	short revents;
+
+	void* user;
 };
 
 /* file.c definitions */
