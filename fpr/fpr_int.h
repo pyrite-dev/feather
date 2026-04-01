@@ -23,14 +23,12 @@
 #endif
 
 /* thread section */
-#if defined(MULTITHREAD)
 #if defined(FPR_IS_WIN32)
 #if !defined(FPR_USE_CREATETHREAD)
 #include <process.h>
 #endif
 #elif defined(FPR_IS_UNIX) || defined(FPR_IS_PSP)
 #include <pthread.h>
-#endif
 #endif
 
 /* socket section */

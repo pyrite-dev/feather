@@ -152,8 +152,7 @@ int fpr_bind(int s, const struct fpr_sockaddr* name, int namelen) {
 }
 
 int fpr_connect(int s, const struct fpr_sockaddr* name, int namelen) {
-	int		 st  = -1;
-	int		 yes = 1;
+	int		 st = -1;
 	struct sockaddr* sa;
 	int		 len;
 
@@ -171,8 +170,7 @@ int fpr_listen(int s, int backlog) {
 
 int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 	unsigned char	 buffer[256];
-	int		 len = 256;
-	struct sockaddr* sa  = (struct sockaddr*)buffer;
+	struct sockaddr* sa = (struct sockaddr*)buffer;
 	int		 r;
 #if defined(FPR_USE_SOCKLEN_T)
 	socklen_t l

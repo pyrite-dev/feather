@@ -260,8 +260,8 @@ struct client {
 };
 
 struct clientkv {
-	int	 key;
-	client_t value;
+	int	  key;
+	client_t* value;
 };
 
 struct worker {

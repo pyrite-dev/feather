@@ -158,7 +158,7 @@ static void big4(unsigned char* out, unsigned int n) {
 }
 
 static int send_param(int fd, const char* key, const char* value) {
-	int st;
+	int st = 0;
 	if(strlen(key) == 0) {
 		st = send_packet(fd, FCGI_PARAMS, "", 0);
 	} else if(strlen(key) <= 127 && strlen(value) <= 127) {
@@ -340,10 +340,9 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 			free(h);
 			goto error;
 		}
-		free(h);
 
 		sprintf(buf, "%d", req->body_size);
-		if(req->body_size > 0 && send_param(fd, "BODY_SIZE", buf) < 0) goto error;
+		if(req->body_size > 0 && send_param(fd, "CONTENT_SIZE", buf) < 0) goto error;
 
 		headers = context->stringkv_keys(req->headers);
 		for(i = 0; headers[i] != NULL; i++) {
@@ -374,6 +373,7 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 			free(s);
 			free(h);
 		}
+		free(headers);
 
 		/* Apache extension, needed to make PHP work */
 		sprintf(buf, "%d", res->status_code == 0 ? 200 : res->status_code);

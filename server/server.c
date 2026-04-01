@@ -81,38 +81,6 @@ fpr_bool server_init(void) {
 	return fpr_true;
 }
 
-void server_close(void) {
-	int i;
-
-	for(i = 0; i < arrlen(config_ports); i++) {
-		if(config_ports[i].fd != -1) {
-			fpr_socket_close(config_ports[i].fd);
-			config_ports[i].fd = -1;
-		}
-	}
-
-#if defined(MULTITHREAD)
-	for(i = 0; i < Workers; i++) {
-		int j;
-
-		fpr_mutex_destroy(server_workers[i].mutex);
-
-		for(j = 0; j < hmlen(server_workers[i].clients); i++) {
-			fpr_socket_close(server_workers[i].clients[j].key);
-		}
-		arrfree(server_workers[i].clients);
-	}
-#else
-	for(i = 0; i < hmlen(server_clients); i++) {
-		fpr_socket_close(server_clients[i].value.fd);
-	}
-	arrfree(server_clients);
-	server_clients = NULL;
-#endif
-
-	fpr_socket_uninit();
-}
-
 static void kill_client(client_t* c) {
 	int i;
 	int fd = c->fd;
@@ -144,6 +112,40 @@ static void kill_client(client_t* c) {
 #else
 	hmdel(server_clients, fd);
 #endif
+
+	free(c);
+}
+
+void server_close(void) {
+	int i;
+
+	for(i = 0; i < arrlen(config_ports); i++) {
+		if(config_ports[i].fd != -1) {
+			fpr_socket_close(config_ports[i].fd);
+			config_ports[i].fd = -1;
+		}
+	}
+
+#if defined(MULTITHREAD)
+	for(i = 0; i < Workers; i++) {
+		int j;
+
+		for(j = 0; j < hmlen(server_workers[i].clients); i++) {
+			kill_client(server_workers[i].clients[j].value);
+		}
+		arrfree(server_workers[i].clients);
+
+		fpr_mutex_destroy(server_workers[i].mutex);
+	}
+#else
+	for(i = 0; i < hmlen(server_clients); i++) {
+		kill_client(server_clients[i].value);
+	}
+	arrfree(server_clients);
+	server_clients = NULL;
+#endif
+
+	fpr_socket_uninit();
 }
 
 int server_read(client_t* c, void* buffer, int len) {
@@ -280,7 +282,6 @@ static int socket_main(client_t* c, fpr_bool* changed, struct fpr_pollfd* pfd) {
 
 #if defined(MULTITHREAD)
 static void thread_main(void* param) {
-	client_t*	   c	= param;
 	int		   n	= *(int*)param;
 	struct fpr_pollfd* pfds = NULL;
 	struct fpr_pollfd  pfd;
@@ -303,7 +304,7 @@ static void thread_main(void* param) {
 			pfd.fd	   = server_workers[n].clients[i].key;
 			pfd.events = FPR_POLLIN | FPR_POLLPRI;
 
-			if(server_workers[n].clients[i].value.state >= CS_GOT_BODY) pfd.events |= FPR_POLLOUT;
+			if(server_workers[n].clients[i].value->state >= CS_GOT_BODY) pfd.events |= FPR_POLLOUT;
 
 			arrput(pfds, pfd);
 		}
@@ -315,8 +316,8 @@ static void thread_main(void* param) {
 		if(s < 0) break;
 
 		for(i = 0; i < clients; i++) {
-			int	 ind;
-			client_t c;
+			int	  ind;
+			client_t* c;
 
 			fpr_mutex_lock(server_workers[n].mutex);
 			ind = hmgeti(server_workers[n].clients, pfds[i].fd);
@@ -328,18 +329,14 @@ static void thread_main(void* param) {
 			c = server_workers[n].clients[ind].value;
 			fpr_mutex_unlock(server_workers[n].mutex);
 
-			if((time(NULL) - c.last) >= 10) {
-				kill_client(&c);
+			if((time(NULL) - c->last) >= 10) {
+				kill_client(c);
 				continue;
-			} else if(socket_main(&c, NULL, &pfds[i])) {
+			} else if(socket_main(c, NULL, &pfds[i])) {
 				continue;
 			} else {
-				c.last = time(NULL);
+				c->last = time(NULL);
 			}
-
-			fpr_mutex_lock(server_workers[n].mutex);
-			hmput(server_workers[n].clients, pfds[i].fd, c);
-			fpr_mutex_unlock(server_workers[n].mutex);
 		}
 
 		arrfree(pfds);
@@ -363,38 +360,40 @@ void server_loop(void) {
 				/* server sockets */
 				for(i = 0; i < srv_count; i++) {
 					if(pfd[i].revents & FPR_POLLIN) {
-						client_t c;
-						int	 l = sizeof(c.address);
-						int	 fd;
-						int	 j;
+						client_t* c;
+						int	  l = sizeof(c->address);
+						int	  fd;
+						int	  j;
 #if defined(MULTITHREAD)
 						int n;
 #endif
 
-						memset(&c, 0, sizeof(c));
-						fd	= fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c.address, &l);
-						c.last	= time(NULL);
-						c.state = config_ports[i].ssl ? CS_WANT_SSL : CS_CONNECTED;
-						c.fd	= fd;
+						c = malloc(sizeof(*c));
 
-						c.port = config_ports[i].port;
+						memset(c, 0, sizeof(*c));
+						fd	 = fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c->address, &l);
+						c->last	 = time(NULL);
+						c->state = config_ports[i].ssl ? CS_WANT_SSL : CS_CONNECTED;
+						c->fd	 = fd;
+
+						c->port = config_ports[i].port;
 
 #if defined(HAS_SSL)
 						if(config_ports[i].ssl) {
-							c.ctx = ssl_create_context(config_ports[i].port);
-							c.ssl = SSL_new(c.ctx);
+							c->ctx = ssl_create_context(config_ports[i].port);
+							c->ssl = SSL_new(c->ctx);
 
-							SSL_set_fd(c.ssl, fd);
+							SSL_set_fd(c->ssl, fd);
 						}
 #endif
 
-						http_init(&c);
+						http_init(c);
 
 #if defined(MULTITHREAD)
 						server_worker = server_worker % arrlen(server_workers);
 
 						fpr_mutex_lock(server_workers[server_worker].mutex);
-						hmput(server_workers[server_worker].clients, c.fd, c);
+						hmput(server_workers[server_worker].clients, c->fd, c);
 						fpr_mutex_unlock(server_workers[server_worker].mutex);
 
 						server_worker++;
