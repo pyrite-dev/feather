@@ -141,7 +141,8 @@ void* fpr_dlsym(void* handle, const char* symbol);
 int   fpr_dlclose(void* handle);
 
 /* unistd.c */
-int fpr_gethostname(char* name, int namelen);
+int  fpr_gethostname(char* name, int namelen);
+void fpr_msleep(int ms);
 
 /* stat.c */
 int fpr_stat(const char* path, struct fpr_stat* s);

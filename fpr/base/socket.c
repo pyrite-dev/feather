@@ -182,6 +182,10 @@ int fpr_accept(int s, struct fpr_sockaddr* addr, int* addrlen) {
 	r	 = accept(s, sa, &l);
 	*addrlen = l;
 
+#if defined(FPR_IS_WIN32)
+	if(r == INVALID_SOCKET) r = -1;
+#endif
+
 	if(r < 0) return r;
 
 	if(sa->sa_family == AF_INET) {
