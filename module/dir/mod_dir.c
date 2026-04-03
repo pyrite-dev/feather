@@ -14,15 +14,17 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
+	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') {
+		return FR_MODULE_DECLINE;
+	}
+
 	arr = context->config_lookup_array(context, "DirectoryIndex", &len);
 
 	for(i = 0; i < len; i++) {
 		char* p = fpr_strvacat(req->path_translated, req->path_translated[strlen(req->path_translated) - 1] == '/' ? "" : "/", arr[i], NULL);
 
-		if(fpr_stat(p, &st) == 0 && !FPR_S_ISDIR(st.st_mode)) {
+		if(fpr_stat(p, &st) == 0 && !FPR_S_ISDIR(st.st_mode) && (strlen(req->path_virtual) + strlen(arr[i])) <= MAX_PATH_LENGTH) {
 			strcpy(req->path_virtual, req->path);
-
-			if(req->path_virtual[strlen(req->path_virtual) - 1] != '/') strcat(req->path_virtual, "/");
 			strcat(req->path_virtual, arr[i]);
 
 			strcpy(req->path_virtual2, req->path_virtual);
@@ -38,9 +40,22 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 }
 
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
-	(void)context;
-	(void)req;
+	struct fpr_stat st;
+
 	(void)res;
+
+	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') {
+		char* p = fpr_strvacat(req->path, "/", NULL);
+
+		res->status_code = 301;
+		strcpy(res->status_text, "Moved Permanently");
+
+		context->response_set_header(res, "Location", p);
+
+		free(p);
+
+		return FR_MODULE_DECLINE;
+	}
 
 	return FR_MODULE_DECLINE;
 }
@@ -67,7 +82,7 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 
 static void register_stuff(fr_context_t* context) {
 	context->register_hook(hook_rewrite, FR_MODULE_HOOK_REWRITE);
-	context->register_hook(hook, FR_MODULE_HOOK_FIRST);
+	context->register_hook(hook, FR_MODULE_HOOK_MIDDLE);
 }
 
 FR_MODULE_DATA fr_module_t dir_module = {

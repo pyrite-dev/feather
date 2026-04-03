@@ -29,8 +29,8 @@ void log_srv2(const char* fmt, ...) {
 }
 
 void log_vasrv(const char* fmt, int both, va_list va) {
-	char	    buf[LINE_SIZE + 1];
-	char	    out[LINE_SIZE + 64 + 1];
+	char	    buf[LINE_SIZE * 2 + 1];
+	char	    out[LINE_SIZE * 2 + 64 + 1];
 	time_t	    t	  = time(NULL);
 	struct tm*  tm	  = gmtime(&t);
 	const char* day[] = {
