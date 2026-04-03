@@ -7,7 +7,6 @@ fr_stringkv_t* mime_types = NULL;
 void mime_parse(void) {
 	char*	  p = path_transform(config_mimefile);
 	FPR_FILE* f;
-	int	  i;
 
 	mime_close();
 	sh_new_strdup(mime_types);

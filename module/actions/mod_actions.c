@@ -5,6 +5,8 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	char* p = fpr_strvacat("Action_", req->handler, NULL);
 	char* s = context->config_lookup(context, p);
 
+	(void)res;
+
 	if(s != NULL && strcmp(req->path_virtual, s) != 0) { /* this is to prevent infinite loop */
 		free(p);
 		strcpy(req->path_virtual, s);
@@ -42,5 +44,15 @@ static void register_stuff(fr_context_t* context) {
 
 FR_MODULE_DATA fr_module_t actions_module = {
     FR_MODULE_VERSION_00,
-    directive,
-    register_stuff};
+    directive,	    /* directive */
+    register_stuff, /* register_stuff */
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL};

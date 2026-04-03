@@ -252,6 +252,9 @@ dissect(
 	char *oldssp;	/* previous ssp */
 	char *dp;
 
+	(void)dp;
+	(void)nope;
+
 	AT("diss", start, stop, startst, stopst);
 	sp = start;
 	for (ss = startst; ss < stopst; ss = es) {

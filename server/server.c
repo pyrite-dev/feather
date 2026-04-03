@@ -84,7 +84,6 @@ fpr_bool server_init(void) {
 
 static void kill_client(client_t* c) {
 	int i;
-	int fd = c->fd;
 
 	http_end(c);
 
@@ -124,7 +123,7 @@ static void kill_client(client_t* c) {
 		fpr_mutex_unlock(server_workers[i].mutex);
 	}
 #else
-	hmdel(server_clients, fd);
+	hmdel(server_clients, c->fd);
 #endif
 
 	free(c);
@@ -364,9 +363,11 @@ static void thread_main(void* param) {
 #endif
 
 void server_loop(void) {
-	int		   srv_count = 0;
-	int		   cli_count = 0;
-	struct fpr_pollfd* pfd	     = NULL;
+	int srv_count = 0;
+#if !defined(MULTITHREAD)
+	int cli_count = 0;
+#endif
+	struct fpr_pollfd* pfd = NULL;
 
 	while(running) {
 		fpr_bool changed = fpr_false;
@@ -382,7 +383,6 @@ void server_loop(void) {
 						client_t* c;
 						int	  l = sizeof(c->address);
 						int	  fd;
-						int	  j;
 #if defined(MULTITHREAD)
 						int w;
 #endif

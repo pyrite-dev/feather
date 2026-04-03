@@ -12,7 +12,7 @@ fpr_bool fpr_wildcard(const char* wildcard, const char* target) {
 			return 0;
 		} else if(*pw == '*') {
 			return *(pw + 1) == 0 || fpr_wildcard(pw, pt + 1) || fpr_wildcard(pw + 1, pt);
-		} else if(*pw == '?' || (tolower(*pw) == tolower(*pt))) {
+		} else if(*pw == '?' || (tolower((int)*pw) == tolower((int)*pt))) {
 			pw++;
 			pt++;
 			continue;

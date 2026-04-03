@@ -70,6 +70,17 @@ struct fr_module {
 
 	int (*directive)(fr_context_t* context, int argc, char** argv);
 	void (*register_stuff)(fr_context_t* context);
+
+	void* reserved1;
+	void* reserved2;
+	void* reserved3;
+	void* reserved4;
+	void* reserved5;
+	void* reserved6;
+	void* reserved7;
+	void* reserved8;
+	void* reserved9;
+	void* reserved10;
 };
 
 /* read path_translated if you want to read "alternative" path or "normal" path, which is most likely what you want

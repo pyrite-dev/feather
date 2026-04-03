@@ -13,7 +13,7 @@ fpr_bool fpr_url_decode(char* out, const char* input, int len) {
 	int i;
 
 	for(i = 0; input[i] != 0; i++) {
-		if(strlen(out) == len) {
+		if((int)strlen(out) == len) {
 			return fpr_false;
 		} else if(input[i] == '%') {
 			if(strlen(input + i) >= 3) {
@@ -34,8 +34,7 @@ fpr_bool fpr_url_decode(char* out, const char* input, int len) {
 }
 
 fpr_bool fpr_url_encode(char* out, const char* input, int len) {
-	int  i;
-	char hexstr[] = "0123456789ABCDEF";
+	int i;
 
 	for(i = 0; input[i] != 0; i++) {
 		if(strlen(out) == len) {

@@ -43,5 +43,15 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 
 FR_MODULE_DATA fr_module_t dso_module = {
     FR_MODULE_VERSION_00,
-    directive,
+    directive, /* directive */
+    NULL,      /* register_stuff */
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     NULL};

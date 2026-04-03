@@ -51,7 +51,7 @@ static char nuls[10];		/* place to point scanner in event of error */
 #define	NEXTn(n)	(p->next += (n))
 #define	GETNEXT()	(*p->next++)
 #define	SETERROR(e)	seterr(p, (e))
-#define	REQUIRE(co, e)	((co) || SETERROR(e))
+#define	REQUIRE(co, e)	(void)((co) || SETERROR(e))
 #define	MUSTSEE(c, e)	(REQUIRE(MORE() && PEEK() == (c), e))
 #define	MUSTEAT(c, e)	(REQUIRE(MORE() && GETNEXT() == (c), e))
 #define	MUSTNOTSEE(c, e)	(REQUIRE(!MORE() || PEEK() != (c), e))
@@ -321,7 +321,7 @@ p_ere_exp(
 		ordinary(p, c);
 		break;
 	case '{':		/* okay as ordinary except if digit follows */
-		REQUIRE(!MORE() || !isdigit(PEEK()), REG_BADRPT);
+		REQUIRE(!MORE() || !isdigit((int)PEEK()), REG_BADRPT);
 		/* FALLTHROUGH */
 	default:
 		ordinary(p, c);
@@ -333,7 +333,7 @@ p_ere_exp(
 	c = PEEK();
 	/* we call { a repetition if followed by a digit */
 	if (!( c == '*' || c == '+' || c == '?' ||
-				(c == '{' && MORE2() && isdigit(PEEK2())) ))
+				(c == '{' && MORE2() && isdigit((int)PEEK2())) ))
 		return;		/* no repetition, we're done */
 	NEXT();
 
@@ -362,7 +362,7 @@ p_ere_exp(
 	case '{':
 		count = p_count(p);
 		if (EAT(',')) {
-			if (isdigit(PEEK())) {
+			if (isdigit((int)PEEK())) {
 				count2 = p_count(p);
 				REQUIRE(count <= count2, REG_BADBR);
 			} else		/* single number with comma */
@@ -383,7 +383,7 @@ p_ere_exp(
 		return;
 	c = PEEK();
 	if (!( c == '*' || c == '+' || c == '?' ||
-				(c == '{' && MORE2() && isdigit(PEEK2())) ) )
+				(c == '{' && MORE2() && isdigit((int)PEEK2())) ) )
 		return;
 	SETERROR(REG_BADRPT);
 }
@@ -543,7 +543,7 @@ p_simp_re(
 	} else if (EATTWO('\\', '{')) {
 		count = p_count(p);
 		if (EAT(',')) {
-			if (MORE() && isdigit(PEEK())) {
+			if (MORE() && isdigit((int)PEEK())) {
 				count2 = p_count(p);
 				REQUIRE(count <= count2, REG_BADBR);
 			} else		/* single number with comma */
@@ -575,7 +575,7 @@ p_count(
 	int count = 0;
 	int ndigits = 0;
 
-	while (MORE() && isdigit(PEEK()) && count <= DUPMAX) {
+	while (MORE() && isdigit((int)PEEK()) && count <= DUPMAX) {
 		count = count*10 + (GETNEXT() - '0');
 		ndigits++;
 	}
@@ -745,7 +745,7 @@ p_b_cclass(
 	char *u;
 	char c;
 
-	while (MORE() && isalpha(PEEK()))
+	while (MORE() && isalpha((int)PEEK()))
 		NEXT();
 	len = p->next - sp;
 	for (cp = cclasses; cp->name != NULL; cp++)
@@ -1202,6 +1202,7 @@ mcadd(
 	cs->multis[cs->smultis - 1] = '\0';
 }
 
+#if 0
 /*
  - mcsub - subtract a collating element from a cset
  == static void mcsub(cset *cs, char *cp);
@@ -1262,6 +1263,7 @@ mcfind(
 			return(p);
 	return(NULL);
 }
+#endif
 
 /*
  - mcinvert - invert the list of collating elements in a cset
@@ -1276,6 +1278,9 @@ mcinvert(
 	cset *cs
 )
 {
+	(void)p;
+	(void)cs;
+
 	assert(cs->multis == NULL);	/* xxx */
 }
 
@@ -1292,6 +1297,9 @@ mccase(
 	cset *cs
 )
 {
+	(void)p;
+	(void)cs;
+
 	assert(cs->multis == NULL);	/* xxx */
 }
 

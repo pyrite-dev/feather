@@ -12,6 +12,8 @@ static int sni_callback(SSL* s, int* al, void* arg) {
 	const char*  tk = "SSLPrivateKeyFile";
 	const char*  tc = "SSLCertificateFile";
 
+	(void)al;
+
 	if(str == NULL) {
 		char tmp[4096];
 

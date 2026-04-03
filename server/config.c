@@ -301,8 +301,6 @@ static fpr_bool parse(const char* path) {
 							}
 						} else if(strcmp(arg[0], "FilesMatch") == 0) {
 							if(arg_len(arg) == 2) {
-								char* s;
-
 								config_current = new_config(config_current, arg[0]);
 
 								config_current->section.match.pattern = fpr_strdup(arg[1]);

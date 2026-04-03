@@ -9,6 +9,8 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 	char* hl;
 	char* h;
 
+	(void)res;
+
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
 	if((hl = context->config_lookup(context, "RemoteIPHeader")) != NULL && (h = context->request_get_header(req, hl)) != NULL && strlen(h) < 256) {
@@ -24,7 +26,7 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 			char* h = fpr_strdup(argv[1]);
 			int   i;
 
-			for(i = 0; h[i] != 0; i++) h[i] = tolower(h[i]);
+			for(i = 0; h[i] != 0; i++) h[i] = tolower((int)h[i]);
 
 			context->stringkv_set(&context->config_current->kv, "RemoteIPHeader", h);
 
@@ -47,5 +49,15 @@ static void register_stuff(fr_context_t* context) {
 
 FR_MODULE_DATA fr_module_t remoteip_module = {
     FR_MODULE_VERSION_00,
-    directive,
-    register_stuff};
+    directive,	    /* directive */
+    register_stuff, /* register_stuff */
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL};

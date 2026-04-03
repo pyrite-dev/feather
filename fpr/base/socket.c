@@ -85,10 +85,14 @@ int fpr_socket(int domain, int type, int protocol) {
 
 /* we ignore flags for now */
 int fpr_recv(int s, void* buf, int len, int flags) {
+	(void)flags;
+
 	return recv(s, buf, len, 0);
 }
 
 int fpr_send(int s, const void* msg, int len, int flags) {
+	(void)flags;
+
 	return send(s, msg, len, 0);
 }
 
@@ -245,6 +249,8 @@ fpr_bool fpr_socket_has_ipv6(void) {
 	if(majorv > 5 && (majorv == 5 && minorv >= 1)) return fpr_true;
 
 	return fpr_false;
+#else
+	return fpr_true;
 #endif
 #else
 	return fpr_false;
@@ -252,7 +258,7 @@ fpr_bool fpr_socket_has_ipv6(void) {
 }
 
 struct fpr_in_addr fpr_inaddr_any = {
-    {0, 0, 0, 0}};
+    {{0, 0, 0, 0}}};
 
 struct fpr_in6_addr fpr_in6addr_any = {
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}};

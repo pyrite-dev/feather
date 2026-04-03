@@ -356,7 +356,7 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 				if(headers[i][j] == '-') {
 					h[j] = '_';
 				} else {
-					h[j] = toupper(headers[i][j]);
+					h[j] = toupper((int)headers[i][j]);
 				}
 			}
 			h[j] = 0;
@@ -539,5 +539,15 @@ static void register_stuff(fr_context_t* context) {
 
 FR_MODULE_DATA fr_module_t fcgi_module = {
     FR_MODULE_VERSION_00,
+    NULL,	    /* directive */
+    register_stuff, /* register_stuff */
     NULL,
-    register_stuff};
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL};

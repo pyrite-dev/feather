@@ -43,7 +43,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("SERVER_PROTOCOL=", req->version, NULL);
 	arrput(envs, s);
 
-	sprintf(buf, "%d", req->port, NULL);
+	sprintf(buf, "%d", req->port);
 	s = fpr_strvacat("SERVER_PORT=", buf, NULL);
 	arrput(envs, s);
 
@@ -75,7 +75,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	}
 
 	if(req->body_size > 0) {
-		sprintf(buf, "%d", req->body_size, NULL);
+		sprintf(buf, "%d", req->body_size);
 		s = fpr_strvacat("CONTENT_LENGTH=", buf, NULL);
 		arrput(envs, s);
 	}
@@ -91,7 +91,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 			if(headers[i][j] == '-') {
 				h[j] = '_';
 			} else {
-				h[j] = toupper(headers[i][j]);
+				h[j] = toupper((int)headers[i][j]);
 			}
 		}
 		h[j] = 0;
@@ -247,5 +247,15 @@ static void register_stuff(fr_context_t* context) {
 
 FR_MODULE_DATA fr_module_t cgi_module = {
     FR_MODULE_VERSION_00,
+    NULL,	    /* directive */
+    register_stuff, /* register_stuff */
     NULL,
-    register_stuff};
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL};

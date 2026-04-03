@@ -68,7 +68,6 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 static int directive(fr_context_t* context, int argc, char** argv) {
 	if(strcmp(argv[0], "ErrorDocument") == 0) {
 		if(argc == 3) {
-			int  i;
 			char name[512];
 
 			sprintf(name, "ErrorDocument%d", atoi(argv[1]));
@@ -91,5 +90,15 @@ static void register_stuff(fr_context_t* context) {
 
 FR_MODULE_DATA fr_module_t error_module = {
     FR_MODULE_VERSION_00,
-    directive,
-    register_stuff};
+    directive,	    /* directive */
+    register_stuff, /* register_stuff */
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL};

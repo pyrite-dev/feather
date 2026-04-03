@@ -257,7 +257,6 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, fr_context_t* context,
 
 void http_req(client_t* c) {
 	int		loop = 1;
-	fr_config_t*	config;
 	const char*	host = http_req_get_header(&c->request, "host");
 	char		hostname[1024];
 	const char*	s;
@@ -308,7 +307,9 @@ void http_req(client_t* c) {
 	PATH_THING(path_translated2, path_virtual2); \
 	PATH_THING(path_translated3, path_virtual3); \
 	PATH_THING(path_translated4, path_virtual4); \
-	if(strlen(c->request.path_info) > 0) PATH_THING(path_translated_info, path_info); \
+	if(strlen(c->request.path_info) > 0) { \
+		PATH_THING(path_translated_info, path_info); \
+	} \
 \
 	context_match(&context, &c->request);
 
@@ -494,10 +495,10 @@ fpr_bool http_send(client_t* c) {
 			c->state = CS_CONNECTED;
 		}
 	} else if(c->state == CS_SENT_HEADER) {
-		char  chunk[BUFFER_SIZE];
-		char* r = c->response.body;
-		int   l, n;
-		char  num[512];
+		unsigned char chunk[BUFFER_SIZE];
+		char*	      r = c->response.body;
+		int	      l, n;
+		char	      num[512];
 
 		if(strcmp(c->request.method, "HEAD") == 0) {
 			c->state = CS_CONNECTED;
