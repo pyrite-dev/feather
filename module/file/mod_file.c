@@ -69,6 +69,15 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	res->body_opaque = fpr_fopen(path, "rb");
 	res->body_size	 = st.st_size;
 
+	if(res->body_opaque == NULL) {
+		res->body_stream = NULL;
+		res->body_size	 = -1;
+
+		res->status_code = 500;
+		strcpy(res->status_text, "Internal Server Error");
+		return;
+	}
+
 	sprintf(date, "%s, %02d %s %d %02d:%02d:%02d GMT", day[tm.tm_wday], tm.tm_mday, mon[tm.tm_mon], 1900 + tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec);
 	context->response_set_header(res, "Last-Modified", date);
 
@@ -87,6 +96,8 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 	if(fpr_stat(req->path_translated, &st) == 0 && !FPR_S_ISDIR(st.st_mode)) {
 		file_send(context, req, res, req->path_translated);
+
+		if(res->status_code == 500) return FR_MODULE_DECLINE;
 		return FR_MODULE_OK;
 	}
 
