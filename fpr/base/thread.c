@@ -73,6 +73,11 @@ void* fpr_thread_create(void (*entry)(void* param), void* param) {
 	pthread_create(t, NULL, thread_entry, arg);
 
 	return t;
+#else
+	(void)entry;
+	(void)param;
+
+	return NULL;
 #endif
 }
 
@@ -83,6 +88,8 @@ void fpr_thread_join(void* handle) {
 	void* ret;
 
 	pthread_join(*(pthread_t*)handle, &ret);
+#else
+	(void)handle;
 #endif
 }
 
@@ -91,5 +98,7 @@ void fpr_thread_destroy(void* handle) {
 	CloseHandle(handle);
 #elif defined(FPR_IS_UNIX) || defined(FPR_IS_PSP)
 	free(handle);
+#else
+	(void)handle;
 #endif
 }

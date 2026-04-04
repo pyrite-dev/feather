@@ -40,9 +40,8 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	    "Oct",
 	    "Nov",
 	    "Dec"};
-	char	  date[128];
-	time_t	  t;
-	struct tm tm;
+	char	      date[128];
+	struct fpr_tm tm;
 
 	(void)req;
 
@@ -64,8 +63,7 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 		strcpy(res->status_text, "OK");
 	}
 
-	t  = st.st_modtime;
-	tm = *gmtime(&t);
+	fpr_gmtime(&tm, st.st_modtime);
 
 	res->body_stream = file_body_stream;
 	res->body_opaque = fpr_fopen(path, "rb");

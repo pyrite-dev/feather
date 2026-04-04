@@ -53,9 +53,7 @@ int main(int argc, char** argv) {
 	ps2_init();
 #endif
 
-#if !defined(_WIN32)
-	signal(SIGPIPE, SIG_IGN);
-#endif
+	fpr_init();
 
 	config_init();
 
@@ -102,6 +100,8 @@ int main(int argc, char** argv) {
 	server_close();
 	config_close();
 	log_close();
+
+	fpr_uninit();
 
 	EXIT(0);
 

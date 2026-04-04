@@ -74,4 +74,6 @@ typedef int	    fpr_int32_t;
 typedef long fpr_size_t;
 #endif
 
+typedef fpr_size_t fpr_time_t;
+
 #endif

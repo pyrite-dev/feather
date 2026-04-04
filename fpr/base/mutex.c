@@ -10,6 +10,8 @@ void* fpr_mutex_create(void) {
 	pthread_mutex_init(mutex, NULL);
 
 	return mutex;
+#else
+	return NULL;
 #endif
 }
 
@@ -18,6 +20,8 @@ void fpr_mutex_lock(void* handle) {
 	WaitForSingleObject(handle, INFINITE);
 #elif defined(FPR_IS_UNIX) || defined(FPR_IS_PSP)
 	pthread_mutex_lock(handle);
+#else
+	(void)handle;
 #endif
 }
 
@@ -26,6 +30,8 @@ void fpr_mutex_unlock(void* handle) {
 	SetEvent(handle);
 #elif defined(FPR_IS_UNIX) || defined(FPR_IS_PSP)
 	pthread_mutex_unlock(handle);
+#else
+	(void)handle;
 #endif
 }
 
@@ -36,5 +42,7 @@ void fpr_mutex_destroy(void* handle) {
 	pthread_mutex_destroy(handle);
 
 	free(handle);
+#else
+	(void)handle;
 #endif
 }

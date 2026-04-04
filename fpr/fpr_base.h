@@ -98,9 +98,9 @@ struct fpr_sockaddr_un {
 #define FPR_S_ISDIR(x) ((x) & FPR_S_IFDIR)
 
 struct fpr_stat {
-	long st_size;
-	long st_modtime;
-	int  st_mode;
+	fpr_size_t st_size;
+	fpr_time_t st_modtime;
+	int	   st_mode;
 };
 
 /* dirent.c definitions */
@@ -108,8 +108,26 @@ typedef void FPR_DIR;
 
 struct fpr_dirent {
 	char		d_name[512];
+	char		d_fullname[1024];
 	struct fpr_stat d_stat;
 };
+
+/* time.c definitions */
+struct fpr_tm {
+	int tm_sec;
+	int tm_min;
+	int tm_hour;
+	int tm_mday;
+	int tm_mon;
+	int tm_year;
+	int tm_wday;
+	int tm_yday;
+	int tm_isdst;
+};
+
+/* core.c */
+void fpr_init(void);
+void fpr_uninit(void);
 
 /* poll.c */
 int fpr_poll(struct fpr_pollfd* fds, int nfds, int timeout);
@@ -183,5 +201,13 @@ struct fpr_dirent* fpr_readdir(FPR_DIR* handle);
 void		   fpr_closedir(FPR_DIR* handle);
 int		   fpr_scandir(const char* dirname, struct fpr_dirent*** namelist, int (*selectfn)(const struct fpr_dirent* d), int (*compar)(const struct fpr_dirent** d1, const struct fpr_dirent** d2));
 int		   fpr_alphasort(const struct fpr_dirent** d1, const struct fpr_dirent** d2);
+
+/* time.c */
+extern void* fpr_gmtime_mutex;
+extern void* fpr_localtime_mutex;
+
+fpr_time_t fpr_time(void);
+void	   fpr_gmtime(struct fpr_tm* tm, fpr_time_t t);
+void	   fpr_localtime(struct fpr_tm* tm, fpr_time_t t);
 
 #endif

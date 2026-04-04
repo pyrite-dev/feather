@@ -17,8 +17,6 @@ clientkv_t* server_clients = NULL;
 fpr_bool server_init(void) {
 	int i;
 
-	fpr_socket_init();
-
 #if defined(MULTITHREAD)
 	global_mutex = fpr_mutex_create();
 
@@ -166,8 +164,6 @@ void server_close(void) {
 	arrfree(server_clients);
 	server_clients = NULL;
 #endif
-
-	fpr_socket_uninit();
 }
 
 int server_read(client_t* c, void* buffer, int len) {

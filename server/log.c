@@ -29,18 +29,18 @@ void log_srv2(const char* fmt, ...) {
 }
 
 void log_vasrv(const char* fmt, int both, va_list va) {
-	char	    buf[LINE_SIZE * 2 + 1];
-	char	    out[LINE_SIZE * 2 + 64 + 1];
-	time_t	    t	  = time(NULL);
-	struct tm*  tm	  = gmtime(&t);
-	const char* day[] = {
-	    "Sun",
-	    "Mon",
-	    "Tue",
-	    "Wed",
-	    "Thu",
-	    "Fri",
-	    "Sat"};
+	char	      buf[LINE_SIZE * 2 + 1];
+	char	      out[LINE_SIZE * 2 + 64 + 1];
+	fpr_time_t    t = fpr_time();
+	struct fpr_tm tm;
+	const char*   day[] = {
+	      "Sun",
+	      "Mon",
+	      "Tue",
+	      "Wed",
+	      "Thu",
+	      "Fri",
+	      "Sat"};
 	const char* mon[] = {
 	    "Jan",
 	    "Feb",
@@ -56,9 +56,11 @@ void log_vasrv(const char* fmt, int both, va_list va) {
 	    "Dec"};
 	const char* nl;
 
+	fpr_gmtime(&tm, t);
+
 	vsprintf(buf, fmt, va);
 
-	sprintf(out, "[%s %s %.2d %02d:%02d:%02d UTC] %s", day[tm->tm_wday], mon[tm->tm_mon], tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, buf);
+	sprintf(out, "[%s %s %.2d %02d:%02d:%02d UTC] %s", day[tm.tm_wday], mon[tm.tm_mon], tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, buf);
 
 	if(log_file != NULL) {
 		nl = fpr_newline;

@@ -78,10 +78,45 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 			int i;
 			for(i = 0; i < n; i++) {
 				if(strcmp(namelist[i]->d_name, ".") != 0) {
-					char* name = fpr_strvacat(namelist[i]->d_name, FPR_S_ISDIR(namelist[i]->d_stat.st_mode) ? "/" : "", NULL);
-					char* s	   = fpr_strsafehtml(name);
+					char*	      name;
+					char*	      s;
+					char	      date[64];
+					char	      size[16];
+					struct fpr_tm tm;
+					fpr_size_t    sz = namelist[i]->d_stat.st_size;
 
+					name = fpr_strvacat(namelist[i]->d_name, FPR_S_ISDIR(namelist[i]->d_stat.st_mode) ? "/" : "", NULL);
+					s    = fpr_strsafehtml(name);
 					free(name);
+
+					fpr_gmtime(&tm, namelist[i]->d_stat.st_modtime);
+
+					date[0] = 0;
+					sprintf(date, "%d-%02d-%02d %02d:%02d UTC", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+
+					size[0] = 0;
+					if(FPR_S_ISDIR(namelist[i]->d_stat.st_mode)) {
+					} else if(sz < 1024) {
+						sprintf(size, "%d", (int)sz);
+					} else if(sz < 1024 * 1024) {
+						if((sz / 1024) < 10) {
+							sprintf(size, "%.1fK", (double)sz / 1024);
+						} else {
+							sprintf(size, "%dK", (int)sz / 1024);
+						}
+					} else if(sz < 1024 * 1024 * 1024) {
+						if((sz / 1024 / 1024) < 10) {
+							sprintf(size, "%.1fM", (double)sz / 1024 / 1024);
+						} else {
+							sprintf(size, "%dM", (int)sz / 1024 / 1024);
+						}
+					} else {
+						if((sz / 1024 / 1024 / 1024) < 10) {
+							sprintf(size, "%.1fG", (double)sz / 1024 / 1024 / 1024);
+						} else {
+							sprintf(size, "%dG", (int)sz / 1024 / 1024 / 1024);
+						}
+					}
 
 					fpr_strappend(&table, "		<tr>\n");
 					fpr_strappend(&table, "			<td width=\"24\">\n");
@@ -93,8 +128,12 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 					fpr_strappend(&table, strcmp(namelist[i]->d_name, "..") == 0 ? "Parent Directory" : s);
 					fpr_strappend(&table, "</a>\n");
 					fpr_strappend(&table, "			</td>\n");
-					fpr_strappend(&table, "			<td></td>\n");
-					fpr_strappend(&table, "			<td></td>\n");
+					fpr_strappend(&table, "			<td>");
+					fpr_strappend(&table, date);
+					fpr_strappend(&table, "</td>\n");
+					fpr_strappend(&table, "			<td>");
+					fpr_strappend(&table, size);
+					fpr_strappend(&table, "</td>\n");
 					fpr_strappend(&table, "		</tr>\n");
 
 					free(s);

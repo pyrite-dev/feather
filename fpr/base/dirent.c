@@ -22,7 +22,7 @@ typedef struct dir {
 FPR_DIR* fpr_opendir(const char* path) {
 	dir_t* dir = malloc(sizeof(*dir));
 #if defined(FPR_IS_WIN32)
-	char* p = fpr_strvacat(path, strchr(path, '/') != NULL ? "/" : "\\", "*", NULL);
+	char* p = fpr_strvacat(path, (path[strlen(path) - 1] == '/' || path[strlen(path) - 1] == '\\') ? "" : (strchr(path, '/') != NULL ? "/" : "\\"), "*", NULL);
 
 	if((dir->hFind = FindFirstFile(p, &dir->ffd)) == INVALID_HANDLE_VALUE) {
 		free(p);
@@ -48,7 +48,6 @@ FPR_DIR* fpr_opendir(const char* path) {
 
 struct fpr_dirent* fpr_readdir(FPR_DIR* handle) {
 	dir_t* dir = handle;
-	char*  d_fullname;
 #if defined(FPR_IS_WIN32)
 	if(!dir->next) return NULL;
 
@@ -61,15 +60,18 @@ struct fpr_dirent* fpr_readdir(FPR_DIR* handle) {
 	strcpy(dir->dirent.d_name, d->d_name);
 #endif
 
-	d_fullname = malloc(strlen(dir->path) + 1 + strlen(dir->dirent.d_name) + 1);
-	strcpy(d_fullname, dir->path);
-	strcat(d_fullname, strchr(dir->path, '/') != NULL ? "/" : "\\");
-	strcat(d_fullname, dir->dirent.d_name);
+	strcpy(dir->dirent.d_fullname, dir->path);
+	if(dir->path[strlen(dir->path) - 1] != '/' && dir->path[strlen(dir->path) - 1] != '\\') {
+#if defined(FPR_IS_WIN32)
+		strcat(dir->dirent.d_fullname, strchr(dir->path, '/') != NULL ? "/" : "\\");
+#else
+		strcat(dir->dirent.d_fullname, "/");
+#endif
+	}
+	strcat(dir->dirent.d_fullname, dir->dirent.d_name);
 
 	memset(&dir->dirent.d_stat, 0, sizeof(dir->dirent.d_stat));
-	fpr_stat(d_fullname, &dir->dirent.d_stat);
-
-	free(d_fullname);
+	fpr_stat(dir->dirent.d_fullname, &dir->dirent.d_stat);
 
 	return &dir->dirent;
 }
