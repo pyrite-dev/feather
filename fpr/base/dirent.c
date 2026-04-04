@@ -48,6 +48,7 @@ FPR_DIR* fpr_opendir(const char* path) {
 
 struct fpr_dirent* fpr_readdir(FPR_DIR* handle) {
 	dir_t* dir = handle;
+	char*  d_fullname;
 #if defined(FPR_IS_WIN32)
 	if(!dir->next) return NULL;
 
@@ -60,9 +61,15 @@ struct fpr_dirent* fpr_readdir(FPR_DIR* handle) {
 	strcpy(dir->dirent.d_name, d->d_name);
 #endif
 
-	strcpy(dir->dirent.d_fullname, dir->path);
-	strcat(dir->dirent.d_fullname, strchr(dir->path, '/') != NULL ? "/" : "\\");
-	strcat(dir->dirent.d_fullname, dir->dirent.d_name);
+	d_fullname = malloc(strlen(dir->path) + 1 + strlen(dir->dirent.d_name) + 1);
+	strcpy(d_fullname, dir->path);
+	strcat(d_fullname, strchr(dir->path, '/') != NULL ? "/" : "\\");
+	strcat(d_fullname, dir->dirent.d_name);
+
+	memset(&dir->dirent.d_stat, 0, sizeof(dir->dirent.d_stat));
+	fpr_stat(d_fullname, &dir->dirent.d_stat);
+
+	free(d_fullname);
 
 	return &dir->dirent;
 }

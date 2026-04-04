@@ -107,8 +107,8 @@ struct fpr_stat {
 typedef void FPR_DIR;
 
 struct fpr_dirent {
-	char d_name[512];
-	char d_fullname[1024];
+	char		d_name[512];
+	struct fpr_stat d_stat;
 };
 
 /* poll.c */
