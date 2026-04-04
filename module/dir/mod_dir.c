@@ -59,6 +59,10 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 		table[0] = 0;
 
 		fpr_strappend(&table, "		<tr>\n");
+		fpr_strappend(&table, "			<th width=\"24\"></th>\n");
+		fpr_strappend(&table, "			<th>Name</th>\n");
+		fpr_strappend(&table, "			<th>Last modified</th>\n");
+		fpr_strappend(&table, "			<th>Size</th>\n");
 		fpr_strappend(&table, "		</tr>\n");
 
 		res->status_code = 200;

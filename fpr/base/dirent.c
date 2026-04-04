@@ -20,7 +20,7 @@ typedef struct dir {
 FPR_DIR* fpr_opendir(const char* path) {
 	dir_t* dir = malloc(sizeof(*dir));
 #if defined(FPR_IS_WIN32)
-	char* p = fpr_strvacat(path, strchr(path, "/") != NULL ? "/" : "\\", "*", NULL);
+	char* p = fpr_strvacat(path, strchr(path, '/') != NULL ? "/" : "\\", "*", NULL);
 
 	if((dir->hFind = FindFirstFile(p, &dir->ffd)) == INVALID_HANDLE_VALUE) {
 		free(p);
@@ -47,7 +47,7 @@ struct fpr_dirent* fpr_readdir(FPR_DIR* handle) {
 #if defined(FPR_IS_WIN32)
 	if(!dir->next) return NULL;
 
-	strcpy(dir->dirent.name, dir->ffd.cFileName);
+	strcpy(dir->dirent.d_name, dir->ffd.cFileName);
 #else
 	struct dirent* d;
 
