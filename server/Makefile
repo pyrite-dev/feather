@@ -5,9 +5,14 @@ include ../config.mk
 .PHONY: all clean install
 .SUFFIXES: .c $(O)
 
-OBJS = config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) mime$(O) module$(O) context$(O) util$(O)
+OBJS = core$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) mime$(O) module$(O) context$(O) util$(O)
 OBJS += machdep_psp$(O) machdep_ps2$(O)
 OBJS += stb_ds$(O)
+
+LDARGS1 = $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../external/hsregex $(LIBDIR). -o $@
+LDARGS2 = $(LIB)fhttpd$(A) $(SSL) $(THREAD) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(REGEX) $(LIBS)
+
+DEPS = ../fpr/$(LIB)fpr$(A) ../external/hsregex/$(LIB)hsregex$(A) $(LIB)fhttpd$(A) $(RESFILE) .relink
 
 all: fhttpd$(E)
 
@@ -17,9 +22,12 @@ all: fhttpd$(E)
 .relink:
 	touch $@
 
-fhttpd$(E): main$(O) ../fpr/$(LIB)fpr$(A) ../external/hsregex/$(LIB)hsregex$(A) $(LIB)fhttpd$(A) $(RESFILE) .relink
-	$(CC) $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../external/hsregex $(LIBDIR). -o $@ main$(O) $(LIB)fhttpd$(A) $(SSL) $(THREAD) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(REGEX) $(LIBS)
+fhttpd$(E): main$(O) $(DEPS)
+	$(CC) $(LDARGS1) main$(O) $(LDARGS2)
 	$(AFTER)
+
+fhttpdmon$(E): monitor$(O) $(DEPS)
+	$(CC) $(LDARGS1) monitor$(O) $(LDARGS2) $(LINK)curses
 
 $(LIB)fhttpd$(A): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
@@ -35,6 +43,7 @@ install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/etc/fhttpd
 	mkdir -p $(DESTDIR)$(PREFIX)/include
 	cp fhttpd$(E) $(DESTDIR)$(PREFIX)/bin/
+	-cp fhttpdmon$(E) $(DESTDIR)$(PREFIX)/bin/
 	if [ ! -f "$(DESTDIR)$(PREFIX)/etc/fhttpd/fhttpd.conf" ]; then \
 		cp ../config/fhttpd.conf $(DESTDIR)$(PREFIX)/etc/fhttpd/ ; \
 	fi

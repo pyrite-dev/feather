@@ -1,16 +1,15 @@
 #include <fhttpd.h>
 
-char*	 argv0;
-fpr_bool running = fpr_true;
-char	 server[2048];
+char* argv0;
 
 int main(int argc, char** argv) {
 	int	    i;
-	const char* conf      = PREFIX "/etc/fhttpd/fhttpd.conf";
+	const char* conf      = NULL;
 	fpr_bool    daemonize = fpr_true;
 #if defined(FPR_HAS_FORK)
 	pid_t pid;
 #endif
+	int st;
 
 	argv0 = argv[0];
 
@@ -45,40 +44,9 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	setlocale(LC_ALL, "");
-
-#if defined(FPR_IS_PSP)
-	psp_init();
-#elif defined(FPR_IS_PS2)
-	ps2_init();
-#endif
-
-	fpr_init();
-
-	config_init();
-
-	module_init();
-
-	if(!config_parse(conf)) EXIT(1);
-
-	log_init();
-	if(!daemonize) log_nofile();
-
-	log_srv("This is Feather HTTPd%s, version %s%s",
-#if defined(MULTITHREAD)
-		" (multithread)",
-#else
-		"",
-#endif
-		FR_VERSION,
-#if defined(HAS_SSL)
-		" (with " OPENSSL_VERSION_TEXT ")"
-#else
-		""
-#endif
-	);
-
-	if(!server_init()) EXIT(1);
+	if((st = fhttpd_init(conf, daemonize)) != 0) {
+		EXIT(st);
+	}
 
 #if defined(FPR_HAS_FORK)
 	if(daemonize && (pid = fork()) != 0) {
@@ -93,15 +61,9 @@ int main(int argc, char** argv) {
 	}
 #endif
 
-	log_srv("HTTPd is on the air");
+	fhttpd_loop();
 
-	server_loop();
-
-	server_close();
-	config_close();
-	log_close();
-
-	fpr_uninit();
+	fhttpd_uninit();
 
 	EXIT(0);
 

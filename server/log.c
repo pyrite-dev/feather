@@ -6,7 +6,7 @@
 #include <debug.h>
 #endif
 
-static FPR_FILE* log_file = NULL;
+FPR_FILE* log_file = NULL;
 
 void log_init(void) {
 	log_file = fpr_fopen(config_logfile, "a");

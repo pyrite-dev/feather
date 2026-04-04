@@ -141,16 +141,16 @@ void server_close(void) {
 	for(i = 0; i < Workers; i++) {
 		int j;
 
-		for(j = 0; j < arrlen(server_workers[i].clients); j++) {
-			kill_client(server_workers[i].clients[j]);
-		}
-		arrfree(server_workers[i].clients);
-
 		fpr_mutex_lock(server_workers[i].mutex);
 		server_workers[i].shutdown = fpr_true;
 		fpr_mutex_unlock(server_workers[i].mutex);
 
 		fpr_thread_join(server_workers[i].thread);
+
+		for(j = 0; j < arrlen(server_workers[i].clients); j++) {
+			kill_client(server_workers[i].clients[j]);
+		}
+		arrfree(server_workers[i].clients);
 
 		fpr_mutex_destroy(server_workers[i].mutex);
 	}
@@ -350,7 +350,9 @@ static void thread_main(void* param) {
 				continue;
 			} else if(socket_main(c, NULL, &pfds[i])) {
 				continue;
-			} else {
+			}
+
+			if(pfds[i].revents & (FPR_POLLIN | FPR_POLLOUT)) {
 				c->last = time(NULL);
 			}
 		}

@@ -278,9 +278,15 @@ struct worker {
 };
 
 /* main.c */
-extern char*	argv0;
+extern char* argv0;
+
+/* core.c */
 extern fpr_bool running;
 extern char	server[];
+
+int  fhttpd_init(const char* config, fpr_bool daemonize);
+void fhttpd_loop(void);
+void fhttpd_uninit(void);
 
 /* config.c */
 extern char*	    config_serverroot;
@@ -306,6 +312,8 @@ void   arg_free(char** args);
 int    arg_len(char** args);
 
 /* log.c */
+extern FPR_FILE* log_file;
+
 void log_init(void);
 void log_srv(const char* fmt, ...);
 void log_srv2(const char* fmt, ...);
