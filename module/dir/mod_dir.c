@@ -55,6 +55,9 @@ static int sort_dir(const struct fpr_dirent** d1, const struct fpr_dirent** d2) 
 	fpr_stat((*d1)->d_fullname, &s1);
 	fpr_stat((*d2)->d_fullname, &s2);
 
+	if(FPR_S_ISDIR(s1.st_mode) && !FPR_S_ISDIR(s2.st_mode)) return -1;
+	if(!FPR_S_ISDIR(s1.st_mode) && FPR_S_ISDIR(s2.st_mode)) return 1;
+
 	return fpr_alphasort(d1, d2);
 }
 
@@ -84,7 +87,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 					char* s = fpr_strsafehtml(namelist[i]->d_name);
 
 					fpr_strappend(&table, "		<tr>\n");
-					fpr_strappend(&table, "			<td widtd=\"24\">\n");
+					fpr_strappend(&table, "			<td width=\"24\">\n");
 					fpr_strappend(&table, "			</td>\n");
 					fpr_strappend(&table, "			<td>\n");
 					fpr_strappend(&table, "				<a href=\"");
