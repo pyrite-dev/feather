@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <time.h>
 
 #if defined(FPR_IS_UNIX)
 #include <signal.h>
