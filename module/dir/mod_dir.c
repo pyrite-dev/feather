@@ -84,6 +84,57 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 					char	      size[16];
 					struct fpr_tm tm;
 					fpr_size_t    sz = namelist[i]->d_stat.st_size;
+					char*	      tmp;
+					char*	      img = NULL;
+					char*	      img_esc;
+					char*	      ext = strrchr(namelist[i]->d_name, '.');
+
+					tmp = malloc(16 + strlen(namelist[i]->d_name) + 1);
+
+					sprintf(tmp, "Icon_%s", namelist[i]->d_name);
+					if(img == NULL) img = context->config_lookup(context, tmp);
+
+					if(ext != NULL) {
+						sprintf(tmp, "Icon_%s", ext);
+						if(img == NULL) img = context->config_lookup(context, tmp);
+					}
+
+					if(FPR_S_ISDIR(namelist[i]->d_stat.st_mode)) {
+						if(img == NULL) img = context->config_lookup(context, "Icon_^^DIRECTORY^^");
+					}
+
+					if(img == NULL) {
+						int    len;
+						char** arr = context->config_lookup_array(context, "IconMatch", &len);
+						int    j;
+
+						if(arr != NULL) {
+							for(j = 0; j < len; j += 2) {
+								if(fpr_wildcard(arr[j + 0], namelist[i]->d_name)) {
+									img = arr[j + 1];
+									break;
+								}
+							}
+						}
+					}
+
+					if(img == NULL && ext != NULL) {
+						int    len;
+						char** arr = context->config_lookup_array(context, "IconType", &len);
+						int    j;
+						char*  mime = context->stringkv_lookup(context->mime_types, ext + 1);
+
+						if(arr != NULL && mime != NULL) {
+							for(j = 0; j < len; j += 2) {
+								if(fpr_wildcard(arr[j + 0], mime)) {
+									img = arr[j + 1];
+									break;
+								}
+							}
+						}
+					}
+
+					if(img != NULL) img_esc = fpr_strsafehtml(img);
 
 					name = fpr_strvacat(namelist[i]->d_name, FPR_S_ISDIR(namelist[i]->d_stat.st_mode) ? "/" : "", NULL);
 					s    = fpr_strsafehtml(name);
@@ -120,6 +171,11 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 					fpr_strappend(&table, "		<tr>\n");
 					fpr_strappend(&table, "			<td width=\"24\">\n");
+					if(img != NULL) {
+						fpr_strappend(&table, "				<img src=\"");
+						fpr_strappend(&table, img_esc);
+						fpr_strappend(&table, "\">\n");
+					}
 					fpr_strappend(&table, "			</td>\n");
 					fpr_strappend(&table, "			<td>\n");
 					fpr_strappend(&table, "				<a href=\"");
@@ -137,6 +193,9 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 					fpr_strappend(&table, "		</tr>\n");
 
 					free(s);
+					if(img != NULL) free(img_esc);
+
+					free(tmp);
 				}
 				free(namelist[i]);
 			}
@@ -192,6 +251,40 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 		}
 
 		return FR_MODULE_OK;
+	} else if(strcmp(argv[0], "AddIcon") == 0) {
+		if(argc >= 3) {
+			int i;
+
+			for(i = 2; i < argc; i++) {
+				if(strchr(argv[i], '*') != NULL || strchr(argv[i], '?') != NULL) {
+					context->stringarraykv_push(context->config_current->arraykv, "IconMatch", argv[i]);
+					context->stringarraykv_push(context->config_current->arraykv, "IconMatch", argv[1]);
+				} else {
+					char* name = malloc(16 + strlen(argv[i]) + 1);
+
+					sprintf(name, "Icon_%s", argv[i]);
+					context->stringkv_set(&context->config_current->kv, name, argv[1]);
+					free(name);
+				}
+			}
+		} else {
+			fprintf(stderr, "%s: %s: AddIcon takes 2 arguments or more\n", context->argv0, context->config_path);
+
+			return FR_MODULE_ERROR;
+		}
+	} else if(strcmp(argv[0], "AddIconByType") == 0) {
+		if(argc >= 3) {
+			int i;
+
+			for(i = 2; i < argc; i++) {
+				context->stringarraykv_push(context->config_current->arraykv, "IconType", argv[i]);
+				context->stringarraykv_push(context->config_current->arraykv, "IconType", argv[1]);
+			}
+		} else {
+			fprintf(stderr, "%s: %s: AddIconByType takes 2 arguments or more\n", context->argv0, context->config_path);
+
+			return FR_MODULE_ERROR;
+		}
 	}
 
 	return FR_MODULE_DECLINE;
