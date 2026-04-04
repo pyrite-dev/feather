@@ -332,8 +332,8 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 
 		if(send_param(fd, "REQUEST_METHOD", req->method) < 0) goto error;
 		if(send_param(fd, "PATH_INFO", strlen(req->path_info) == 0 ? req->path : req->path_info) < 0) goto error;
-		if(send_param(fd, "PATH_TRANSLATED", req->path_translated4) < 0) goto error;
-		if(send_param(fd, "SCRIPT_NAME", req->path_virtual3) < 0) goto error;
+		if(send_param(fd, "PATH_TRANSLATED", req->path_translated2) < 0) goto error;
+		if(send_param(fd, "SCRIPT_NAME", req->path_virtual2) < 0) goto error;
 		if(strlen(req->query) > 0 && send_param(fd, "QUERY_STRING", req->query) < 0) goto error;
 
 		if((h = context->request_get_header(req, "content-type")) != NULL && send_param(fd, "CONTENT_TYPE", h) < 0) {
@@ -380,7 +380,7 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 		if(send_param(fd, "REDIRECT_STATUS", buf) < 0) goto error;
 
 		if(send_param(fd, "REDIRECT_URL", req->path_virtual2) < 0) goto error;
-		if(send_param(fd, "SCRIPT_FILENAME", req->path_translated3) < 0) goto error;
+		if(send_param(fd, "SCRIPT_FILENAME", req->path_translated2) < 0) goto error;
 
 		h = fpr_strvacat(req->path_raw, strlen(req->query) > 0 ? "?" : "", req->query, NULL);
 		if(send_param(fd, "REQUEST_URI", h) < 0) {
@@ -524,10 +524,10 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
-	if(fpr_stat(req->path_translated3, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
+	if(fpr_stat(req->path_translated2, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
 
-	if(strstr(req->handler3, "fcgi|") == req->handler3) {
-		return connect_fcgi(context, req, res, req->handler3 + 5);
+	if(strstr(req->handler2, "fcgi|") == req->handler2) {
+		return connect_fcgi(context, req, res, req->handler2 + 5);
 	}
 
 	return FR_MODULE_DECLINE;

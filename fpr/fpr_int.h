@@ -11,15 +11,15 @@
 #include <stdarg.h>
 
 #if defined(FPR_IS_UNIX)
-#include <unistd.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <dlfcn.h>
 #endif
 
-#if defined(FPR_IS_PSP)
+#if defined(FPR_IS_UNIX) || defined(FPR_IS_PSP) || defined(FPR_IS_PS2)
 #include <unistd.h>
+#include <dirent.h>
 #endif
 
 /* thread section */

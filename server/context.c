@@ -103,7 +103,7 @@ static void context_match_config(fr_context_t* context, fr_request_t* req, fr_co
 
 			re.re_nsub = 1;
 
-			if(hsregexec(&re, req->path_translated3, 1, &match, 0) == 0) {
+			if(hsregexec(&re, req->path_translated2, 1, &match, 0) == 0) {
 				arrput(context->config_matches, config->children[i]);
 			}
 

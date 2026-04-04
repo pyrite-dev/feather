@@ -83,28 +83,23 @@ struct fr_module {
 	void* reserved10;
 };
 
-/* read path_translated if you want to read "alternative" path or "normal" path, which is most likely what you want
- * read path_translated2 if you want to read "normal" path (e.g. Script (not executable) Action wants to run)
- *
- * AddHandler handlers are decided from path_translated2
+/* AddHandler handlers are decided from path_translated2
  */
 struct fr_request {
 	char	       method[MAX_METHOD_LENGTH + 1];
 	char	       path[MAX_PATH_LENGTH + 1];		  /* decoded HTTP path, do not modify */
 	char	       path_translated[MAX_PATH_LENGTH + 1];	  /* physical path */
 	char	       path_translated2[MAX_PATH_LENGTH + 1];	  /* physical path, but calculated from path_virtual2 */
-	char	       path_translated3[MAX_PATH_LENGTH + 1];	  /* physical path, but calculated from path_virtual3 */
-	char	       path_translated4[MAX_PATH_LENGTH + 1];	  /* physical path, but calculated from path_virtual4 */
 	char	       path_translated_info[MAX_PATH_LENGTH + 1]; /* physical path, but calculated from path_info */
 	char	       path_raw[MAX_PATH_LENGTH + 1];		  /* raw HTTP path */
 	char	       path_virtual[MAX_PATH_LENGTH + 1];	  /* virtual path */
-	char	       path_virtual2[MAX_PATH_LENGTH + 1];	  /* virtual path */
-	char	       path_virtual3[MAX_PATH_LENGTH + 1];	  /* path_virtual without path_info */
-	char	       path_virtual4[MAX_PATH_LENGTH + 1];	  /* path_virtual2 without path_info */
+	char	       path_virtual2[MAX_PATH_LENGTH + 1];	  /* path_virtual without path_info */
 	char	       path_info[MAX_PATH_LENGTH + 1];
 	char	       query[MAX_QUERY_LENGTH + 1];
 	char	       version[MAX_VERSION_LENGTH + 1];
 	fr_stringkv_t* headers;
+
+	fr_stringkv_t* params;
 
 	char realip[256];
 
@@ -112,7 +107,7 @@ struct fr_request {
 	int   port;
 
 	char handler[MAX_HANDLER_LENGTH + 1];
-	char handler3[MAX_HANDLER_LENGTH + 1]; /* handler, but calculated from path_translated3 */
+	char handler2[MAX_HANDLER_LENGTH + 1]; /* handler, but calculated from path_translated2 */
 
 	void* body;
 	int   body_seek;

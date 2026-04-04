@@ -9,6 +9,9 @@ void http_init(client_t* c) {
 	sh_new_strdup(c->request.headers);
 	shdefault(c->request.headers, NULL);
 
+	sh_new_strdup(c->request.params);
+	shdefault(c->request.params, NULL);
+
 	c->request.body	     = NULL;
 	c->request.body_seek = 0;
 	c->request.body_size = -1;
@@ -35,6 +38,11 @@ void http_end(client_t* c) {
 		if(c->request.headers[i].value != NULL) free(c->request.headers[i].value);
 	}
 	shfree(c->request.headers);
+
+	for(i = 0; i < shlen(c->request.params); i++) {
+		if(c->request.params[i].value != NULL) free(c->request.params[i].value);
+	}
+	shfree(c->request.params);
 
 	if(c->request.server_name != NULL) {
 		free(c->request.server_name);
@@ -265,7 +273,6 @@ void http_req(client_t* c) {
 	int		first = 1;
 	struct fpr_stat st;
 	char		path1[MAX_PATH_LENGTH + 1];
-	char		path2[MAX_PATH_LENGTH + 1];
 	int		i;
 
 	fpr_gethostname(hostname, 1024);
@@ -305,8 +312,6 @@ void http_req(client_t* c) {
 #define PROCESS_PATH \
 	PATH_THING(path_translated, path_virtual); \
 	PATH_THING(path_translated2, path_virtual2); \
-	PATH_THING(path_translated3, path_virtual3); \
-	PATH_THING(path_translated4, path_virtual4); \
 	if(strlen(c->request.path_info) > 0) { \
 		PATH_THING(path_translated_info, path_info); \
 	} \
@@ -326,11 +331,9 @@ void http_req(client_t* c) {
 \
 		proc_hooks(module_rewrite_hooks, c, &context, &loop); \
 \
-		strcpy(c->request.path_virtual3, c->request.path_virtual); \
-		strcpy(c->request.path_virtual4, c->request.path_virtual2); \
+		strcpy(c->request.path_virtual2, c->request.path_virtual); \
 \
-		STRIP_PATH_INFO(path_virtual3); \
-		STRIP_PATH_INFO(path_virtual4); \
+		STRIP_PATH_INFO(path_virtual2); \
 	} while(loop);
 
 	for(i = 0; i < 2; i++) {
@@ -342,7 +345,6 @@ void http_req(client_t* c) {
 				char*	 n = NULL;
 
 				strcpy(path1, c->request.path_virtual);
-				strcpy(path2, c->request.path_virtual2);
 				while((cond = ((fpr_stat(c->request.path_translated, &st) != 0 || FPR_S_ISDIR(st.st_mode)) && strlen(c->request.path_virtual) > 1))) {
 					n = strrchr(c->request.path_virtual, '/');
 
@@ -352,8 +354,6 @@ void http_req(client_t* c) {
 
 					n[0] = 0;
 
-					strcpy(c->request.path_virtual3, c->request.path_virtual);
-
 					REWRITE;
 				}
 
@@ -362,7 +362,6 @@ void http_req(client_t* c) {
 				}
 
 				strcpy(c->request.path_virtual, path1);
-				strcpy(c->request.path_virtual2, path2);
 			}
 		}
 	}
@@ -573,9 +572,9 @@ void http_req_assume_handler(fr_request_t* req, fr_context_t* context) {
 
 	if((n = context->config_lookup(context, "Handler")) == NULL) {
 		http_assume_handler(req->handler, req->path_translated, context);
-		http_assume_handler(req->handler3, req->path_translated3, context);
+		http_assume_handler(req->handler2, req->path_translated2, context);
 	} else {
 		strcpy(req->handler, n);
-		strcpy(req->handler3, n);
+		strcpy(req->handler2, n);
 	}
 }

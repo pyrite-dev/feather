@@ -15,6 +15,15 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
 	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') {
+		char* p = fpr_strvacat(req->path, "/", NULL);
+
+		res->status_code = 301;
+		strcpy(res->status_text, "Moved Permanently");
+
+		context->response_set_header(res, "Location", p);
+
+		free(p);
+
 		return FR_MODULE_DECLINE;
 	}
 
@@ -42,19 +51,45 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	struct fpr_stat st;
 
-	(void)res;
+	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') return FR_MODULE_DECLINE;
 
-	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') {
-		char* p = fpr_strvacat(req->path, "/", NULL);
+	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode)) {
+		char* table = malloc(1);
 
-		res->status_code = 301;
-		strcpy(res->status_text, "Moved Permanently");
+		table[0] = 0;
 
-		context->response_set_header(res, "Location", p);
+		fpr_strappend(&table, "		<tr>\n");
+		fpr_strappend(&table, "		</tr>\n");
 
-		free(p);
+		res->status_code = 200;
+		strcpy(res->status_text, "OK");
 
-		return FR_MODULE_DECLINE;
+		context->response_set_header(res, "Content-Type", "text/html");
+
+		/* clang-format off */
+		res->body = fpr_strvacat(
+			"<html>\n"									/**/
+			"	<head>\n",								/**/
+			"		<title>Index of ", req->path, "</title>\n" 			/**/
+			"	</head>\n"								/**/
+			"	<body>\n"								/**/
+			"		<h1>Index of ", req->path, "</h1>\n"				/**/
+			"		<hr>\n"								/**/
+			"		<table border=\"0\">\n", /**/
+			table, /**/
+			"		</table>\n" /**/
+			"		<hr>\n"							/**/
+			"		<i>", context->response_get_header(res, "Server"), "</i>\n",	/**/
+			"	</body>\n"								/**/
+			"</html>\n",									/**/
+			NULL										/**/
+		);
+		/* clang-format on */
+		res->body_size = strlen(res->body);
+
+		context->response_set_header(res, "Content-Type", "text/html");
+
+		return FR_MODULE_OK;
 	}
 
 	return FR_MODULE_DECLINE;
@@ -82,7 +117,7 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 
 static void register_stuff(fr_context_t* context) {
 	context->register_hook(hook_rewrite, FR_MODULE_HOOK_REWRITE);
-	context->register_hook(hook, FR_MODULE_HOOK_MIDDLE);
+	context->register_hook(hook, FR_MODULE_HOOK_LAST);
 }
 
 FR_MODULE_DATA fr_module_t dir_module = {

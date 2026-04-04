@@ -17,7 +17,7 @@ static void cleanup(fr_response_t* res) {
 	fpr_process_destroy(res->body_opaque);
 }
 
-static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
+static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* execute) {
 	char** envs = NULL;
 	int    i;
 	void*  proc;
@@ -58,10 +58,10 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 		arrput(envs, s);
 	}
 
-	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated4, NULL);
+	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated2, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual3, NULL);
+	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual2, NULL);
 	arrput(envs, s);
 
 	if(strlen(req->query) > 0) {
@@ -111,7 +111,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = fpr_strvacat("REDIRECT_URL=", req->path_virtual2, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_FILENAME=", req->path_translated3, NULL);
+	s = fpr_strvacat("SCRIPT_FILENAME=", req->path_translated2, NULL);
 	arrput(envs, s);
 
 	s = fpr_strvacat("REQUEST_URI=", req->path_raw, strlen(req->query) > 0 ? "?" : "", req->query, NULL);
@@ -129,7 +129,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = NULL;
 	arrput(envs, s);
 
-	if((proc = fpr_process_create(req->path_translated3, envs)) == NULL) {
+	if((proc = fpr_process_create(execute, envs)) == NULL) {
 		for(i = 0; i < arrlen(envs) - 1; i++) free(envs[i]);
 		arrfree(envs);
 
@@ -231,11 +231,16 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
-	if(fpr_stat(req->path_translated3, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
-	if(fpr_stat(req->path_translated4, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
+	if(fpr_stat(req->path_translated2, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
 
-	if(strcmp(req->handler3, "cgi-script") == 0) {
-		return create_cgi(context, req, res);
+	if(strcmp(req->handler2, "cgi-script") == 0) {
+		return create_cgi(context, req, res, req->path_translated2);
+	}
+
+	if(strstr(req->handler2, "cgi|") == req->handler2) {
+		char* s = req->handler2 + 4;
+
+		return create_cgi(context, req, res, strlen(s) == 0 ? req->path_translated2 : s);
 	}
 
 	return FR_MODULE_DECLINE;

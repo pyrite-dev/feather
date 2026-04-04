@@ -103,6 +103,13 @@ struct fpr_stat {
 	int  st_mode;
 };
 
+/* dirent.c definitions */
+typedef void FPR_DIR;
+
+struct fpr_dirent {
+	char d_name[512];
+};
+
 /* poll.c */
 int fpr_poll(struct fpr_pollfd* fds, int nfds, int timeout);
 
@@ -136,6 +143,7 @@ struct fpr_sockaddr* fpr_inet_addr(const char* addr, int* len);
 /* string.c */
 char* fpr_strdup(const char* str);
 char* fpr_strvacat(const char* a, ...);
+void  fpr_strappend(char** dst, const char* src);
 
 /* dlfcn.c */
 void* fpr_dlopen(const char* path);
@@ -154,7 +162,7 @@ void* fpr_thread_create(void (*entry)(void* param), void* param);
 void  fpr_thread_join(void* handle);
 void  fpr_thread_destroy(void* handle);
 
-/* mutex */
+/* mutex.c */
 void* fpr_mutex_create(void);
 void  fpr_mutex_lock(void* handle);
 void  fpr_mutex_unlock(void* handle);
@@ -166,5 +174,10 @@ void  fpr_process_close(void* handle);
 int   fpr_process_write(void* handle, const void* data, int len);
 int   fpr_process_read(void* handle, void* data, int len);
 void  fpr_process_destroy(void* handle);
+
+/* dirent.c */
+FPR_DIR*	   fpr_opendir(const char* path);
+struct fpr_dirent* fpr_readdir(FPR_DIR* handle);
+void		   fpr_closedir(FPR_DIR* handle);
 
 #endif

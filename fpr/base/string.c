@@ -33,3 +33,10 @@ char* fpr_strvacat(const char* a, ...) {
 
 	return r;
 }
+
+void fpr_strappend(char** dst, const char* src) {
+	char* n = fpr_strvacat(*dst, src, NULL);
+
+	free(*dst);
+	*dst = n;
+}

@@ -1,19 +1,18 @@
 #define _FHTTPD
 #include <fhttpd.h>
 
-static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
-	char* p = fpr_strvacat("Action_", req->handler, NULL);
+static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
+	char* p = fpr_strvacat("Action_", req->handler2, NULL);
 	char* s = context->config_lookup(context, p);
 
 	(void)res;
 
-	if(s != NULL && strcmp(req->path_virtual, s) != 0) { /* this is to prevent infinite loop */
-		free(p);
-		strcpy(req->path_virtual, s);
-		return FR_MODULE_LOOP;
-	}
+	if(s != NULL) {
+		strcpy(req->handler, "cgi|");
+		strcat(req->handler, s);
 
-	free(p);
+		strcpy(req->handler2, req->handler);
+	}
 
 	return FR_MODULE_DECLINE;
 }
@@ -39,7 +38,7 @@ static int directive(fr_context_t* context, int argc, char** argv) {
 }
 
 static void register_stuff(fr_context_t* context) {
-	context->register_hook(hook, FR_MODULE_HOOK_REWRITE);
+	context->register_hook(hook_rewrite, FR_MODULE_HOOK_REWRITE);
 }
 
 FR_MODULE_DATA fr_module_t actions_module = {

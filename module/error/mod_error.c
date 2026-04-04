@@ -31,10 +31,8 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 		for(i = 0; i < sizeof(errors) / sizeof(errors[0]); i++) {
 			if(errors[i].key == res->status_code) {
-				char* doc;
-
 				/* clang-format off */
-				doc = fpr_strvacat(
+				res->body = fpr_strvacat(
 					"<html>\n"									/**/
 					"	<head>\n",								/**/
 					"		<title>", errors[i].value, "</title>\n" 			/**/
@@ -48,9 +46,9 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 					NULL										/**/
 				);
 				/* clang-format on */
+				res->body_size = strlen(res->body);
 
-				res->body      = doc;
-				res->body_size = strlen(doc);
+				context->response_set_header(res, "Content-Type", "text/html");
 
 				return FR_MODULE_OK;
 			}
