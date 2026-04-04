@@ -228,6 +228,8 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 		/* clang-format on */
 		res->body_size = strlen(res->body);
 
+		free(table);
+
 		context->response_set_header(res, "Content-Type", "text/html");
 
 		return FR_MODULE_OK;
