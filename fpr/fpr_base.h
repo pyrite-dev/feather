@@ -108,6 +108,7 @@ typedef void FPR_DIR;
 
 struct fpr_dirent {
 	char d_name[512];
+	char d_fullname[1024];
 };
 
 /* poll.c */
@@ -144,6 +145,7 @@ struct fpr_sockaddr* fpr_inet_addr(const char* addr, int* len);
 char* fpr_strdup(const char* str);
 char* fpr_strvacat(const char* a, ...);
 void  fpr_strappend(char** dst, const char* src);
+char* fpr_strsafehtml(const char* s);
 
 /* dlfcn.c */
 void* fpr_dlopen(const char* path);
@@ -179,5 +181,7 @@ void  fpr_process_destroy(void* handle);
 FPR_DIR*	   fpr_opendir(const char* path);
 struct fpr_dirent* fpr_readdir(FPR_DIR* handle);
 void		   fpr_closedir(FPR_DIR* handle);
+int		   fpr_scandir(const char* dirname, struct fpr_dirent*** namelist, int (*selectfn)(const struct fpr_dirent* d), int (*compar)(const struct fpr_dirent** d1, const struct fpr_dirent** d2));
+int		   fpr_alphasort(const struct fpr_dirent** d1, const struct fpr_dirent** d2);
 
 #endif

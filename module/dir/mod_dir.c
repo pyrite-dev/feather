@@ -48,13 +48,25 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 	return FR_MODULE_DECLINE;
 }
 
+static int sort_dir(const struct fpr_dirent** d1, const struct fpr_dirent** d2) {
+	struct fpr_stat s1;
+	struct fpr_stat s2;
+
+	fpr_stat((*d1)->d_fullname, &s1);
+	fpr_stat((*d2)->d_fullname, &s2);
+
+	return fpr_alphasort(d1, d2);
+}
+
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	struct fpr_stat st;
 
 	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') return FR_MODULE_DECLINE;
 
 	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode)) {
-		char* table = malloc(1);
+		char*		    table = malloc(1);
+		struct fpr_dirent** namelist;
+		int		    n;
 
 		table[0] = 0;
 
@@ -64,6 +76,33 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 		fpr_strappend(&table, "			<th>Last modified</th>\n");
 		fpr_strappend(&table, "			<th>Size</th>\n");
 		fpr_strappend(&table, "		</tr>\n");
+
+		if((n = fpr_scandir(req->path_translated, &namelist, NULL, sort_dir)) >= 0) {
+			int i;
+			for(i = 0; i < n; i++) {
+				if(strcmp(namelist[i]->d_name, ".") != 0) {
+					char* s = fpr_strsafehtml(namelist[i]->d_name);
+
+					fpr_strappend(&table, "		<tr>\n");
+					fpr_strappend(&table, "			<td widtd=\"24\">\n");
+					fpr_strappend(&table, "			</td>\n");
+					fpr_strappend(&table, "			<td>\n");
+					fpr_strappend(&table, "				<a href=\"");
+					fpr_strappend(&table, s);
+					fpr_strappend(&table, "\">");
+					fpr_strappend(&table, strcmp(namelist[i]->d_name, "..") == 0 ? "Parent Directory" : s);
+					fpr_strappend(&table, "</a>\n");
+					fpr_strappend(&table, "			</td>\n");
+					fpr_strappend(&table, "			<td></td>\n");
+					fpr_strappend(&table, "			<td></td>\n");
+					fpr_strappend(&table, "		</tr>\n");
+
+					free(s);
+				}
+				free(namelist[i]);
+			}
+			free(namelist);
+		}
 
 		res->status_code = 200;
 		strcpy(res->status_text, "OK");

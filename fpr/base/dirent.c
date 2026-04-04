@@ -7,12 +7,14 @@ typedef struct dir {
 	HANDLE		hFind;
 	WIN32_FIND_DATA ffd;
 
+	char*		  path;
 	struct fpr_dirent dirent;
 } dir_t;
 #else
 typedef struct dir {
 	DIR* dir;
 
+	char*		  path;
 	struct fpr_dirent dirent;
 } dir_t;
 #endif
@@ -39,6 +41,8 @@ FPR_DIR* fpr_opendir(const char* path) {
 	}
 #endif
 
+	dir->path = fpr_strdup(path);
+
 	return (FPR_DIR*)dir;
 }
 
@@ -56,6 +60,10 @@ struct fpr_dirent* fpr_readdir(FPR_DIR* handle) {
 	strcpy(dir->dirent.d_name, d->d_name);
 #endif
 
+	strcpy(dir->dirent.d_fullname, dir->path);
+	strcat(dir->dirent.d_fullname, strchr(dir->path, '/') != NULL ? "/" : "\\");
+	strcat(dir->dirent.d_fullname, dir->dirent.d_name);
+
 	return &dir->dirent;
 }
 
@@ -67,5 +75,42 @@ void fpr_closedir(FPR_DIR* handle) {
 	closedir(dir->dir);
 #endif
 
+	free(dir->path);
+
 	free(dir);
+}
+
+int fpr_scandir(const char* dirname, struct fpr_dirent*** namelist, int (*selectfn)(const struct fpr_dirent* d), int (*compar)(const struct fpr_dirent** d1, const struct fpr_dirent** d2)) {
+	FPR_DIR*	   dir = fpr_opendir(dirname);
+	struct fpr_dirent* d;
+	int		   n  = 0;
+	int		   n2 = 0;
+	if(dir == NULL) return -1;
+
+	while((d = fpr_readdir(dir)) != NULL) n++;
+
+	fpr_closedir(dir);
+
+	if((dir = fpr_opendir(dirname)) == NULL) return -1;
+
+	*namelist = malloc(sizeof(**namelist) * n);
+
+	while(n2 < n && (d = fpr_readdir(dir)) != NULL) {
+		if(selectfn != NULL && !selectfn(d)) continue;
+
+		(*namelist)[n2] = malloc(sizeof(***namelist));
+		memcpy((*namelist)[n2], d, sizeof(*d));
+
+		n2++;
+	}
+
+	fpr_closedir(dir);
+
+	qsort(*namelist, n2, sizeof(**namelist), (int (*)(const void* d1, const void* d2))compar);
+
+	return n2;
+}
+
+int fpr_alphasort(const struct fpr_dirent** d1, const struct fpr_dirent** d2) {
+	return strcmp((*d1)->d_name, (*d2)->d_name);
 }

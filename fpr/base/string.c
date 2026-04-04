@@ -40,3 +40,34 @@ void fpr_strappend(char** dst, const char* src) {
 	free(*dst);
 	*dst = n;
 }
+
+char* fpr_strsafehtml(const char* s) {
+	char* r = malloc(strlen(s) * 5 + 1);
+	int   i;
+	int   n = 0;
+
+	for(i = 0; s[i] != 0; i++) {
+		if(s[i] == '&') {
+			r[n++] = '&';
+			r[n++] = 'a';
+			r[n++] = 'm';
+			r[n++] = 'p';
+			r[n++] = ';';
+		} else if(s[i] == '<') {
+			r[n++] = '&';
+			r[n++] = 'l';
+			r[n++] = 't';
+			r[n++] = ';';
+		} else if(s[i] == '>') {
+			r[n++] = '&';
+			r[n++] = 'g';
+			r[n++] = 't';
+			r[n++] = ';';
+		} else {
+			r[n++] = s[i];
+		}
+	}
+	r[n] = 0;
+
+	return r;
+}
