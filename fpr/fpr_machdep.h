@@ -1,7 +1,7 @@
 #ifndef __FPR_MACHDEP_H__
 #define __FPR_MACHDEP_H__
 
-#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__)
+#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__) || defined(__sun__)
 #define FPR_IS_UNIX
 #elif defined(_WIN32)
 #define FPR_IS_WIN32
@@ -31,7 +31,7 @@
 #define FPR_HAS_IPV6
 #endif
 
-#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__)
+#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__) || defined(__sun__)
 #define FPR_HAS_IPV6
 #define FPR_HAS_POLL
 #define FPR_HAS_FORK
