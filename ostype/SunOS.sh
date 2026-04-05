@@ -1,4 +1,4 @@
 #!/bin/sh
 CC="gcc"
 
-FPR="$FPR -lsocket"
+FPR="$FPR -lsocket -lpthread"

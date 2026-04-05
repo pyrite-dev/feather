@@ -10,7 +10,7 @@ OBJS += machdep_psp$(O) machdep_ps2$(O)
 OBJS += stb_ds$(O)
 
 LDARGS1 = $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../external/hsregex $(LIBDIR). -o $@
-LDARGS2 = $(LIB)fhttpd$(A) $(SSL) $(THREAD) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(REGEX) $(LIBS)
+LDARGS2 = $(LIB)fhttpd$(A) $(SSL) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(REGEX) $(LIBS)
 
 DEPS = ../fpr/$(LIB)fpr$(A) ../external/hsregex/$(LIB)hsregex$(A) $(LIB)fhttpd$(A) $(RESFILE) .relink
 
