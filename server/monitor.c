@@ -60,6 +60,8 @@ static void draw_info(void) {
 		conn += arrlen(server_workers[i].clients);
 		fpr_mutex_unlock(server_workers[i].mutex);
 	}
+#else
+	conn = hmlen(server_clients);
 #endif
 	sprintf(buf, "%d", conn);
 	label(info, y++, x, "Connection In Use", buf);

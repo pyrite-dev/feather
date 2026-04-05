@@ -158,10 +158,12 @@ void server_close(void) {
 
 	fpr_mutex_destroy(global_mutex);
 #else
-	for(i = 0; i < arrlen(server_clients); i++) {
+	for(i = 0; i < hmlen(server_clients); i++) {
 		kill_client(server_clients[i].value);
+
+		i = -1;
 	}
-	arrfree(server_clients);
+	hmfree(server_clients);
 	server_clients = NULL;
 #endif
 }
