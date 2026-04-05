@@ -58,6 +58,7 @@ pipeline {
 						sh("./configure --prefix=C:/Feather --target=Windows --enable-mods-shared=all")
 						sh("echo CFLAGS+=-I`pwd`/openssl/include >> config.mk")
 						sh("echo LDFLAGS+=-L`pwd`/openssl/lib/mingw/x64 >> config.mk")
+						sh("echo SSL+=-lcrypt32 >> config.mk")
 						sh("make CC=x86_64-w64-mingw32-gcc AR=x86_64-w64-mingw32-ar RC=x86_64-w64-mingw32-windres -j4 package/install.exe")
 						sh("mv package/install.exe install-win64.exe")
 						archiveArtifacts("install-win64.exe")
