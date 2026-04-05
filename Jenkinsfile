@@ -15,7 +15,7 @@ pipeline {
 						sh("make -j4")
 					}
 				}
-				stage("Build for Windows 32-bit") {
+				stage("Build for Windows 32-bit (Legacy)") {
 					agent {
 						label "built-in"
 					}
@@ -28,6 +28,25 @@ pipeline {
 						sh("make distclean")
 						sh("./configure --prefix=C:/Feather --target=Watcom --disable-ssl --enable-mods-shared=all")
 						sh("make -j4 package/install.exe")
+						sh("mv package/install.exe install-win32-legacy.exe")
+						archiveArtifacts("install-win32-legacy.exe")
+					}
+				}
+				stage("Build for Windows 32-bit") {
+					agent {
+						label "built-in"
+					}
+					steps {
+						sh("make distclean")
+						sh("./configure --prefix=C:/Feather --target=Windows --enable-mods-shared=all")
+						if(fileExists("openssl")){
+							sh("cd openssl && git pull")
+						}else{
+							sh("git clone https://github.com/clamwin/openssl")
+						}
+						sh("echo CFLAGS+=-I`pwd`/openssl/include >> config.mk")
+						sh("echo LDFLAGS+=-L`pwd`/openssl/lib/mingw/x86 >> config.mk")
+						sh("make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar RC=i686-w64-mingw32-windres -j4 package/install.exe")
 						sh("mv package/install.exe install-win32.exe")
 						archiveArtifacts("install-win32.exe")
 					}
