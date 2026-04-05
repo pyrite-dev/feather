@@ -1,2 +1,2 @@
 #!/bin/sh
-FPR="$FPR -ldl"
+FPR="$FPR -ldl -lpthread"
