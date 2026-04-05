@@ -1,4 +1,4 @@
 #!/bin/sh
 CC="gcc"
 
-FPR="$FPR -lsocket -lpthread"
+FPR="$FPR \$(LINK)socket \$(LINK)pthread"

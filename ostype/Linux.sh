@@ -1,2 +1,2 @@
 #!/bin/sh
-FPR="$FPR -ldl -lpthread"
+FPR="$FPR \$(LINK)dl \$(LINK)pthread"

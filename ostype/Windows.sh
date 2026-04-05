@@ -3,7 +3,7 @@ RPATH=''
 
 RCFLAGS="-O coff"
 
-LIBS="$LIBS -lws2_32"
+LIBS="$LIBS \$(LINK)ws2_32"
 
 SO='.dll'
 
