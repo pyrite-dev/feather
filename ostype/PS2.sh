@@ -5,8 +5,9 @@ STRIP="mips64r5900el-ps2-elf-strip"
 
 CFLAGS="$CFLAGS -D_EE -I$PS2SDK/ee/include -I$PS2SDK/common/include"
 LDFLAGS="-T$PS2SDK/ee/startup/linkfile -L$PS2SDK/ee/lib"
-FPR="$FPR \$(LINK)socket"
 LIBS="$LIBS \$(LINK)debug"
+
+FPR="$FPR \$(LINK)socket"
 
 PIC=""
 
