@@ -382,7 +382,6 @@ void server_loop(void) {
 					if(pfd[i].revents & FPR_POLLIN) {
 						client_t* c;
 						int	  l = sizeof(c->address);
-						int	  fd;
 #if defined(MULTITHREAD)
 						int w;
 #endif
@@ -390,10 +389,12 @@ void server_loop(void) {
 						c = malloc(sizeof(*c));
 
 						memset(c, 0, sizeof(*c));
-						fd	 = fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c->address, &l);
 						c->last	 = time(NULL);
 						c->state = config_ports[i].ssl ? CS_WANT_SSL : CS_CONNECTED;
-						c->fd	 = fd;
+						if((c->fd = fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c->address, &l)) < 0) { /* probably high load? */
+							free(c);
+							goto skip_req;
+						}
 
 						c->port = config_ports[i].port;
 
@@ -402,7 +403,7 @@ void server_loop(void) {
 							c->ctx = ssl_create_context(config_ports[i].port);
 							c->ssl = SSL_new(c->ctx);
 
-							SSL_set_fd(c->ssl, fd);
+							SSL_set_fd(c->ssl, c->fd);
 						}
 #endif
 
@@ -417,8 +418,9 @@ void server_loop(void) {
 						arrput(server_workers[w].clients, c);
 						fpr_mutex_unlock(server_workers[w].mutex);
 #else
-						hmput(server_clients, fd, c);
+						hmput(server_clients, c->fd, c);
 #endif
+					skip_req:;
 					}
 				}
 
