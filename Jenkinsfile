@@ -41,10 +41,25 @@ pipeline {
 						sh("rm -rf openssl && git clone https://github.com/clamwin/openssl --depth=1")
 						sh("./configure --prefix=C:/Feather --target=Windows --enable-mods-shared=all")
 						sh("echo CFLAGS+=-I`pwd`/openssl/include >> config.mk")
-						sh("echo LDFLAGS+=-L`pwd`/openssl/lib/mingw/x86 >> config.mk")
+						sh("echo LDFLAGS+=-L`pwd`/openssl/lib/mingw/legacy >> config.mk")
 						sh("make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar RC=i686-w64-mingw32-windres -j4 package/install.exe")
 						sh("mv package/install.exe install-win32.exe")
 						archiveArtifacts("install-win32.exe")
+					}
+				}
+				stage("Build for Windows 64-bit") {
+					agent {
+						label "built-in"
+					}
+					steps {
+						sh("make distclean")
+						sh("rm -rf openssl && git clone https://github.com/clamwin/openssl --depth=1")
+						sh("./configure --prefix=C:/Feather --target=Windows --enable-mods-shared=all")
+						sh("echo CFLAGS+=-I`pwd`/openssl/include >> config.mk")
+						sh("echo LDFLAGS+=-L`pwd`/openssl/lib/mingw/x86_64 >> config.mk")
+						sh("make CC=x86_64-w64-mingw32-gcc AR=x86_64-w64-mingw32-ar RC=x86_64-w64-mingw32-windres -j4 package/install.exe")
+						sh("mv package/install.exe install-win64.exe")
+						archiveArtifacts("install-win64.exe")
 					}
 				}
 				stage("Build for PSP") {
