@@ -38,13 +38,7 @@ pipeline {
 					}
 					steps {
 						sh("make distclean")
-						script {
-							if(fileExists("openssl")){
-								sh("cd openssl && git pull")
-							}else{
-								sh("git clone https://github.com/clamwin/openssl")
-							}
-						}
+						sh("rm -rf openssl && git clone https://github.com/clamwin/openssl --depth=1")
 						sh("./configure --prefix=C:/Feather --target=Windows --enable-mods-shared=all")
 						sh("echo CFLAGS+=-I`pwd`/openssl/include >> config.mk")
 						sh("echo LDFLAGS+=-L`pwd`/openssl/lib/mingw/x86 >> config.mk")
