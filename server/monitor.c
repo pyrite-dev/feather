@@ -135,6 +135,8 @@ int main(int argc, char** argv) {
 	double n = 0;
 	int    st;
 
+	fpr_init();
+
 	if((st = fhttpd_init(NULL, fpr_false)) != 0) {
 		return st;
 	}

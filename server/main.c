@@ -13,6 +13,8 @@ int main(int argc, char** argv) {
 
 	argv0 = argv[0];
 
+	fpr_init();
+
 	for(i = 1; i < argc; i++) {
 		if(strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "-h") == 0) {
 			printf("Feather HTTPd %s\n", FR_SERVER);

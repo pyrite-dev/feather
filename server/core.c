@@ -14,8 +14,6 @@ int fhttpd_init(const char* config, fpr_bool daemonize) {
 	ps2_init();
 #endif
 
-	fpr_init();
-
 	config_init();
 
 	module_init();
@@ -56,6 +54,4 @@ void fhttpd_uninit(void) {
 	server_close();
 	config_close();
 	log_close();
-
-	fpr_uninit();
 }
