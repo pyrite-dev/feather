@@ -15,6 +15,24 @@ pipeline {
 						sh("make -j4")
 					}
 				}
+				stage("Build for NetWare") {
+					agent {
+						label "built-in"
+					}
+					environment {
+						WATCOM = "/usr/watcom"
+						INCLUDE = "/usr/watcom/h"
+						NOVELLNDK = "/usr/novell/clib"
+						PATH = "/usr/watcom/binl64:${env.PATH}"
+					}
+					steps {
+						sh("make distclean")
+						sh("./configure --prefix=SYS:/Feather --target=NetWare --disable-ssl")
+						sh("make -j4 package/fhttpd-netware.zip")
+						sh("mv package/fhttpd-netware.zip ./")
+						archiveArtifacts("fhttpd-netware.zip")
+					}
+				}
 				stage("Build for Windows 32-bit (Legacy)") {
 					agent {
 						label "built-in"
