@@ -27,6 +27,16 @@ fhttpd-psp.zip: fhttpd.pbp
 	cd tmp/ms0:/PSP/GAME/ && zip -rv ../../../../fhttpd-psp.zip .
 	rm -rf tmp
 
+fhttpd-netware.zip: ../server/fhttpd.nlm
+	rm -rf tmp
+	cd .. ; $(MAKE) install DESTDIR=`pwd`/package/tmp/
+	sed -i 's%/usr/fhttpd%$(PREFIX)%g' tmp/SYS:/Feather/etc/fhttpd/fhttpd.conf
+	echo 'Feather HTTPd for NetWare' > tmp/SYS:/Feather/README
+	echo '========================' >> tmp/SYS:/Feather/README
+	echo 'lib/include folders are not required to run the HTTPd.' >> tmp/SYS:/Feather/README
+	cd tmp/SYS:/ && zip -rv ../../fhttpd-netware.zip .
+	rm -rf tmp
+
 fhttpd.pbp: ../server/fhttpd_strip$(E) param.sfo
 	pack-pbp $@ param.sfo ../logo/opaque.png NULL NULL NULL NULL ../server/fhttpd_strip$(E) NULL
 
