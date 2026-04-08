@@ -45,7 +45,7 @@ int fhttpd_init(const char* config, fpr_bool daemonize) {
 }
 
 void fhttpd_loop(void) {
-	log_srv("HTTPd is on the air");
+	log_srv("HTTPd is on the air: %s", server);
 
 	server_loop();
 }
