@@ -3,10 +3,14 @@
 
 #include "../config.h"
 
-#if defined(_WIN32)
+#if defined(FPR_IS_WIN32)
 #define FR_PLATFORM "Win32"
-#elif defined(_PSP)
+#elif defined(FPR_IS_PSP)
 #define FR_PLATFORM "PSP"
+#elif defined(FPR_IS_PS2)
+#define FR_PLATFORM "PS2"
+#elif defined(FPR_IS_NETWARE)
+#define FR_PLATFORM "NetWare"
 #else
 #define FR_PLATFORM "Unix"
 #endif
