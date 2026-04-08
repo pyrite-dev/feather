@@ -413,7 +413,7 @@ void ps2_init(void);
 /* machdep_netware.c */
 #if defined(FPR_IS_NETWARE)
 void netware_init(void);
-void netware_start(void (*main_stuff)(void));
+void netware_start(void (*main_stuff)(void* arg));
 #endif
 
 /* wait routine for exit */

@@ -12,7 +12,7 @@ void netware_init(void) {
 	AtUnload(unload);
 }
 
-void netware_start(void (*main_stuff)(void)) {
+void netware_start(void (*main_stuff)(void* arg)) {
 	DestroyScreen(GetCurrentScreen());
 	SetCurrentScreen(CreateScreen("Feather Console", 0));
 	BeginThread(main_stuff, NULL, 0, NULL);
