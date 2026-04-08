@@ -12,6 +12,8 @@ int fhttpd_init(const char* config, fpr_bool daemonize) {
 	psp_init();
 #elif defined(FPR_IS_PS2)
 	ps2_init();
+#elif defined(FPR_IS_NETWARE)
+	netware_init();
 #endif
 
 	config_init();

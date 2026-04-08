@@ -12,5 +12,3 @@ RPATH=''
 SO='.nlm'
 
 E='.nlm'
-
-MULTITHREADopt="undef"

@@ -3,6 +3,7 @@
 
 void fpr_init(void) {
 	fpr_socket_init();
+	fpr_thread_init();
 
 #if defined(FPR_IS_NETWARE)
 	SetCurrentNameSpace(NW_NS_LONG);
@@ -16,5 +17,6 @@ void fpr_uninit(void) {
 	fpr_mutex_destroy(fpr_localtime_mutex);
 	fpr_mutex_destroy(fpr_gmtime_mutex);
 
+	fpr_thread_uninit();
 	fpr_socket_uninit();
 }

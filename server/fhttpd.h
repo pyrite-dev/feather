@@ -395,6 +395,11 @@ void psp_exit(int x);
 void ps2_init(void);
 #endif
 
+/* machdep_netware.c */
+#if defined(FPR_IS_NETWARE)
+void netware_init(void);
+#endif
+
 /* wait routine for exit */
 #if defined(FPR_IS_PSP)
 #define EXIT(x) \
@@ -410,6 +415,7 @@ void ps2_init(void);
 #else
 #define EXIT(x) \
 	{ \
+		fpr_uninit(); \
 		exit((x)); \
 	}
 #endif

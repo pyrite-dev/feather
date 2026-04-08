@@ -6,7 +6,7 @@ include ../config.mk
 .SUFFIXES: .c $(O)
 
 OBJS = core$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) mime$(O) module$(O) context$(O) util$(O)
-OBJS += machdep_psp$(O) machdep_ps2$(O)
+OBJS += machdep_psp$(O) machdep_ps2$(O) machdep_netware$(O)
 OBJS += stb_ds$(O)
 
 LDARGS1 = $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../external/hsregex $(LIBDIR). -o $@
