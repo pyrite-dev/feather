@@ -5,21 +5,84 @@ typedef struct arg {
 	void (*entry)(void* param);
 	void* param;
 #if defined(FPR_IS_NETWARE)
-	MPKMutex waitmut;
+	LONG waitsem;
 #endif
 } arg_t;
 
 #if defined(FPR_IS_NETWARE)
 typedef struct thread {
-	int	 thread;
-	MPKMutex waitmut;
+	int  thread;
+	LONG waitsem;
 } thread_t;
+
+struct fpr_thread_usage {
+	fpr_bool  used;
+	thread_t* thread;
+};
+
+struct fpr_semaphore_usage fpr_semaphores[1024];
+struct fpr_thread_usage	   fpr_threads[1024];
+#endif
+
+#if defined(FPR_IS_NETWARE)
+long fpr_thread_open_semaphore(long initial) {
+	long sem = OpenLocalSemaphore(initial);
+	int  i;
+
+	for(i = 0; i < sizeof(fpr_semaphores) / sizeof(fpr_semaphores[0]); i++) {
+		if(!fpr_semaphores[i].used) {
+			fpr_semaphores[i].used = fpr_true;
+			fpr_semaphores[i].sem  = sem;
+			break;
+		}
+	}
+
+	return sem;
+}
+
+void fpr_thread_close_semaphore(long sem) {
+	int i;
+
+	for(i = 0; i < sizeof(fpr_semaphores) / sizeof(fpr_semaphores[0]); i++) {
+		if(fpr_semaphores[i].used && fpr_semaphores[i].sem == sem) {
+			fpr_semaphores[i].used = fpr_false;
+			break;
+		}
+	}
+
+	CloseLocalSemaphore(sem);
+}
 #endif
 
 void fpr_thread_init(void) {
+#if defined(FPR_IS_NETWARE)
+	int i;
+
+	for(i = 0; i < sizeof(fpr_semaphores) / sizeof(fpr_semaphores[0]); i++) {
+		fpr_semaphores[i].used = fpr_false;
+	}
+	for(i = 0; i < sizeof(fpr_threads) / sizeof(fpr_threads[0]); i++) {
+		fpr_threads[i].used = fpr_false;
+	}
+#endif
 }
 
 void fpr_thread_uninit(void) {
+#if defined(FPR_IS_NETWARE)
+	int i;
+
+	for(i = 0; i < sizeof(fpr_threads) / sizeof(fpr_threads[0]); i++) {
+		if(fpr_threads[i].used) {
+			fpr_thread_join(fpr_threads[i].thread);
+			fpr_thread_destroy(fpr_threads[i].thread);
+		}
+	}
+	for(i = 0; i < sizeof(fpr_semaphores) / sizeof(fpr_semaphores[0]); i++) {
+		if(fpr_semaphores[i].used) {
+			fpr_thread_close_semaphore(fpr_semaphores[i].sem);
+		}
+	}
+#endif
 }
 
 #if defined(FPR_IS_WIN32)
@@ -62,14 +125,14 @@ static void* thread_entry(void* _param) {
 static void thread_entry(void* _param) {
 	arg_t* arg		   = _param;
 	void (*entry)(void* param) = arg->entry;
-	void*	 param		   = arg->param;
-	MPKMutex waitmut	   = arg->waitmut;
+	void* param		   = arg->param;
+	LONG  waitsem		   = arg->waitsem;
 
 	free(arg);
 
 	entry(param);
 
-	MPKMutexUnlock(waitmut);
+	SignalLocalSemaphore(waitsem);
 	ExitThread(EXIT_THREAD, 0);
 }
 #endif
@@ -106,18 +169,13 @@ void* fpr_thread_create(void (*entry)(void* param), void* param) {
 #elif defined(FPR_IS_NETWARE)
 	thread_t* t   = malloc(sizeof(*t));
 	arg_t*	  arg = malloc(sizeof(*arg));
-	char	  name[128];
-
-	sprintf(name, "th%d", rand() % 0x1000000);
 
 	arg->entry   = entry;
 	arg->param   = param;
-	arg->waitmut = MPKMutexAlloc(name);
+	arg->waitsem = fpr_thread_open_semaphore(0);
 
-	MPKMutexLock(arg->waitmut);
-
-	t->waitmut = arg->waitmut;
-	t->thread  = BeginThread(thread_entry, NULL, 64 * 1024, arg);
+	t->waitsem = arg->waitsem;
+	t->thread  = BeginThread(thread_entry, NULL, 8192, arg);
 
 	return t;
 #else
@@ -138,8 +196,7 @@ void fpr_thread_join(void* handle) {
 #elif defined(FPR_IS_NETWARE)
 	thread_t* t = handle;
 
-	MPKMutexLock(t->waitmut);
-	MPKMutexUnlock(t->waitmut);
+	WaitOnLocalSemaphore(t->waitsem);
 #else
 	(void)handle;
 #endif
@@ -152,8 +209,16 @@ void fpr_thread_destroy(void* handle) {
 	free(handle);
 #elif defined(FPR_IS_NETWARE)
 	thread_t* t = handle;
+	int	  i;
 
-	MPKMutexFree(t->waitmut);
+	fpr_thread_close_semaphore(t->waitsem);
+
+	for(i = 0; i < sizeof(fpr_threads) / sizeof(fpr_threads[0]); i++) {
+		if(fpr_threads[i].used && fpr_threads[i].thread == handle) {
+			fpr_threads[i].used = fpr_false;
+			break;
+		}
+	}
 
 	free(handle);
 #else

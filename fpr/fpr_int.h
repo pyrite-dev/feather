@@ -40,7 +40,7 @@
 #define FPR_USE_PTHREAD
 #elif defined(FPR_IS_NETWARE)
 #include <nwthread.h>
-#include <nwmpk.h>
+#include <nwsemaph.h>
 #endif
 
 /* socket section */
