@@ -11,11 +11,10 @@ typedef struct arg {
 
 #if defined(FPR_IS_NETWARE)
 typedef struct thread {
-	int  thread;
+	int	 thread;
 	MPKMutex waitmut;
 } thread_t;
 #endif
-
 
 void fpr_thread_init(void) {
 }
@@ -63,8 +62,8 @@ static void* thread_entry(void* _param) {
 static void thread_entry(void* _param) {
 	arg_t* arg		   = _param;
 	void (*entry)(void* param) = arg->entry;
-	void* param		   = arg->param;
-	MPKMutex  waitmut	   = arg->waitmut;
+	void*	 param		   = arg->param;
+	MPKMutex waitmut	   = arg->waitmut;
 
 	free(arg);
 
@@ -107,7 +106,7 @@ void* fpr_thread_create(void (*entry)(void* param), void* param) {
 #elif defined(FPR_IS_NETWARE)
 	thread_t* t   = malloc(sizeof(*t));
 	arg_t*	  arg = malloc(sizeof(*arg));
-	char name[128];
+	char	  name[128];
 
 	sprintf(name, "th%d", rand() % 0x1000000);
 
@@ -118,7 +117,7 @@ void* fpr_thread_create(void (*entry)(void* param), void* param) {
 	MPKMutexLock(arg->waitmut);
 
 	t->waitmut = arg->waitmut;
-	t->thread  = BeginThread(thread_entry, NULL, 64 * 1024, param);
+	t->thread  = BeginThread(thread_entry, NULL, 64 * 1024, arg);
 
 	return t;
 #else

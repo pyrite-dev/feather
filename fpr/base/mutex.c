@@ -11,7 +11,7 @@ void* fpr_mutex_create(void) {
 
 	return mutex;
 #elif defined(FPR_IS_NETWARE)
-	int n = rand() % 0x1000000;
+	int  n = rand() % 0x1000000;
 	char name[128];
 
 	sprintf(name, "mt%d", n);
