@@ -11,12 +11,11 @@ void* fpr_mutex_create(void) {
 
 	return mutex;
 #elif defined(FPR_IS_NETWARE)
-	int  n = rand() % 0x1000000;
-	char name[128];
+	LONG* mutex = malloc(sizeof(*mutex));
 
-	sprintf(name, "mt%d", n);
+	*mutex = fpr_thread_open_semaphore(1);
 
-	return MPKMutexAlloc(name);
+	return mutex;
 #else
 	return NULL;
 #endif
@@ -28,7 +27,7 @@ void fpr_mutex_lock(void* handle) {
 #elif defined(FPR_USE_PTHREAD)
 	pthread_mutex_lock(handle);
 #elif defined(FPR_IS_NETWARE)
-	MPKMutexLock(handle);
+	WaitOnLocalSemaphore(*(LONG*)handle);
 #else
 	(void)handle;
 #endif
@@ -40,7 +39,7 @@ void fpr_mutex_unlock(void* handle) {
 #elif defined(FPR_USE_PTHREAD)
 	pthread_mutex_unlock(handle);
 #elif defined(FPR_IS_NETWARE)
-	MPKMutexUnlock(handle);
+	SignalLocalSemaphore(*(LONG*)handle);
 #else
 	(void)handle;
 #endif
@@ -54,7 +53,9 @@ void fpr_mutex_destroy(void* handle) {
 
 	free(handle);
 #elif defined(FPR_IS_NETWARE)
-	MPKMutexFree(handle);
+	fpr_thread_close_semaphore(*(LONG*)handle);
+
+	free(handle);
 #else
 	(void)handle;
 #endif
