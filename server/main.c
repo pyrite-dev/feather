@@ -2,7 +2,25 @@
 
 char* argv0;
 
-int main(int argc, char** argv) {
+static int    argc;
+static char** argv;
+
+static void main_stuff(void* args);
+
+int main(int _argc, char** _argv) {
+	argc = _argc;
+	argv = _argv;
+
+#if defined(FPR_IS_NETWARE)
+	netware_start(main_stuff);
+	return 0;
+#else
+	main_stuff(NULL);
+	return 0;
+#endif
+}
+
+static void main_stuff(void* args) {
 	int	    i;
 	const char* conf      = NULL;
 	fpr_bool    daemonize = fpr_true;
@@ -68,6 +86,4 @@ int main(int argc, char** argv) {
 	fhttpd_uninit();
 
 	EXIT(0);
-
-	return 0;
 }

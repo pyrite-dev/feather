@@ -219,6 +219,11 @@ struct fr_context {
 #include <signal.h>
 #endif
 
+#if defined(FPR_IS_NETWARE)
+#include <nwthread.h>
+#include <nwconio.h>
+#endif
+
 #if defined(HAS_SSL)
 #include <openssl/ssl.h>
 #include <openssl/opensslv.h>
@@ -408,6 +413,7 @@ void ps2_init(void);
 /* machdep_netware.c */
 #if defined(FPR_IS_NETWARE)
 void netware_init(void);
+void netware_start(void (*main_stuff)(void));
 #endif
 
 /* wait routine for exit */
