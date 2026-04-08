@@ -56,4 +56,4 @@ install: all
 	cp *.h $(DESTDIR)$(PREFIX)/include/
 
 clean:
-	rm -f fhttpd$(E) fhttpd_strip$(E) *$(O) *$(A) pcre/*$(O) *.res .relink install.exe
+	rm -f fhttpd$(E) fhttpdmon$(E) fhttpd_strip$(E) *$(O) *$(A) pcre/*$(O) *.res .relink install.exe
