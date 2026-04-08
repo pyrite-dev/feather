@@ -125,14 +125,6 @@ struct fpr_tm {
 	int tm_isdst;
 };
 
-/* thread.c definitions */
-#if defined(FPR_IS_NETWARE)
-struct fpr_semaphore_usage {
-	long	 sem;
-	fpr_bool used;
-};
-#endif
-
 /* core.c */
 void fpr_init(void);
 void fpr_uninit(void);
@@ -186,13 +178,6 @@ void fpr_msleep(int ms);
 int fpr_stat(const char* path, struct fpr_stat* s);
 
 /* thread.c */
-#if defined(FPR_IS_NETWARE)
-extern struct fpr_semaphore_usage fpr_semaphores[];
-
-long fpr_thread_open_semaphore(long initial);
-void fpr_thread_close_semaphore(long sem);
-#endif
-
 void* fpr_thread_create(void (*entry)(void* param), void* param);
 void  fpr_thread_join(void* handle);
 void  fpr_thread_destroy(void* handle);
