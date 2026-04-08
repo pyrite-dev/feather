@@ -3,6 +3,11 @@
 
 #include "../config.h"
 
+#if defined(RESOURCE)
+#define FR_PLATFORM "Something"
+#else
+#include <fpr.h>
+
 #if defined(FPR_IS_WIN32)
 #define FR_PLATFORM "Win32"
 #elif defined(FPR_IS_PSP)
@@ -11,8 +16,11 @@
 #define FR_PLATFORM "PS2"
 #elif defined(FPR_IS_NETWARE)
 #define FR_PLATFORM "NetWare"
-#else
+#elif defined(FPR_IS_UNIX)
 #define FR_PLATFORM "Unix"
+#else
+#define FR_PLATFORM "Unknown"
+#endif
 #endif
 
 #define FR_VERSION "0.0.0"
@@ -20,8 +28,6 @@
 #define FR_SERVER FR_VERSION_TEXT " (" FR_PLATFORM ")"
 
 #if !defined(RESOURCE)
-#include <fpr.h>
-
 #if defined(FPR_IS_WIN32)
 #define FR_MODULE_DATA __declspec(dllexport)
 #else
