@@ -10,6 +10,12 @@ void* fpr_mutex_create(void) {
 	pthread_mutex_init(mutex, NULL);
 
 	return mutex;
+#elif defined(FPR_IS_NETWARE) && defined(FPR_DANGER_SEMAPHORE)
+	LONG* mutex = malloc(sizeof(*mutex));
+
+	*mutex = OpenLocalSemaphore(1);
+
+	return mutex;
 #else
 	return NULL;
 #endif
@@ -20,6 +26,8 @@ void fpr_mutex_lock(void* handle) {
 	WaitForSingleObject(handle, INFINITE);
 #elif defined(FPR_USE_PTHREAD)
 	pthread_mutex_lock(handle);
+#elif defined(FPR_IS_NETWARE) && defined(FPR_DANGER_SEMAPHORE)
+	WaitOnLocalSemaphore(*(LONG*)handle);
 #else
 	(void)handle;
 #endif
@@ -30,6 +38,8 @@ void fpr_mutex_unlock(void* handle) {
 	SetEvent(handle);
 #elif defined(FPR_USE_PTHREAD)
 	pthread_mutex_unlock(handle);
+#elif defined(FPR_IS_NETWARE) && defined(FPR_DANGER_SEMAPHORE)
+	SignalLocalSemaphore(*(LONG*)handle);
 #else
 	(void)handle;
 #endif
@@ -40,6 +50,10 @@ void fpr_mutex_destroy(void* handle) {
 	CloseHandle(handle);
 #elif defined(FPR_USE_PTHREAD)
 	pthread_mutex_destroy(handle);
+
+	free(handle);
+#elif defined(FPR_IS_NETWARE) && defined(FPR_DANGER_SEMAPHORE)
+	CloseLocalSemaphore(*(LONG*)handle);
 
 	free(handle);
 #else

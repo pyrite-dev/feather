@@ -25,7 +25,7 @@
 #undef FPR_HAS_UNIX_SOCKET
 #undef FPR_USE_SOCKLEN_T
 
-#if defined(FPR_IS_UNIX)
+#if defined(FPR_IS_UNIX) || defined(FPR_IS_PSP) || defined(FPR_IS_PS2)
 #define FPR_USE_SOCKLEN_T
 #endif
 
