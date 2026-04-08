@@ -1,4 +1,6 @@
 #!/bin/sh
+PREFIX="C:/Feather"
+
 RPATH=''
 
 RCFLAGS="-O coff"

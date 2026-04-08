@@ -11,6 +11,13 @@
 #include <stdarg.h>
 #include <time.h>
 
+#if defined(FPR_IS_NETWARE)
+#include <sys/stat.h>
+
+#include <nwnamspc.h>
+#include <nwadv.h>
+#endif
+
 #if defined(FPR_IS_UNIX)
 #include <signal.h>
 #include <sys/stat.h>
@@ -18,7 +25,7 @@
 #include <dlfcn.h>
 #endif
 
-#if defined(FPR_IS_UNIX) || defined(FPR_IS_PSP) || defined(FPR_IS_PS2)
+#if defined(FPR_IS_UNIX) || defined(FPR_IS_PSP) || defined(FPR_IS_PS2) || defined(FPR_IS_NETWARE)
 #include <unistd.h>
 #include <dirent.h>
 #endif
@@ -28,8 +35,15 @@
 #if !defined(FPR_USE_CREATETHREAD)
 #include <process.h>
 #endif
-#elif defined(FPR_IS_UNIX) || defined(FPR_IS_PSP)
+#elif defined(FPR_IS_UNIX) || defined(FPR_IS_PSP) || defined(FPR_IS_PS2)
 #include <pthread.h>
+#define FPR_USE_PTHREAD
+#elif defined(FPR_IS_NETWARE)
+#include <nwthread.h>
+
+#if defined(FPR_DANGER_SEMAPHORE)
+#include <nwsemaph.h>
+#endif
 #endif
 
 /* socket section */
@@ -49,14 +63,21 @@
 #if defined(FPR_HAS_POLL)
 #include <poll.h>
 #else
+
+#if !defined(FPR_IS_NETWARE)
 #include <sys/select.h>
+#endif
 #endif
 
 #include <sys/socket.h>
 #include <sys/types.h>
+#if defined(FPR_IS_NETWARE)
+#include <sys/bsdskt.h>
+#else
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+#endif
 
 #if defined(FPR_HAS_UNIX_SOCKET)
 #include <sys/un.h>

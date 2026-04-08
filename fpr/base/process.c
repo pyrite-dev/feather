@@ -13,6 +13,8 @@ typedef struct process {
 	int   fd_stdin;
 	int   fd_stdout;
 	int   fd_stderr;
+#else
+	void* reserved;
 #endif
 } process_t;
 

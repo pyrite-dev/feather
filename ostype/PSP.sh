@@ -1,4 +1,6 @@
 #!/bin/sh
+PREFIX="ms0:/PSP/GAME/fhttpd"
+
 CC="psp-gcc"
 AR="psp-ar"
 STRIP="psp-strip"

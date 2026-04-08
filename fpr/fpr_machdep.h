@@ -9,9 +9,11 @@
 #define FPR_IS_PSP
 #elif defined(_EE)
 #define FPR_IS_PS2
+#elif defined(__NETWARE__)
+#define FPR_IS_NETWARE
 #endif
 
-#if defined(FPR_IS_WIN32)
+#if defined(FPR_IS_WIN32) || defined(FPR_IS_NETWARE)
 #define fpr_newline "\r\n"
 #else
 #define fpr_newline "\n"
@@ -23,7 +25,7 @@
 #undef FPR_HAS_UNIX_SOCKET
 #undef FPR_USE_SOCKLEN_T
 
-#if !defined(_WIN32)
+#if defined(FPR_IS_UNIX)
 #define FPR_USE_SOCKLEN_T
 #endif
 

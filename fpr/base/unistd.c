@@ -7,6 +7,11 @@ int fpr_gethostname(char* name, int namelen) {
 
 	strcpy(name, "PS2");
 	return 0;
+#elif defined(FPR_IS_NETWARE)
+	if(namelen < 8) return -1;
+
+	strcpy(name, "netware");
+	return 0;
 #else
 	return gethostname(name, namelen);
 #endif
@@ -15,6 +20,8 @@ int fpr_gethostname(char* name, int namelen) {
 void fpr_msleep(int ms) {
 #if defined(FPR_IS_WIN32)
 	Sleep(ms);
+#elif defined(FPR_IS_NETWARE)
+	delay(ms);
 #else
 	struct timespec ts;
 

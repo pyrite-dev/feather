@@ -9,6 +9,18 @@
 #define IPPROTO_UDP 0
 #endif
 
+#if defined(FPR_IS_NETWARE)
+struct in_addr {
+	fpr_uint32_t s_addr;
+};
+struct sockaddr_in {
+	fpr_uint16_t   sin_family;
+	fpr_uint16_t   sin_port;
+	struct in_addr sin_addr;
+	fpr_uint8_t    sin_zero[8];
+};
+#endif
+
 void fpr_socket_init(void) {
 #if defined(FPR_IS_WIN32)
 	WSADATA wsa;
@@ -93,7 +105,7 @@ int fpr_recv(int s, void* buf, int len, int flags) {
 int fpr_send(int s, const void* msg, int len, int flags) {
 	(void)flags;
 
-	return send(s, msg, len, 0);
+	return send(s, (void*)msg, len, 0);
 }
 
 static struct sockaddr* conv_to_sa(int* outlen, const struct fpr_sockaddr* input, int namelen) {

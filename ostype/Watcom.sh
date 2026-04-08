@@ -1,4 +1,6 @@
 #!/bin/sh
+PREFIX="C:/Feather"
+
 CC='owcc -bnt`if [ "$(MODE)" = "server" -o "$(MODE)" = "fpr" -o "$(MODE)" = "hsregex" ]; then echo ; elif ( echo " $(MODULES) " | grep " $(MODULE) " >/dev/null ); then echo "_dll" ; fi`'
 AR='wlib'
 ARFLAGS='-q -b -n -fo'

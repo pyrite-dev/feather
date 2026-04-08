@@ -204,7 +204,7 @@ struct fr_context {
 #include <ctype.h>
 #include <locale.h>
 
-#if !defined(_WIN32)
+#if defined(FPR_IS_UNIX)
 #include <unistd.h>
 #include <signal.h>
 #endif

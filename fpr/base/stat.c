@@ -27,7 +27,7 @@ int fpr_stat(const char* path, struct fpr_stat* s) {
 	}
 
 	return 0;
-#elif defined(FPR_IS_UNIX)
+#elif defined(FPR_IS_UNIX) || defined(FPR_IS_NETWARE)
 	struct stat st;
 	int	    sc;
 
@@ -42,5 +42,7 @@ int fpr_stat(const char* path, struct fpr_stat* s) {
 	if(S_ISDIR(st.st_mode)) s->st_mode |= FPR_S_IFDIR;
 
 	return sc;
+#else
+	return -1;
 #endif
 }

@@ -2,7 +2,16 @@
 #include <fpr_int.h>
 
 fpr_uint16_t fpr_htons(fpr_uint16_t host16) {
+#if defined(FPR_IS_NETWARE)
+	unsigned char buf[2];
+
+	buf[0] = (host16 >> 8) & 0xff;
+	buf[1] = (host16 >> 0) & 0xff;
+
+	return *(fpr_uint16_t*)buf;
+#else
 	return htons(host16);
+#endif
 }
 
 static int sort_v6(const void* _a, const void* _b) {

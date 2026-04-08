@@ -3,6 +3,7 @@
 /server/fhttpd
 /server/fhttpdmon
 /server/.relink
+*.nlm
 *.zip
 *.pbp
 *.elf
