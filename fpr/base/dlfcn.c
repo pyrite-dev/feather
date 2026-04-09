@@ -10,7 +10,7 @@ void* fpr_dlopen(const char* path) {
 	unsigned int handle = FindNLMHandle(path);
 
 	if(handle == 0) {
-		spawnlp(P_NOWAIT, path, NULL);
+		spawnlp(P_NOWAIT | P_SPAWN_IN_CURRENT_DOMAIN, path, NULL);
 		handle = FindNLMHandle(path);
 	}
 

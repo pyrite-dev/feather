@@ -31,6 +31,9 @@ fhttpd-netware.zip: ../server/fhttpd.nlm
 	rm -rf tmp
 	cd .. ; $(MAKE) install DESTDIR=`pwd`/package/tmp/
 	sed -i 's%/usr/fhttpd%$(PREFIX)%g' tmp/SYS:/Feather/etc/fhttpd/fhttpd.conf
+	sed -i 's/\.so/.nlm/g' tmp/SYS:/Feather/etc/fhttpd/fhttpd.conf
+	unix2dos tmp/SYS:/Feather/etc/fhttpd/fhttpd.conf
+	unix2dos tmp/SYS:/Feather/etc/fhttpd/mime.types
 	echo 'Feather HTTPd for NetWare' > tmp/SYS:/Feather/README
 	echo '========================' >> tmp/SYS:/Feather/README
 	echo 'lib/include folders are not required to run the HTTPd.' >> tmp/SYS:/Feather/README
