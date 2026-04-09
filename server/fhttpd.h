@@ -28,7 +28,7 @@
 #define FR_SERVER FR_VERSION_TEXT " (" FR_PLATFORM ")"
 
 #if !defined(RESOURCE)
-#if defined(FPR_IS_WIN32)
+#if defined(FPR_IS_WIN32) || defined(FPR_IS_NETWARE)
 #define FR_MODULE_DATA __declspec(dllexport)
 #else
 #define FR_MODULE_DATA
