@@ -27,7 +27,7 @@ pipeline {
 					}
 					steps {
 						sh("make distclean")
-						sh("./configure --prefix=SYS:/Feather --target=NetWare --disable-ssl")
+						sh("./configure --prefix=SYS:/Feather --target=NetWare --disable-ssl --enable-mods-shared=all")
 						sh("make -j4 package/fhttpd-netware.zip")
 						sh("mv package/fhttpd-netware.zip ./")
 						archiveArtifacts("fhttpd-netware.zip")
