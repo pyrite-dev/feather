@@ -1,4 +1,5 @@
 #!/bin/sh
 CC="gcc"
 
-FPR="$FPR \$(LINK)socket \$(LINK)pthread"
+PPR="$PPR \$(LINK)socket"
+THREAD="$THREAD \$(LINK)pthread"

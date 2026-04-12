@@ -72,7 +72,7 @@ static int send_packet(int fd, int type, void* data, int length) {
 		if(pktsz > 0) memcpy(pkt + 8, input + seek, pktsz);
 		memset(pkt + 8 + pktsz, 0, pad);
 
-		n = fpr_send(fd, pkt, 8 + pktsz + pad, 0);
+		n = ppr_send(fd, pkt, 8 + pktsz + pad, 0);
 
 		free(pkt);
 
@@ -95,7 +95,7 @@ static void* recv_packet(int fd, int* type, int* size) {
 	int	       l = 0;
 
 	while(l < 8) {
-		if((n = fpr_recv(fd, header + l, 8 - l, 0)) <= 0) return NULL;
+		if((n = ppr_recv(fd, header + l, 8 - l, 0)) <= 0) return NULL;
 
 		l += n;
 	}
@@ -121,7 +121,7 @@ static void* recv_packet(int fd, int* type, int* size) {
 	while(sz > 0) {
 		int pktsz = sz > BUFFER_SIZE ? BUFFER_SIZE : sz;
 
-		if((n = fpr_recv(fd, buf + seek, pktsz, 0)) <= 0) {
+		if((n = ppr_recv(fd, buf + seek, pktsz, 0)) <= 0) {
 			free(buf);
 			return NULL;
 		}
@@ -133,7 +133,7 @@ static void* recv_packet(int fd, int* type, int* size) {
 	if(header[6] > 0) {
 		l = 0;
 		while(l < header[6]) {
-			if((n = fpr_recv(fd, pad, header[6] - l, 0)) <= 0) {
+			if((n = ppr_recv(fd, pad, header[6] - l, 0)) <= 0) {
 				free(buf);
 				return NULL;
 			}
@@ -259,17 +259,17 @@ static void cleanup(fr_response_t* res) {
 	fcgi_t* f = res->body_opaque;
 
 	if(f->buf != NULL) free(f->buf);
-	fpr_socket_close(f->fd);
+	ppr_socket_close(f->fd);
 
 	free(f);
 }
 
 static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* input) {
-	fpr_url_t url;
+	ppr_url_t url;
 	int	  fd = -1;
 
-	fpr_url_init(&url);
-	if(fpr_url_parse(&url, input)) {
+	ppr_url_init(&url);
+	if(ppr_url_parse(&url, input)) {
 		unsigned char  begin[8];
 		char	       buf[128];
 		char*	       h;
@@ -284,32 +284,32 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 		int	       nl      = 0;
 
 		if(strcmp(url.scheme, "unix") == 0) {
-			struct fpr_sockaddr_un addr;
+			struct ppr_sockaddr_un addr;
 
-			fd = fpr_socket(FPR_PF_UNIX, FPR_SOCK_STREAM, 0);
+			fd = ppr_socket(PPR_PF_UNIX, PPR_SOCK_STREAM, 0);
 
 			if(fd < 0) goto error;
 
-			addr.sun_family = FPR_AF_UNIX;
+			addr.sun_family = PPR_AF_UNIX;
 			strcpy(addr.sun_path, url.path);
 
-			if(fpr_connect(fd, (struct fpr_sockaddr*)&addr, sizeof(addr)) < 0) goto error;
+			if(ppr_connect(fd, (struct ppr_sockaddr*)&addr, sizeof(addr)) < 0) goto error;
 		} else if(strcmp(url.scheme, "tcp") == 0 && url.host != NULL && url.port != 0) {
 			int		     len;
-			struct fpr_sockaddr* addr = fpr_inet_addr(url.host, &len);
+			struct ppr_sockaddr* addr = ppr_inet_addr(url.host, &len);
 			if(addr == NULL) goto error;
 
-			fd = fpr_socket(addr->sa_family == FPR_AF_INET ? FPR_PF_INET : FPR_PF_INET6, FPR_SOCK_STREAM, 0);
+			fd = ppr_socket(addr->sa_family == PPR_AF_INET ? PPR_PF_INET : PPR_PF_INET6, PPR_SOCK_STREAM, 0);
 
 			if(fd < 0) goto error;
 
-			if(addr->sa_family == FPR_AF_INET) {
-				((struct fpr_sockaddr_in*)addr)->sin_port = fpr_htons(url.port);
+			if(addr->sa_family == PPR_AF_INET) {
+				((struct ppr_sockaddr_in*)addr)->sin_port = ppr_htons(url.port);
 			} else {
-				((struct fpr_sockaddr_in6*)addr)->sin6_port = fpr_htons(url.port);
+				((struct ppr_sockaddr_in6*)addr)->sin6_port = ppr_htons(url.port);
 			}
 
-			if(fpr_connect(fd, addr, len) < 0) goto error;
+			if(ppr_connect(fd, addr, len) < 0) goto error;
 		} else {
 			goto error;
 		}
@@ -361,7 +361,7 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 			}
 			h[j] = 0;
 
-			s = fpr_strvacat("HTTP_", h, NULL);
+			s = ppr_strvacat("HTTP_", h, NULL);
 
 			if(send_param(fd, s, context->request_get_header(req, headers[i])) < 0) {
 				free(s);
@@ -382,7 +382,7 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 		if(send_param(fd, "REDIRECT_URL", req->path_virtual2) < 0) goto error;
 		if(send_param(fd, "SCRIPT_FILENAME", req->path_translated2) < 0) goto error;
 
-		h = fpr_strvacat(req->path_raw, strlen(req->query) > 0 ? "?" : "", req->query, NULL);
+		h = ppr_strvacat(req->path_raw, strlen(req->query) > 0 ? "?" : "", req->query, NULL);
 		if(send_param(fd, "REQUEST_URI", h) < 0) {
 			free(h);
 			goto error;
@@ -468,7 +468,7 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 						s[0] = p[i];
 						s[1] = 0;
 
-						h = fpr_strvacat(old, s, NULL);
+						h = ppr_strvacat(old, s, NULL);
 						free(old);
 
 						nl = 0;
@@ -495,7 +495,7 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 
 		context->request_set_header(req, "connection", "close");
 
-		fpr_url_deinit(&url);
+		ppr_url_deinit(&url);
 
 		if(res->status_code == 0) {
 			res->status_code = 200;
@@ -504,14 +504,14 @@ static int connect_fcgi(fr_context_t* context, fr_request_t* req, fr_response_t*
 
 		return FR_MODULE_OK;
 	}
-	fpr_url_deinit(&url); /* just to be sure */
+	ppr_url_deinit(&url); /* just to be sure */
 
 	return FR_MODULE_DECLINE;
 
 error:;
-	if(fd >= 0) fpr_socket_close(fd);
+	if(fd >= 0) ppr_socket_close(fd);
 
-	fpr_url_deinit(&url);
+	ppr_url_deinit(&url);
 
 	res->status_code = 500;
 	strcpy(res->status_text, "Internal Server Error");
@@ -520,11 +520,11 @@ error:;
 }
 
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
-	struct fpr_stat st;
+	struct ppr_stat st;
 
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
-	if(fpr_stat(req->path_translated2, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
+	if(ppr_stat(req->path_translated2, &st) != 0 || PPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
 
 	if(strstr(req->handler2, "fcgi|") == req->handler2) {
 		return connect_fcgi(context, req, res, req->handler2 + 5);

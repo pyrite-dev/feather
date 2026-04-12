@@ -8,13 +8,13 @@
 #include <ctype.h>
 
 static int body_stream(fr_response_t* res, unsigned char* buffer, int size) {
-	int n = fpr_process_read(res->body_opaque, buffer, size);
+	int n = ppr_process_read(res->body_opaque, buffer, size);
 
 	return n;
 }
 
 static void cleanup(fr_response_t* res) {
-	fpr_process_destroy(res->body_opaque);
+	ppr_process_destroy(res->body_opaque);
 }
 
 static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* execute) {
@@ -31,52 +31,52 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 
 	/* ref: http://hoohoo.ncsa.uiuc.edu/cgi/env.html */
 
-	s = fpr_strvacat("SERVER_SOFTWARE=", FR_VERSION, NULL);
+	s = ppr_strvacat("SERVER_SOFTWARE=", FR_VERSION, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SERVER_NAME=", req->server_name, NULL);
+	s = ppr_strvacat("SERVER_NAME=", req->server_name, NULL);
 	arrput(envs, s);
 
-	s = fpr_strdup("GATEWAY_INTERFACE=CGI/1.1");
+	s = ppr_strdup("GATEWAY_INTERFACE=CGI/1.1");
 	arrput(envs, s);
 
-	s = fpr_strvacat("SERVER_PROTOCOL=", req->version, NULL);
+	s = ppr_strvacat("SERVER_PROTOCOL=", req->version, NULL);
 	arrput(envs, s);
 
 	sprintf(buf, "%d", req->port);
-	s = fpr_strvacat("SERVER_PORT=", buf, NULL);
+	s = ppr_strvacat("SERVER_PORT=", buf, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("REQUEST_METHOD=", req->method, NULL);
+	s = ppr_strvacat("REQUEST_METHOD=", req->method, NULL);
 	arrput(envs, s);
 
 	if(strlen(req->path_info) == 0) {
-		s = fpr_strvacat("PATH_INFO=", req->path, NULL);
+		s = ppr_strvacat("PATH_INFO=", req->path, NULL);
 		arrput(envs, s);
 	} else {
-		s = fpr_strvacat("PATH_INFO=", req->path_info, NULL);
+		s = ppr_strvacat("PATH_INFO=", req->path_info, NULL);
 		arrput(envs, s);
 	}
 
-	s = fpr_strvacat("PATH_TRANSLATED=", req->path_translated2, NULL);
+	s = ppr_strvacat("PATH_TRANSLATED=", req->path_translated2, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_NAME=", req->path_virtual2, NULL);
+	s = ppr_strvacat("SCRIPT_NAME=", req->path_virtual2, NULL);
 	arrput(envs, s);
 
 	if(strlen(req->query) > 0) {
-		s = fpr_strvacat("QUERY_STRING=", req->query, NULL);
+		s = ppr_strvacat("QUERY_STRING=", req->query, NULL);
 		arrput(envs, s);
 	}
 
 	if((h = context->request_get_header(req, "content-type")) != NULL) {
-		s = fpr_strvacat("CONTENT_TYPE=", h, NULL);
+		s = ppr_strvacat("CONTENT_TYPE=", h, NULL);
 		arrput(envs, s);
 	}
 
 	if(req->body_size > 0) {
 		sprintf(buf, "%d", req->body_size);
-		s = fpr_strvacat("CONTENT_LENGTH=", buf, NULL);
+		s = ppr_strvacat("CONTENT_LENGTH=", buf, NULL);
 		arrput(envs, s);
 	}
 
@@ -96,7 +96,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 		}
 		h[j] = 0;
 
-		s = fpr_strvacat("HTTP_", h, "=", context->request_get_header(req, headers[i]), NULL);
+		s = ppr_strvacat("HTTP_", h, "=", context->request_get_header(req, headers[i]), NULL);
 		arrput(envs, s);
 
 		free(h);
@@ -105,22 +105,22 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 
 	/* Apache extension, needed to make PHP work */
 	sprintf(buf, "%d", res->status_code == 0 ? 200 : res->status_code);
-	s = fpr_strvacat("REDIRECT_STATUS=", buf, NULL);
+	s = ppr_strvacat("REDIRECT_STATUS=", buf, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("REDIRECT_URL=", req->path_virtual2, NULL);
+	s = ppr_strvacat("REDIRECT_URL=", req->path_virtual2, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("SCRIPT_FILENAME=", req->path_translated2, NULL);
+	s = ppr_strvacat("SCRIPT_FILENAME=", req->path_translated2, NULL);
 	arrput(envs, s);
 
-	s = fpr_strvacat("REQUEST_URI=", req->path_raw, strlen(req->query) > 0 ? "?" : "", req->query, NULL);
+	s = ppr_strvacat("REQUEST_URI=", req->path_raw, strlen(req->query) > 0 ? "?" : "", req->query, NULL);
 	arrput(envs, s);
 
 	if((h = context->config_lookup(context, "DocumentRoot")) != NULL) {
 		char* h2 = context->path_transform(h);
 
-		s = fpr_strvacat("DOCUMENT_ROOT=", h2, NULL);
+		s = ppr_strvacat("DOCUMENT_ROOT=", h2, NULL);
 		arrput(envs, s);
 
 		free(h2);
@@ -129,7 +129,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	s = NULL;
 	arrput(envs, s);
 
-	if((proc = fpr_process_create(execute, envs)) == NULL) {
+	if((proc = ppr_process_create(execute, envs)) == NULL) {
 		for(i = 0; i < arrlen(envs) - 1; i++) free(envs[i]);
 		arrfree(envs);
 
@@ -146,9 +146,9 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 
 	res->body_opaque = proc;
 
-	if(req->body_size > 0) fpr_process_write(res->body_opaque, req->body, req->body_size);
+	if(req->body_size > 0) ppr_process_write(res->body_opaque, req->body, req->body_size);
 
-	fpr_process_close(res->body_opaque);
+	ppr_process_close(res->body_opaque);
 
 	res->cleanup = cleanup;
 
@@ -157,7 +157,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 
 	ch[1] = 0;
 	while(1) {
-		n = fpr_process_read(res->body_opaque, ch, 1);
+		n = ppr_process_read(res->body_opaque, ch, 1);
 
 		if(n <= 0) {
 			res->status_code = 500;
@@ -209,7 +209,7 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 			nl = 0;
 
 			old = h;
-			h   = fpr_strvacat(old, ch, NULL);
+			h   = ppr_strvacat(old, ch, NULL);
 			free(old);
 		}
 	}
@@ -227,11 +227,11 @@ static int create_cgi(fr_context_t* context, fr_request_t* req, fr_response_t* r
 }
 
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
-	struct fpr_stat st;
+	struct ppr_stat st;
 
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
-	if(fpr_stat(req->path_translated2, &st) != 0 || FPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
+	if(ppr_stat(req->path_translated2, &st) != 0 || PPR_S_ISDIR(st.st_mode)) return FR_MODULE_DECLINE;
 
 	if(strcmp(req->handler2, "cgi-script") == 0) {
 		return create_cgi(context, req, res, req->path_translated2);

@@ -6,20 +6,20 @@ fr_stringkv_t* mime_types = NULL;
 
 void mime_parse(void) {
 	char*	  p = path_transform(config_mimefile);
-	FPR_FILE* f;
+	PPR_FILE* f;
 
 	mime_close();
 	sh_new_strdup(mime_types);
 	shdefault(mime_types, NULL);
 
-	if((f = fpr_fopen(p, "r")) != NULL) {
+	if((f = ppr_fopen(p, "r")) != NULL) {
 		char buffer[BUFFER_SIZE];
 		char line[LINE_SIZE + 1];
 		int  s;
 
 		line[0] = 0;
 
-		while((s = fpr_fread(buffer, 1, BUFFER_SIZE, f)) > 0) {
+		while((s = ppr_fread(buffer, 1, BUFFER_SIZE, f)) > 0) {
 			int i;
 
 			for(i = 0; i < s; i++) {
@@ -37,7 +37,7 @@ void mime_parse(void) {
 							s = line + j;
 							while(1) {
 								char* f = s;
-								char* m = fpr_strdup(line);
+								char* m = ppr_strdup(line);
 
 								s = strchr(s, ' ');
 								if(s != NULL) s[0] = 0;
@@ -60,7 +60,7 @@ void mime_parse(void) {
 			}
 		}
 
-		fpr_fclose(f);
+		ppr_fclose(f);
 	}
 
 	free(p);

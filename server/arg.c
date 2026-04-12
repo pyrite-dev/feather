@@ -5,19 +5,19 @@
 char** arg_parse(const char* str) {
 	char**	 r  = NULL;
 	int	 i  = 0;
-	char*	 d  = fpr_strdup(str);
+	char*	 d  = ppr_strdup(str);
 	int	 f  = 0;
-	fpr_bool dq = fpr_false;
+	ppr_bool dq = ppr_false;
 
 	while(1) {
 		if(str[i] == 0 || (!dq && (str[i] == '\t' || str[i] == ' '))) {
 			char*	 v;
 			char*	 s;
 			int	 j, k = 0;
-			fpr_bool b = str[i] == 0;
+			ppr_bool b = str[i] == 0;
 
 			d[i] = 0;
-			v    = fpr_strdup(s = d + f);
+			v    = ppr_strdup(s = d + f);
 			for(j = 0; s[j] != 0; j++) {
 				if(s[j] != '"') v[k++] = s[j];
 			}

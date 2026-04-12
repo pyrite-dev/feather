@@ -2,7 +2,7 @@
 #include <fhttpd.h>
 
 static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
-	char* p = fpr_strvacat("Action_", req->handler2, NULL);
+	char* p = ppr_strvacat("Action_", req->handler2, NULL);
 	char* s = context->config_lookup(context, p);
 
 	(void)res;
@@ -20,7 +20,7 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 static int directive(fr_context_t* context, int argc, char** argv) {
 	if(strcmp(argv[0], "Action") == 0) {
 		if(argc == 3) {
-			char* p = fpr_strvacat("Action_", argv[1], NULL);
+			char* p = ppr_strvacat("Action_", argv[1], NULL);
 
 			context->stringkv_set(&context->config_current->kv, p, argv[2]);
 

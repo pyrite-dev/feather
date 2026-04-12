@@ -67,7 +67,7 @@ void http_end(client_t* c) {
 	SAFECALL(c->response.cleanup)(&c->response);
 }
 
-fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
+ppr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 	int   i;
 	char* buf = buffer;
 
@@ -78,10 +78,10 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 			if(buf[i] == ' ') {
 				c->state = CS_GOT_METHOD;
 			} else if(buf[i] == '\n') {
-				return fpr_false;
+				return ppr_false;
 			} else {
 				if(strlen(c->request.method) == MAX_METHOD_LENGTH) {
-					return fpr_false;
+					return ppr_false;
 				} else {
 					c->request.method[strlen(c->request.method)] = buf[i];
 				}
@@ -92,10 +92,10 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 			} else if(buf[i] == '?') {
 				c->state = CS_GOT_PATH;
 			} else if(buf[i] == '\n') {
-				return fpr_false;
+				return ppr_false;
 			} else {
 				if(strlen(c->request.path_raw) == MAX_PATH_LENGTH) {
-					return fpr_false;
+					return ppr_false;
 				} else {
 					c->request.path_raw[strlen(c->request.path_raw)] = buf[i] == '\\' ? '/' : buf[i];
 				}
@@ -109,7 +109,7 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 					if(c->request.path_raw[j] == '\\') c->request.path_raw[j] = '/';
 				}
 
-				if(!fpr_url_decode(c->request.path, c->request.path_raw, MAX_PATH_LENGTH)) return fpr_false;
+				if(!ppr_url_decode(c->request.path, c->request.path_raw, MAX_PATH_LENGTH)) return ppr_false;
 				strcpy(c->request.path_virtual, c->request.path);
 				strcpy(c->request.path_virtual2, c->request.path);
 
@@ -121,15 +121,15 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 				 * and windows' reserved name :)
 				 */
 
-				if(c->request.path[0] != '/') return fpr_false;
-				if(strlen(c->request.path) >= 4 && strstr(c->request.path, "/../") != NULL) return fpr_false;
-				if(strlen(c->request.path) >= 3 && strcmp(c->request.path + strlen(c->request.path) - 3, "/..") == 0) return fpr_false;
+				if(c->request.path[0] != '/') return ppr_false;
+				if(strlen(c->request.path) >= 4 && strstr(c->request.path, "/../") != NULL) return ppr_false;
+				if(strlen(c->request.path) >= 3 && strcmp(c->request.path + strlen(c->request.path) - 3, "/..") == 0) return ppr_false;
 
 				for(j = 0; reserved[j] != NULL; j++) {
-					char*	 p   = fpr_strvacat("/", reserved[j], NULL);
-					char*	 ps  = fpr_strvacat("/", reserved[j], "/", NULL);
-					fpr_bool pm  = (strlen(c->request.path) >= strlen(p) && strcmp(c->request.path + strlen(c->request.path) - strlen(p), p) == 0);
-					fpr_bool psm = (strlen(c->request.path) >= strlen(ps) && strstr(c->request.path, ps) != NULL);
+					char*	 p   = ppr_strvacat("/", reserved[j], NULL);
+					char*	 ps  = ppr_strvacat("/", reserved[j], "/", NULL);
+					ppr_bool pm  = (strlen(c->request.path) >= strlen(p) && strcmp(c->request.path + strlen(c->request.path) - strlen(p), p) == 0);
+					ppr_bool psm = (strlen(c->request.path) >= strlen(ps) && strstr(c->request.path, ps) != NULL);
 
 					if(pm || psm) {
 						free(p);
@@ -141,16 +141,16 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 					free(ps);
 				}
 
-				if(reserved[j] != NULL) return fpr_false;
+				if(reserved[j] != NULL) return ppr_false;
 			}
 		} else if(c->state == CS_GOT_PATH) {
 			if(buf[i] == ' ') {
 				c->state = CS_GOT_QUERY;
 			} else if(buf[i] == '\n') {
-				return fpr_false;
+				return ppr_false;
 			} else {
 				if(strlen(c->request.query) == MAX_QUERY_LENGTH) {
-					return fpr_false;
+					return ppr_false;
 				} else {
 					c->request.query[strlen(c->request.query)] = buf[i];
 				}
@@ -160,11 +160,11 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 				if(strcmp(c->request.version, "HTTP/1.0") == 0 || strcmp(c->request.version, "HTTP/1.1") == 0) {
 					c->state = CS_GOT_VERSION;
 				} else {
-					return fpr_false;
+					return ppr_false;
 				}
 			} else if(buf[i] != '\r') {
 				if(strlen(c->request.version) == MAX_VERSION_LENGTH) {
-					return fpr_false;
+					return ppr_false;
 				} else {
 					c->request.version[strlen(c->request.version)] = buf[i];
 				}
@@ -183,14 +183,14 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 
 						for(v = t + 1; v[0] != 0 && v[0] == ' '; v++);
 					} else {
-						return fpr_false;
+						return ppr_false;
 					}
 
 					if(v != NULL && strlen(v) == 0) v = NULL;
 					if(v == NULL) v = "";
 
-					k = fpr_strdup(k);
-					v = fpr_strdup(v);
+					k = ppr_strdup(k);
+					v = ppr_strdup(v);
 
 					for(j = 0; k[j] != 0; j++) k[j] = tolower((int)k[j]);
 
@@ -207,7 +207,7 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 
 						http_req(c);
 
-						return fpr_true;
+						return ppr_true;
 					} else {
 						/* content-type exists */
 						c->state = CS_GOT_HEADER;
@@ -219,7 +219,7 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 				}
 			} else if(buf[i] != '\r') {
 				if(strlen(c->header) == LINE_SIZE) {
-					return fpr_false;
+					return ppr_false;
 				} else {
 					c->header[strlen(c->header)] = buf[i];
 				}
@@ -235,15 +235,15 @@ fpr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 
 				http_req(c);
 
-				return fpr_true;
+				return ppr_true;
 			}
 		}
 	}
 
-	return fpr_true;
+	return ppr_true;
 }
 
-static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, fr_context_t* context, int* loop) {
+static ppr_bool proc_hooks(fr_hook_t* hooks, client_t* c, fr_context_t* context, int* loop) {
 	int i;
 
 	*loop = 0;
@@ -251,16 +251,16 @@ static fpr_bool proc_hooks(fr_hook_t* hooks, client_t* c, fr_context_t* context,
 	for(i = 0; i < arrlen(hooks); i++) {
 		int st = hooks[i](context, &c->request, &c->response);
 
-		if(st == FR_MODULE_ERROR) return fpr_false;
+		if(st == FR_MODULE_ERROR) return ppr_false;
 		if(st == FR_MODULE_DECLINE) continue;
-		if(st == FR_MODULE_OK) return fpr_true;
+		if(st == FR_MODULE_OK) return ppr_true;
 		if(st == FR_MODULE_LOOP) {
 			*loop = 1;
-			return fpr_true;
+			return ppr_true;
 		}
 	}
 
-	return fpr_false;
+	return ppr_false;
 }
 
 void http_req(client_t* c) {
@@ -271,20 +271,20 @@ void http_req(client_t* c) {
 	int		ok = 1;
 	fr_context_t	context;
 	int		first = 1;
-	struct fpr_stat st;
+	struct ppr_stat st;
 	char		path1[MAX_PATH_LENGTH + 1];
 	int		i;
 
-	fpr_gethostname(hostname, 1024);
+	ppr_gethostname(hostname, 1024);
 
 	c->request.handler[0] = 0;
 
 	http_res_set_header(&c->response, "Server", server);
 
-	c->request.server_name = fpr_strdup(host == NULL ? hostname : host);
+	c->request.server_name = ppr_strdup(host == NULL ? hostname : host);
 	c->request.port	       = c->port;
 
-	if(fpr_inet_ntop((struct fpr_sockaddr*)&c->address, c->request.realip) == NULL) {
+	if(ppr_inet_ntop((struct ppr_sockaddr*)&c->address, c->request.realip) == NULL) {
 		c->request.realip[0] = 0;
 	}
 
@@ -341,11 +341,11 @@ void http_req(client_t* c) {
 
 		if(i == 0) {
 			if(strlen(c->request.path_info) == 0) {
-				fpr_bool cond;
+				ppr_bool cond;
 				char*	 n = NULL;
 
 				strcpy(path1, c->request.path_virtual);
-				while((cond = ((fpr_stat(c->request.path_translated, &st) != 0 || FPR_S_ISDIR(st.st_mode)) && strlen(c->request.path_virtual) > 1))) {
+				while((cond = ((ppr_stat(c->request.path_translated, &st) != 0 || PPR_S_ISDIR(st.st_mode)) && strlen(c->request.path_virtual) > 1))) {
 					n = strrchr(c->request.path_virtual, '/');
 
 					if(n == NULL || n == c->request.path_virtual) {
@@ -383,7 +383,7 @@ void http_req(client_t* c) {
 
 			http_res_set_header(&c->response, "Content-Type", "text/html");
 
-			c->response.body = fpr_strdup(
+			c->response.body = ppr_strdup(
 			    "<html>\n"					  /**/
 			    "	<head>\n"				  /**/
 			    "		<title>Oops</title>\n"		  /**/
@@ -410,7 +410,7 @@ void http_req(client_t* c) {
 }
 
 void http_req_set_header(fr_request_t* req, const char* key, const char* value) {
-	char* v = fpr_strdup(value);
+	char* v = ppr_strdup(value);
 	int   ind;
 	if((ind = shgeti(req->headers, key)) != -1) free(req->headers[ind].value);
 	shdel(req->headers, key);
@@ -422,7 +422,7 @@ char* http_req_get_header(fr_request_t* req, const char* key) {
 }
 
 void http_res_set_header(fr_response_t* res, const char* key, const char* value) {
-	char* v = fpr_strdup(value);
+	char* v = ppr_strdup(value);
 	int   ind;
 	if((ind = shgeti(res->headers, key)) != -1) free(res->headers[ind].value);
 	shdel(res->headers, key);
@@ -433,8 +433,8 @@ char* http_res_get_header(fr_response_t* res, const char* key) {
 	return shget(res->headers, key);
 }
 
-fpr_bool http_send(client_t* c) {
-	fpr_bool is_chunked = strcmp(c->request.version, "HTTP/1.1") == 0 && c->response.body_size == -1;
+ppr_bool http_send(client_t* c) {
+	ppr_bool is_chunked = strcmp(c->request.version, "HTTP/1.1") == 0 && c->response.body_size == -1;
 
 	if(c->state == CS_GOT_BODY) {
 		char*	    txt;
@@ -451,7 +451,7 @@ fpr_bool http_send(client_t* c) {
 			sprintf(txt, "%s: %s\r\n", c->response.headers[i].key, c->response.headers[i].value);
 			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
 				free(txt);
-				return fpr_false;
+				return ppr_false;
 			}
 			free(txt);
 		}
@@ -461,7 +461,7 @@ fpr_bool http_send(client_t* c) {
 			sprintf(txt, "Connection: %s\r\n", h);
 			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
 				free(txt);
-				return fpr_false;
+				return ppr_false;
 			}
 			free(txt);
 		}
@@ -471,7 +471,7 @@ fpr_bool http_send(client_t* c) {
 			strcpy(txt, "Transfer-Encoding: chunked\r\n");
 			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
 				free(txt);
-				return fpr_false;
+				return ppr_false;
 			}
 			free(txt);
 		}
@@ -481,12 +481,12 @@ fpr_bool http_send(client_t* c) {
 			sprintf(txt, "Content-Length: %d\r\n", c->response.body_size < 0 ? 0 : c->response.body_size);
 			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
 				free(txt);
-				return fpr_false;
+				return ppr_false;
 			}
 			free(txt);
 		}
 
-		if(server_write(c, "\r\n", 2) < 2) return fpr_false;
+		if(server_write(c, "\r\n", 2) < 2) return ppr_false;
 
 		c->state = CS_SENT_HEADER;
 
@@ -501,7 +501,7 @@ fpr_bool http_send(client_t* c) {
 
 		if(strcmp(c->request.method, "HEAD") == 0) {
 			c->state = CS_CONNECTED;
-			return fpr_true;
+			return ppr_true;
 		}
 
 		if(c->response.body_size == -1) {
@@ -531,15 +531,15 @@ fpr_bool http_send(client_t* c) {
 
 		sprintf(num, "%x\r\n", n);
 
-		if(is_chunked && server_write(c, num, strlen(num)) < strlen(num)) return fpr_false;
-		if(n > 0 && server_write(c, chunk, n) < n) return fpr_false;
-		if(is_chunked && server_write(c, "\r\n", 2) < 2) return fpr_false;
+		if(is_chunked && server_write(c, num, strlen(num)) < strlen(num)) return ppr_false;
+		if(n > 0 && server_write(c, chunk, n) < n) return ppr_false;
+		if(is_chunked && server_write(c, "\r\n", 2) < 2) return ppr_false;
 
 		if(n > 0) c->response.body_seek += n;
 		if(c->response.body_size != -1 && c->response.body_seek == c->response.body_size) c->state = CS_CONNECTED;
 	}
 
-	return fpr_true;
+	return ppr_true;
 }
 
 static void http_assume_handler(char* handler, const char* path, fr_context_t* context) {
@@ -550,10 +550,10 @@ static void http_assume_handler(char* handler, const char* path, fr_context_t* c
 	if((n = strrchr(path, '/')) != NULL) {
 		char* dot;
 
-		n = fpr_strdup(n + 1);
+		n = ppr_strdup(n + 1);
 
 		if((dot = strrchr(n, '.')) != NULL) {
-			char* p = fpr_strvacat("Handler_", dot, NULL);
+			char* p = ppr_strvacat("Handler_", dot, NULL);
 			char* chandler;
 
 			if((chandler = context_config_lookup(context, p)) != NULL && strlen(handler) <= MAX_HANDLER_LENGTH) {

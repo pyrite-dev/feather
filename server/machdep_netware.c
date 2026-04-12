@@ -1,11 +1,11 @@
 #include <fhttpd.h>
 
-#if defined(FPR_IS_NETWARE)
+#if defined(PPR_IS_NETWARE)
 #include <nwthread.h>
 #include <nwconio.h>
 
 static void unload(void) {
-	running = fpr_false;
+	running = ppr_false;
 }
 
 void netware_init(void) {

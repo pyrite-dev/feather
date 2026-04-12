@@ -11,7 +11,7 @@ int main(int _argc, char** _argv) {
 	argc = _argc;
 	argv = _argv;
 
-#if defined(FPR_IS_NETWARE)
+#if defined(PPR_IS_NETWARE)
 	netware_start(main_stuff);
 	return 0;
 #else
@@ -23,15 +23,15 @@ int main(int _argc, char** _argv) {
 static void main_stuff(void* args) {
 	int	    i;
 	const char* conf      = NULL;
-	fpr_bool    daemonize = fpr_true;
-#if defined(FPR_HAS_FORK)
+	ppr_bool    daemonize = ppr_true;
+#if defined(PPR_HAS_FORK)
 	pid_t pid;
 #endif
 	int st;
 
 	argv0 = argv[0];
 
-	fpr_init();
+	ppr_init();
 
 	for(i = 1; i < argc; i++) {
 		if(strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "-h") == 0) {
@@ -57,7 +57,7 @@ static void main_stuff(void* args) {
 				EXIT(1);
 			}
 		} else if(strcmp(argv[i], "-d") == 0) {
-			daemonize = fpr_false;
+			daemonize = ppr_false;
 		} else {
 			log_srv2("%s: %s -- unknown option", argv[0], argv[i]);
 			EXIT(1);
@@ -68,14 +68,14 @@ static void main_stuff(void* args) {
 		EXIT(st);
 	}
 
-#if defined(FPR_HAS_FORK)
+#if defined(PPR_HAS_FORK)
 	if(daemonize && (pid = fork()) != 0) {
-		FPR_FILE* f = fpr_fopen(config_pidfile, "w");
+		PPR_FILE* f = ppr_fopen(config_pidfile, "w");
 		char	  buf[512];
 		sprintf(buf, "%ld", (long)pid);
 
-		fpr_fwrite(buf, 1, strlen(buf), f);
-		fpr_fclose(f);
+		ppr_fwrite(buf, 1, strlen(buf), f);
+		ppr_fclose(f);
 
 		EXIT(0);
 	}

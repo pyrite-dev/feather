@@ -7,15 +7,15 @@
 #define TRY_LOOKUP(x, y) ((x) == NULL ? NULL : context->stringkv_lookup((x)->kv, (y)))
 
 static int file_body_stream(fr_response_t* res, unsigned char* buffer, int size) {
-	return fpr_fread(buffer, 1, size, res->body_opaque);
+	return ppr_fread(buffer, 1, size, res->body_opaque);
 }
 
 static void file_cleanup(fr_response_t* res) {
-	fpr_fclose(res->body_opaque);
+	ppr_fclose(res->body_opaque);
 }
 
 static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* res, const char* path) {
-	struct fpr_stat st;
+	struct ppr_stat st;
 	char*		s;
 	char*		ext;
 	char*		mime  = NULL;
@@ -41,13 +41,13 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 	    "Nov",
 	    "Dec"};
 	char	      date[128];
-	struct fpr_tm tm;
+	struct ppr_tm tm;
 
 	(void)req;
 
-	if(fpr_stat(path, &st) != 0) return;
+	if(ppr_stat(path, &st) != 0) return;
 
-	s   = fpr_strdup(strrchr(path, '/')); /* this should be never NULL */
+	s   = ppr_strdup(strrchr(path, '/')); /* this should be never NULL */
 	ext = strrchr(s, '.');
 
 	if(ext != NULL) {
@@ -63,10 +63,10 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 		strcpy(res->status_text, "OK");
 	}
 
-	fpr_gmtime(&tm, st.st_modtime);
+	ppr_gmtime(&tm, st.st_modtime);
 
 	res->body_stream = file_body_stream;
-	res->body_opaque = fpr_fopen(path, "rb");
+	res->body_opaque = ppr_fopen(path, "rb");
 	res->body_size	 = st.st_size;
 
 	if(res->body_opaque == NULL) {
@@ -87,14 +87,14 @@ static void file_send(fr_context_t* context, fr_request_t* req, fr_response_t* r
 }
 
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
-	struct fpr_stat st;
+	struct ppr_stat st;
 
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
 	/* error from other module */
 	if(context->loop2 == 0 && res->status_code != 200 && res->status_code != 0) return FR_MODULE_DECLINE;
 
-	if(fpr_stat(req->path_translated, &st) == 0 && !FPR_S_ISDIR(st.st_mode)) {
+	if(ppr_stat(req->path_translated, &st) == 0 && !PPR_S_ISDIR(st.st_mode)) {
 		file_send(context, req, res, req->path_translated);
 
 		if(res->status_code == 500) return FR_MODULE_DECLINE;

@@ -10,6 +10,7 @@ pipeline {
 						label "built-in"
 					}
 					steps {
+						sh("git submodule update --init --recursive")
 						sh("make distclean")
 						sh("./configure --enable-mods-shared=all")
 						sh("make -j4")
@@ -26,6 +27,7 @@ pipeline {
 						PATH = "/usr/watcom/binl64:${env.PATH}"
 					}
 					steps {
+						sh("git submodule update --init --recursive")
 						sh("make distclean")
 						sh("./configure --prefix=SYS:/Feather --target=NetWare --disable-ssl --enable-mods-shared=all")
 						sh("make -j4 package/fhttpd-netware.zip")
@@ -43,6 +45,7 @@ pipeline {
 						PATH = "/usr/watcom/binl64:${env.PATH}"
 					}
 					steps {
+						sh("git submodule update --init --recursive")
 						sh("make distclean")
 						sh("./configure --prefix=C:/Feather --target=Watcom --disable-ssl --enable-mods-shared=all")
 						sh("make -j4 package/install.exe")
@@ -55,6 +58,7 @@ pipeline {
 						label "built-in"
 					}
 					steps {
+						sh("git submodule update --init --recursive")
 						sh("make distclean")
 						sh("rm -rf openssl && git clone https://github.com/clamwin/openssl --depth=1")
 						sh("./configure --prefix=C:/Feather --target=Windows --enable-mods-shared=all")
@@ -71,6 +75,7 @@ pipeline {
 						label "built-in"
 					}
 					steps {
+						sh("git submodule update --init --recursive")
 						sh("make distclean")
 						sh("rm -rf openssl && git clone https://github.com/clamwin/openssl --depth=1")
 						sh("./configure --prefix=C:/Feather --target=Windows --enable-mods-shared=all")
@@ -91,6 +96,7 @@ pipeline {
 						PATH = "/usr/pspdev/bin:${env.PATH}"
 					}
 					steps {
+						sh("git submodule update --init --recursive")
 						sh("make distclean")
 						sh("./configure --prefix=ms0:/PSP/GAME/fhttpd --target=PSP --disable-ssl --enable-mods-static=all")
 						sh("make -j4 package/fhttpd-psp.zip")

@@ -1,0 +1,3 @@
+[submodule "ppr/git"]
+	path = ppr/git
+	url = ../ppr

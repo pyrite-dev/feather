@@ -23,7 +23,7 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 static int directive(fr_context_t* context, int argc, char** argv) {
 	if(strcmp(argv[0], "RemoteIPHeader") == 0) {
 		if(argc == 2) {
-			char* h = fpr_strdup(argv[1]);
+			char* h = ppr_strdup(argv[1]);
 			int   i;
 
 			for(i = 0; h[i] != 0; i++) h[i] = tolower((int)h[i]);

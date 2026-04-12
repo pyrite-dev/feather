@@ -1,6 +1,6 @@
 #include <fhttpd.h>
 
-#if defined(FPR_IS_PSP)
+#if defined(PPR_IS_PSP)
 #include <pspkernel.h>
 #include <pspdebug.h>
 #include <pspsdk.h>
@@ -15,7 +15,7 @@ PSP_MODULE_INFO("Feather HTTPd", PSP_MODULE_USER, 1, 1);
 PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER);
 
 static int psp_exit_callback(int arg1, int arg2, void* arg3) {
-	running = fpr_false;
+	running = ppr_false;
 }
 
 static int psp_callback_thread(SceSize args, void* argp) {

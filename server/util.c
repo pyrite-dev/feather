@@ -8,7 +8,7 @@ char* util_stringkv_lookup(fr_stringkv_t* kv, const char* key) {
 
 void util_stringkv_set(fr_stringkv_t** kv, const char* key, const char* value) {
 	int   ind;
-	char* v = fpr_strdup(value);
+	char* v = ppr_strdup(value);
 
 	if((ind = shgeti(*kv, value)) != -1) free((*kv)[ind].value);
 	shdel(*kv, value);
@@ -37,7 +37,7 @@ char** util_stringarraykv_lookup(fr_stringarraykv_t* arraykv, const char* key) {
 void util_stringarraykv_push(fr_stringarraykv_t* arraykv, const char* key, const char* value) {
 	int    ind;
 	char** v   = NULL;
-	char*  val = fpr_strdup(value);
+	char*  val = ppr_strdup(value);
 
 	if((ind = shgeti(arraykv, key)) != -1) v = arraykv[ind].value;
 

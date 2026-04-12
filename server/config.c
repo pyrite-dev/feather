@@ -56,7 +56,7 @@ static fr_config_t* new_config(fr_config_t* parent, const char* name) {
 	shdefault(config->arraykv, NULL);
 
 	config->parent = parent;
-	if(name != NULL) config->name = fpr_strdup(name);
+	if(name != NULL) config->name = ppr_strdup(name);
 
 	if(parent != NULL) arrput(parent->children, config);
 
@@ -65,7 +65,7 @@ static fr_config_t* new_config(fr_config_t* parent, const char* name) {
 
 #define ALLOC_PROP(var, val) \
 	if(var != NULL) free(var); \
-	var = fpr_strdup(val);
+	var = ppr_strdup(val);
 void config_init(void) {
 	ALLOC_PROP(config_serverroot, PREFIX);
 	ALLOC_PROP(config_pidfile, "/var/run/fhttpd.pid");
@@ -102,13 +102,13 @@ void config_close(void) {
 	if(strcmp(arg[0], direc) == 0) { \
 		if(arg_len(arg) == 2) { \
 			free(var); \
-			var = fpr_strdup(arg[1]); \
+			var = ppr_strdup(arg[1]); \
 \
-			handled = fpr_true; \
+			handled = ppr_true; \
 		} else { \
 			log_srv2("%s: %s: %s takes 1 argument", argv0, path, direc); \
 \
-			fail = fpr_true; \
+			fail = ppr_true; \
 		} \
 	}
 
@@ -119,42 +119,42 @@ void config_close(void) {
 		if(arg_len(arg) == 2) { \
 			util_stringkv_set(&config_current->kv, arg[0], arg[1]); \
 \
-			handled = fpr_true; \
+			handled = ppr_true; \
 		} else { \
 			log_srv2("%s: %s: %s takes 1 argument", argv0, path, direc); \
 \
-			fail = fpr_true; \
+			fail = ppr_true; \
 		} \
 	}
 
 #define ELSEIF_KV(arg, direc) else IF_KV(arg, direc)
 
-static fpr_bool parse(const char* path) {
-	FPR_FILE* fp;
+static ppr_bool parse(const char* path) {
+	PPR_FILE* fp;
 	char	  buffer[BUFFER_SIZE];
 	char	  linebuf[LINE_SIZE + 1];
 	int	  s;
 	char*	  p;
-	fpr_bool  fail = fpr_false;
+	ppr_bool  fail = ppr_false;
 
 	p = path_transform(path);
-	if((fp = fpr_fopen(p, "r")) == NULL) {
+	if((fp = ppr_fopen(p, "r")) == NULL) {
 		free(p);
 		log_srv2("%s: %s does not exist", argv0, path);
-		return fpr_false;
+		return ppr_false;
 	}
 	free(p);
 
 	linebuf[0] = 0;
 
-	while((s = fpr_fread(buffer, 1, BUFFER_SIZE, fp)) > 0) {
+	while((s = ppr_fread(buffer, 1, BUFFER_SIZE, fp)) > 0) {
 		int i;
 
 		for(i = 0; i < s; i++) {
 			if(buffer[i] == '\n') {
 				char*	 line = linebuf;
 				int	 j;
-				fpr_bool handled = fpr_false; /* this exists only for these IF macros */
+				ppr_bool handled = ppr_false; /* this exists only for these IF macros */
 
 				while((*line) != 0 && ((*line) == '\t' || (*line) == ' ')) line++;
 
@@ -195,7 +195,7 @@ static fpr_bool parse(const char* path) {
 							} else {
 								log_srv2("%s: %s: ForceLog takes 1 argument", argv0, path);
 
-								fail = fpr_true;
+								fail = ppr_true;
 							}
 						} else if(strcmp(arg[0], "Listen") == 0 || strcmp(arg[0], "ListenSSL") == 0) {
 							if(arg_len(arg) >= 2) {
@@ -205,21 +205,21 @@ static fpr_bool parse(const char* path) {
 									port_t p;
 									p.port = atoi(arg[j]);
 									p.ssl  = strcmp(arg[0], "ListenSSL") == 0;
-									p.ipv6 = fpr_false;
+									p.ipv6 = ppr_false;
 									p.fd   = -1;
 
 #if !defined(HAS_SSL)
 									if(p.ssl) {
 										log_srv2("%s: %s: HTTPd is missing SSL/TLS support", argv0, path);
 
-										fail = fpr_true;
+										fail = ppr_true;
 									} else
 #endif
 									{
 										arrput(config_ports, p);
 
-										if(fpr_socket_has_ipv6()) {
-											p.ipv6 = fpr_true;
+										if(ppr_socket_has_ipv6()) {
+											p.ipv6 = ppr_true;
 											arrput(config_ports, p);
 										}
 									}
@@ -236,7 +236,7 @@ static fpr_bool parse(const char* path) {
 								int j;
 
 								for(j = 2; j < arg_len(arg); j++) {
-									char* p = fpr_strvacat("Handler_", arg[j], NULL);
+									char* p = ppr_strvacat("Handler_", arg[j], NULL);
 
 									util_stringkv_set(&config_current->kv, p, arg[1]);
 
@@ -268,7 +268,7 @@ static fpr_bool parse(const char* path) {
 								if(x != FR_MODULE_DECLINE) break;
 							}
 
-							if(x == FR_MODULE_ERROR) fail = fpr_true;
+							if(x == FR_MODULE_ERROR) fail = ppr_true;
 						}
 					} else {
 						if(arg[0][0] == '/') {
@@ -277,12 +277,12 @@ static fpr_bool parse(const char* path) {
 								if(config_current == NULL) {
 									log_srv2("%s: %s: Closing tag does not match", argv0, path);
 
-									fail = fpr_true;
+									fail = ppr_true;
 								}
 							} else {
 								log_srv2("%s: %s: Closing tag does not match", argv0, path);
 
-								fail = fpr_true;
+								fail = ppr_true;
 							}
 						} else if(strcmp(arg[0], "VirtualHost") == 0) {
 							if(arg_len(arg) >= 2) {
@@ -290,24 +290,24 @@ static fpr_bool parse(const char* path) {
 
 								config_current->section.vhost.entry = NULL;
 								for(j = 1; j < arg_len(arg); j++) {
-									char* s = fpr_strdup(arg[j]);
+									char* s = ppr_strdup(arg[j]);
 
 									arrput(config_current->section.vhost.entry, s);
 								}
 							} else {
 								log_srv2("%s: %s: VirtualHost takes 1 argument or more", argv0, path);
 
-								fail = fpr_true;
+								fail = ppr_true;
 							}
 						} else if(strcmp(arg[0], "FilesMatch") == 0) {
 							if(arg_len(arg) == 2) {
 								config_current = new_config(config_current, arg[0]);
 
-								config_current->section.match.pattern = fpr_strdup(arg[1]);
+								config_current->section.match.pattern = ppr_strdup(arg[1]);
 							} else {
 								log_srv2("%s: %s: %s takes 1 argument", argv0, path, arg[0]);
 
-								fail = fpr_true;
+								fail = ppr_true;
 							}
 						}
 					}
@@ -320,7 +320,7 @@ static fpr_bool parse(const char* path) {
 			} else if(buffer[i] != '\r') {
 				if(strlen(linebuf) == LINE_SIZE) {
 					log_srv2("%s: %s: line too long; sorry", argv0, path);
-					fail = fpr_true;
+					fail = ppr_true;
 					goto cleanup;
 				}
 
@@ -331,13 +331,13 @@ static fpr_bool parse(const char* path) {
 	}
 
 cleanup:;
-	fpr_fclose(fp);
+	ppr_fclose(fp);
 
 	return !fail;
 }
 
-fpr_bool config_parse(const char* path) {
-	fpr_bool st = parse(path);
+ppr_bool config_parse(const char* path) {
+	ppr_bool st = parse(path);
 
 	if(st) mime_parse();
 
@@ -356,7 +356,7 @@ fr_config_t* config_vhost_match(const char* host, int port) {
 			int j;
 
 			for(j = 0; j < arrlen(c->section.vhost.entry); j++) {
-				if(fpr_wildcard(c->section.vhost.entry[j], n) || (host == NULL ? 0 : fpr_wildcard(c->section.vhost.entry[j], host))) {
+				if(ppr_wildcard(c->section.vhost.entry[j], n) || (host == NULL ? 0 : ppr_wildcard(c->section.vhost.entry[j], host))) {
 					free(n);
 
 					return c;

@@ -1,15 +1,15 @@
 #include <fhttpd.h>
 
-#if defined(FPR_IS_PSP)
+#if defined(PPR_IS_PSP)
 #include <pspdebug.h>
-#elif defined(FPR_IS_PS2)
+#elif defined(PPR_IS_PS2)
 #include <debug.h>
 #endif
 
-FPR_FILE* log_file = NULL;
+PPR_FILE* log_file = NULL;
 
 void log_init(void) {
-	log_file = fpr_fopen(config_logfile, "a");
+	log_file = ppr_fopen(config_logfile, "a");
 }
 
 void log_srv(const char* fmt, ...) {
@@ -31,8 +31,8 @@ void log_srv2(const char* fmt, ...) {
 void log_vasrv(const char* fmt, int both, va_list va) {
 	char	      buf[LINE_SIZE * 2 + 1];
 	char	      out[LINE_SIZE * 2 + 64 + 1];
-	fpr_time_t    t = fpr_time();
-	struct fpr_tm tm;
+	ppr_time_t    t = ppr_time();
+	struct ppr_tm tm;
 	const char*   day[] = {
 	      "Sun",
 	      "Mon",
@@ -56,36 +56,36 @@ void log_vasrv(const char* fmt, int both, va_list va) {
 	    "Dec"};
 	const char* nl;
 
-	fpr_gmtime(&tm, t);
+	ppr_gmtime(&tm, t);
 
 	vsprintf(buf, fmt, va);
 
 	sprintf(out, "[%s %s %.2d %02d:%02d:%02d UTC] %s", day[tm.tm_wday], mon[tm.tm_mon], tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, buf);
 
 	if(log_file != NULL) {
-		nl = fpr_newline;
+		nl = ppr_newline;
 
-		fpr_fwrite(out, 1, strlen(out), log_file);
-		fpr_fwrite(nl, 1, strlen(nl), log_file);
+		ppr_fwrite(out, 1, strlen(out), log_file);
+		ppr_fwrite(nl, 1, strlen(nl), log_file);
 
 		if(!both) return;
 	}
 
-#if defined(FPR_IS_PSP)
-	pspDebugScreenPrintf("%s" fpr_newline, out);
-#elif defined(FPR_IS_PS2)
-	scr_printf("%s" fpr_newline, out);
+#if defined(PPR_IS_PSP)
+	pspDebugScreenPrintf("%s" ppr_newline, out);
+#elif defined(PPR_IS_PS2)
+	scr_printf("%s" ppr_newline, out);
 #else
-	fprintf(stderr, "%s" fpr_newline, out);
+	fprintf(stderr, "%s" ppr_newline, out);
 #endif
 }
 
 void log_nofile(void) {
-	if(log_file != NULL) fpr_fclose(log_file);
+	if(log_file != NULL) ppr_fclose(log_file);
 	log_file = NULL;
 }
 
 void log_close(void) {
-	if(log_file != NULL) fpr_fclose(log_file);
+	if(log_file != NULL) ppr_fclose(log_file);
 	log_file = NULL;
 }

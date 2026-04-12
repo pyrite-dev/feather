@@ -1,7 +1,7 @@
 #include <fhttpd.h>
 
 char* path_transform(const char* path) {
-	char* p = fpr_strdup(path);
+	char* p = ppr_strdup(path);
 	char* r;
 	int   i;
 
@@ -18,7 +18,7 @@ char* path_transform(const char* path) {
 		return p;
 	}
 
-	r = fpr_strvacat(config_serverroot, "/", p, NULL);
+	r = ppr_strvacat(config_serverroot, "/", p, NULL);
 	free(p);
 
 	for(i = 0; r[i] != 0; i++) {

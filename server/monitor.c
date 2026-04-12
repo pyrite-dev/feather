@@ -39,7 +39,7 @@ static void label(WINDOW* win, int y, int x, const char* txt, const char* str) {
 
 static void draw_info(void) {
 	char   buf[128];
-	time_t diff = fpr_time() - start;
+	time_t diff = ppr_time() - start;
 	int    y = 3, x = 1 + SHIFT;
 	int    i;
 	int    conn = 0;
@@ -56,9 +56,9 @@ static void draw_info(void) {
 
 #if defined(MULTITHREAD)
 	for(i = 0; i < arrlen(server_workers); i++) {
-		fpr_mutex_lock(server_workers[i].mutex);
+		ppr_mutex_lock(server_workers[i].mutex);
 		conn += arrlen(server_workers[i].clients);
-		fpr_mutex_unlock(server_workers[i].mutex);
+		ppr_mutex_unlock(server_workers[i].mutex);
 	}
 #else
 	conn = hmlen(server_clients);
@@ -135,14 +135,14 @@ int main(int argc, char** argv) {
 	double n = 0;
 	int    st;
 
-	fpr_init();
+	ppr_init();
 
-	if((st = fhttpd_init(NULL, fpr_false)) != 0) {
+	if((st = fhttpd_init(NULL, ppr_false)) != 0) {
 		return st;
 	}
-	log_file = fpr_fopen("/dev/null", "w");
+	log_file = ppr_fopen("/dev/null", "w");
 
-	start = fpr_time();
+	start = ppr_time();
 
 	argv0 = argv[0];
 
@@ -168,14 +168,14 @@ int main(int argc, char** argv) {
 
 	resize();
 
-	thread = fpr_thread_create(thread_main, NULL);
+	thread = ppr_thread_create(thread_main, NULL);
 
 	while(running) {
 		int ch;
 
 		while((ch = getch()) != ERR) {
 			if(ch == 3) {
-				running = fpr_false;
+				running = ppr_false;
 			} else if(ch == KEY_RESIZE) {
 				resize();
 			}

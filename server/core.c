@@ -1,18 +1,18 @@
 #include <fhttpd.h>
 
-fpr_bool running = fpr_true;
+ppr_bool running = ppr_true;
 char	 server[2048];
 
-int fhttpd_init(const char* config, fpr_bool daemonize) {
+int fhttpd_init(const char* config, ppr_bool daemonize) {
 	if(config == NULL) config = PREFIX "/etc/fhttpd/fhttpd.conf";
 
 	setlocale(LC_ALL, "");
 
-#if defined(FPR_IS_PSP)
+#if defined(PPR_IS_PSP)
 	psp_init();
-#elif defined(FPR_IS_PS2)
+#elif defined(PPR_IS_PS2)
 	ps2_init();
-#elif defined(FPR_IS_NETWARE)
+#elif defined(PPR_IS_NETWARE)
 	netware_init();
 #endif
 

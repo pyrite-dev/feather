@@ -7,7 +7,7 @@ CFLAGS="$CFLAGS -D_EE -I$PS2SDK/ee/include -I$PS2SDK/common/include"
 LDFLAGS="-T$PS2SDK/ee/startup/linkfile -L$PS2SDK/ee/lib"
 LIBS="$LIBS \$(LINK)debug"
 
-FPR="$FPR \$(LINK)socket"
+PPR="$PPR \$(LINK)socket"
 
 PIC=""
 

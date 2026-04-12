@@ -5,7 +5,7 @@ RPATH=''
 
 RCFLAGS="-O coff"
 
-FPR="$FPR \$(LINK)ws2_32"
+PPR="$PPR \$(LINK)ws2_32"
 
 SO='.dll'
 

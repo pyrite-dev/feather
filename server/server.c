@@ -14,70 +14,70 @@ static void thread_main(void* param);
 clientkv_t* server_clients = NULL;
 #endif
 
-fpr_bool server_init(void) {
+ppr_bool server_init(void) {
 	int i;
 
 #if defined(MULTITHREAD)
-	global_mutex = fpr_mutex_create();
+	global_mutex = ppr_mutex_create();
 
-	fpr_mutex_lock(global_mutex);
+	ppr_mutex_lock(global_mutex);
 	for(i = 0; i < Workers; i++) {
 		worker_t worker;
 		int*	 n = malloc(sizeof(*n));
 
 		*n = i;
 
-		worker.shutdown = fpr_false;
-		worker.thread	= fpr_thread_create(thread_main, n);
-		worker.mutex	= fpr_mutex_create();
+		worker.shutdown = ppr_false;
+		worker.thread	= ppr_thread_create(thread_main, n);
+		worker.mutex	= ppr_mutex_create();
 		worker.clients	= NULL;
 
 		arrput(server_workers, worker);
 	}
-	fpr_mutex_unlock(global_mutex);
+	ppr_mutex_unlock(global_mutex);
 #endif
 
 	for(i = 0; i < arrlen(config_ports); i++) {
 		if(config_ports[i].fd == -1) {
-			struct fpr_sockaddr_in	addr;
-			struct fpr_sockaddr_in6 addr6;
-			struct fpr_sockaddr*	sa;
+			struct ppr_sockaddr_in	addr;
+			struct ppr_sockaddr_in6 addr6;
+			struct ppr_sockaddr*	sa;
 			int			sz;
 
-			if((config_ports[i].fd = fpr_socket(config_ports[i].ipv6 ? FPR_PF_INET6 : FPR_PF_INET, FPR_SOCK_STREAM, FPR_IPPROTO_TCP)) < 0) {
+			if((config_ports[i].fd = ppr_socket(config_ports[i].ipv6 ? PPR_PF_INET6 : PPR_PF_INET, PPR_SOCK_STREAM, PPR_IPPROTO_TCP)) < 0) {
 				log_srv("Failed to create socket");
-				return fpr_false;
+				return ppr_false;
 			}
 
 			if(config_ports[i].ipv6) {
-				addr6.sin6_family = FPR_AF_INET6;
-				addr6.sin6_addr	  = fpr_in6addr_any;
-				addr6.sin6_port	  = fpr_htons(config_ports[i].port);
-				sa		  = (struct fpr_sockaddr*)&addr6;
+				addr6.sin6_family = PPR_AF_INET6;
+				addr6.sin6_addr	  = ppr_in6addr_any;
+				addr6.sin6_port	  = ppr_htons(config_ports[i].port);
+				sa		  = (struct ppr_sockaddr*)&addr6;
 				sz		  = sizeof(addr6);
 			} else {
-				addr.sin_family = FPR_AF_INET;
-				addr.sin_addr	= fpr_inaddr_any;
-				addr.sin_port	= fpr_htons(config_ports[i].port);
-				sa		= (struct fpr_sockaddr*)&addr;
+				addr.sin_family = PPR_AF_INET;
+				addr.sin_addr	= ppr_inaddr_any;
+				addr.sin_port	= ppr_htons(config_ports[i].port);
+				sa		= (struct ppr_sockaddr*)&addr;
 				sz		= sizeof(addr);
 			}
 
-			if(fpr_bind(config_ports[i].fd, sa, sz) < 0) {
+			if(ppr_bind(config_ports[i].fd, sa, sz) < 0) {
 				log_srv("Failed to bind socket");
-				return fpr_false;
+				return ppr_false;
 			}
 
-			if(fpr_listen(config_ports[i].fd, 128) < 0) {
+			if(ppr_listen(config_ports[i].fd, 128) < 0) {
 				log_srv("Failed to listen to socket");
-				return fpr_false;
+				return ppr_false;
 			}
 
 			log_srv("Listening to port %d%s%s", config_ports[i].port, config_ports[i].ssl ? " (SSL)" : "", config_ports[i].ipv6 ? " (IPv6)" : "");
 		}
 	}
 
-	return fpr_true;
+	return ppr_true;
 }
 
 static void kill_client(client_t* c) {
@@ -100,13 +100,13 @@ static void kill_client(client_t* c) {
 	}
 #endif
 
-	fpr_socket_close(c->fd);
+	ppr_socket_close(c->fd);
 
 #if defined(MULTITHREAD)
 	for(i = 0; i < arrlen(server_workers); i++) {
 		int j;
 
-		fpr_mutex_lock(server_workers[i].mutex);
+		ppr_mutex_lock(server_workers[i].mutex);
 		for(j = 0; j < arrlen(server_workers[i].clients); j++) {
 			if(server_workers[i].clients[j] == c) {
 				arrdel(server_workers[i].clients, j);
@@ -115,10 +115,10 @@ static void kill_client(client_t* c) {
 		}
 
 		if(j != arrlen(server_workers[i].clients)) {
-			fpr_mutex_unlock(server_workers[i].mutex);
+			ppr_mutex_unlock(server_workers[i].mutex);
 			break;
 		}
-		fpr_mutex_unlock(server_workers[i].mutex);
+		ppr_mutex_unlock(server_workers[i].mutex);
 	}
 #else
 	hmdel(server_clients, c->fd);
@@ -132,7 +132,7 @@ void server_close(void) {
 
 	for(i = 0; i < arrlen(config_ports); i++) {
 		if(config_ports[i].fd != -1) {
-			fpr_socket_close(config_ports[i].fd);
+			ppr_socket_close(config_ports[i].fd);
 			config_ports[i].fd = -1;
 		}
 	}
@@ -141,22 +141,22 @@ void server_close(void) {
 	for(i = 0; i < Workers; i++) {
 		int j;
 
-		fpr_mutex_lock(server_workers[i].mutex);
-		server_workers[i].shutdown = fpr_true;
-		fpr_mutex_unlock(server_workers[i].mutex);
+		ppr_mutex_lock(server_workers[i].mutex);
+		server_workers[i].shutdown = ppr_true;
+		ppr_mutex_unlock(server_workers[i].mutex);
 
-		fpr_thread_join(server_workers[i].thread);
+		ppr_thread_join(server_workers[i].thread);
 
 		for(j = 0; j < arrlen(server_workers[i].clients); j++) {
 			kill_client(server_workers[i].clients[j]);
 		}
 		arrfree(server_workers[i].clients);
 
-		fpr_mutex_destroy(server_workers[i].mutex);
+		ppr_mutex_destroy(server_workers[i].mutex);
 	}
 	arrfree(server_workers);
 
-	fpr_mutex_destroy(global_mutex);
+	ppr_mutex_destroy(global_mutex);
 #else
 	for(i = 0; i < hmlen(server_clients); i++) {
 		kill_client(server_clients[i].value);
@@ -175,7 +175,7 @@ int server_read(client_t* c, void* buffer, int len) {
 	} else
 #endif
 	{
-		return fpr_recv(c->fd, buffer, len, 0);
+		return ppr_recv(c->fd, buffer, len, 0);
 	}
 }
 
@@ -186,11 +186,11 @@ int server_write(client_t* c, void* buffer, int len) {
 	} else
 #endif
 	{
-		return fpr_send(c->fd, buffer, len, 0);
+		return ppr_send(c->fd, buffer, len, 0);
 	}
 }
 
-static int socket_recv(client_t* c, fpr_bool* changed) {
+static int socket_recv(client_t* c, ppr_bool* changed) {
 #if defined(HAS_SSL)
 	/* probably handshake */
 	if(c->state == CS_WANT_SSL) {
@@ -237,7 +237,7 @@ static int socket_recv(client_t* c, fpr_bool* changed) {
 				c->leftover_seek = 0;
 			}
 
-			if(st != c->state && c->state == CS_GOT_BODY && changed != NULL) *changed = fpr_true;
+			if(st != c->state && c->state == CS_GOT_BODY && changed != NULL) *changed = ppr_true;
 
 			c->last = time(NULL);
 		}
@@ -246,7 +246,7 @@ static int socket_recv(client_t* c, fpr_bool* changed) {
 	return 0;
 }
 
-static int socket_send(client_t* c, fpr_bool* changed) {
+static int socket_send(client_t* c, ppr_bool* changed) {
 	int st = c->state;
 
 	if(!http_send(c)) {
@@ -258,7 +258,7 @@ static int socket_send(client_t* c, fpr_bool* changed) {
 		const char* t = http_req_get_header(&c->request, "connection");
 
 		if(t != NULL && strcmp(t, "keep-alive") == 0) {
-			if(changed != NULL) *changed = fpr_true;
+			if(changed != NULL) *changed = ppr_true;
 
 			http_end(c);
 			http_init(c);
@@ -274,7 +274,7 @@ static int socket_send(client_t* c, fpr_bool* changed) {
 					c->leftover_seek = 0;
 				}
 
-				if(st != c->state && c->state == CS_GOT_BODY && changed != NULL) *changed = fpr_true;
+				if(st != c->state && c->state == CS_GOT_BODY && changed != NULL) *changed = ppr_true;
 			}
 		} else {
 			return 1;
@@ -287,12 +287,12 @@ static int socket_send(client_t* c, fpr_bool* changed) {
 	return 0;
 }
 
-static int socket_main(client_t* c, fpr_bool* changed, struct fpr_pollfd* pfd) {
-	if((pfd->revents & FPR_POLLIN) && socket_recv(c, changed)) {
+static int socket_main(client_t* c, ppr_bool* changed, struct ppr_pollfd* pfd) {
+	if((pfd->revents & PPR_POLLIN) && socket_recv(c, changed)) {
 		kill_client(c);
 		return 1;
 	}
-	if((pfd->revents & FPR_POLLOUT) && socket_send(c, changed)) {
+	if((pfd->revents & PPR_POLLOUT) && socket_send(c, changed)) {
 		kill_client(c);
 		return 1;
 	}
@@ -303,39 +303,39 @@ static int socket_main(client_t* c, fpr_bool* changed, struct fpr_pollfd* pfd) {
 #if defined(MULTITHREAD)
 static void thread_main(void* param) {
 	int		   n	= *(int*)param;
-	struct fpr_pollfd* pfds = NULL;
-	struct fpr_pollfd  pfd;
+	struct ppr_pollfd* pfds = NULL;
+	struct ppr_pollfd  pfd;
 	int		   i;
 
 	free(param);
 
-	fpr_mutex_lock(global_mutex);
-	fpr_mutex_unlock(global_mutex);
+	ppr_mutex_lock(global_mutex);
+	ppr_mutex_unlock(global_mutex);
 
 	while(!server_workers[n].shutdown) {
 		int s;
 
 		arrfree(pfds);
 
-		fpr_mutex_lock(server_workers[n].mutex);
+		ppr_mutex_lock(server_workers[n].mutex);
 
 		for(i = 0; i < arrlen(server_workers[n].clients); i++) {
 			pfd.fd	   = server_workers[n].clients[i]->fd;
-			pfd.events = FPR_POLLIN | FPR_POLLPRI;
+			pfd.events = PPR_POLLIN | PPR_POLLPRI;
 
-			if(server_workers[n].clients[i]->state >= CS_GOT_BODY) pfd.events |= FPR_POLLOUT;
+			if(server_workers[n].clients[i]->state >= CS_GOT_BODY) pfd.events |= PPR_POLLOUT;
 
 			pfd.user = server_workers[n].clients[i];
 
 			arrput(pfds, pfd);
 		}
 
-		fpr_mutex_unlock(server_workers[n].mutex);
+		ppr_mutex_unlock(server_workers[n].mutex);
 
 		if(arrlen(pfds) > 0) {
-			s = fpr_poll(pfds, arrlen(pfds), 100);
+			s = ppr_poll(pfds, arrlen(pfds), 100);
 		} else {
-			fpr_msleep(10);
+			ppr_msleep(10);
 			s = 0;
 		}
 
@@ -354,7 +354,7 @@ static void thread_main(void* param) {
 				continue;
 			}
 
-			if(pfds[i].revents & (FPR_POLLIN | FPR_POLLOUT)) {
+			if(pfds[i].revents & (PPR_POLLIN | PPR_POLLOUT)) {
 				c->last = time(NULL);
 			}
 		}
@@ -367,19 +367,19 @@ void server_loop(void) {
 #if !defined(MULTITHREAD)
 	int cli_count = 0;
 #endif
-	struct fpr_pollfd* pfd = NULL;
+	struct ppr_pollfd* pfd = NULL;
 
 	while(running) {
-		fpr_bool changed = fpr_false;
+		ppr_bool changed = ppr_false;
 
 		if(pfd != NULL) {
-			int s = fpr_poll(pfd, arrlen(pfd), 100);
+			int s = ppr_poll(pfd, arrlen(pfd), 100);
 			int i;
 
 			if(s > 0) {
 				/* server sockets */
 				for(i = 0; i < srv_count; i++) {
-					if(pfd[i].revents & FPR_POLLIN) {
+					if(pfd[i].revents & PPR_POLLIN) {
 						client_t* c;
 						int	  l = sizeof(c->address);
 #if defined(MULTITHREAD)
@@ -391,7 +391,7 @@ void server_loop(void) {
 						memset(c, 0, sizeof(*c));
 						c->last	 = time(NULL);
 						c->state = config_ports[i].ssl ? CS_WANT_SSL : CS_CONNECTED;
-						if((c->fd = fpr_accept(pfd[i].fd, (struct fpr_sockaddr*)&c->address, &l)) < 0) { /* probably high load? */
+						if((c->fd = ppr_accept(pfd[i].fd, (struct ppr_sockaddr*)&c->address, &l)) < 0) { /* probably high load? */
 							free(c);
 							goto skip_req;
 						}
@@ -414,9 +414,9 @@ void server_loop(void) {
 
 						if(server_worker >= arrlen(server_workers)) server_worker = 0;
 
-						fpr_mutex_lock(server_workers[w].mutex);
+						ppr_mutex_lock(server_workers[w].mutex);
 						arrput(server_workers[w].clients, c);
-						fpr_mutex_unlock(server_workers[w].mutex);
+						ppr_mutex_unlock(server_workers[w].mutex);
 #else
 						hmput(server_clients, c->fd, c);
 #endif
@@ -449,13 +449,13 @@ void server_loop(void) {
 		}
 		if(srv_count != arrlen(config_ports)) {
 			srv_count = arrlen(config_ports);
-			changed	  = fpr_true;
+			changed	  = ppr_true;
 		}
 
 #if !defined(MULTITHREAD)
 		if(cli_count != hmlen(server_clients)) {
 			cli_count = hmlen(server_clients);
-			changed	  = fpr_true;
+			changed	  = ppr_true;
 		}
 #endif
 
@@ -464,22 +464,22 @@ void server_loop(void) {
 
 			arrfree(pfd);
 			for(i = 0; i < srv_count; i++) {
-				struct fpr_pollfd fd;
+				struct ppr_pollfd fd;
 
 				fd.fd	  = config_ports[i].fd;
-				fd.events = FPR_POLLIN | FPR_POLLPRI;
+				fd.events = PPR_POLLIN | PPR_POLLPRI;
 
 				arrput(pfd, fd);
 			}
 
 #if !defined(MULTITHREAD)
 			for(i = 0; i < hmlen(server_clients); i++) {
-				struct fpr_pollfd fd;
+				struct ppr_pollfd fd;
 
 				fd.fd	  = server_clients[i].key;
-				fd.events = FPR_POLLIN | FPR_POLLPRI;
+				fd.events = PPR_POLLIN | PPR_POLLPRI;
 
-				if(server_clients[i].value->state >= CS_GOT_BODY) fd.events |= FPR_POLLOUT;
+				if(server_clients[i].value->state >= CS_GOT_BODY) fd.events |= PPR_POLLOUT;
 
 				arrput(pfd, fd);
 			}

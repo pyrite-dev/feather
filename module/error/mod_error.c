@@ -32,7 +32,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 		for(i = 0; i < sizeof(errors) / sizeof(errors[0]); i++) {
 			if(errors[i].key == res->status_code) {
 				/* clang-format off */
-				res->body = fpr_strvacat(
+				res->body = ppr_strvacat(
 					"<html>\n"									/**/
 					"	<head>\n",								/**/
 					"		<title>", errors[i].value, "</title>\n" 			/**/

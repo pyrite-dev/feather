@@ -9,15 +9,15 @@ OBJS = core$(O) config$(O) path$(O) arg$(O) log$(O) server$(O) ssl$(O) http$(O) 
 OBJS += machdep_psp$(O) machdep_ps2$(O) machdep_netware$(O)
 OBJS += stb_ds$(O)
 
-LDARGS1 = $(LDFLAGS) $(RPATH) $(LIBDIR)../fpr $(LIBDIR)../external/hsregex $(LIBDIR). -o $@
-LDARGS2 = $(LIB)fhttpd$(A) $(SSL) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(FPR) $(REGEX) $(LIBS)
+LDARGS1 = $(LDFLAGS) $(RPATH) $(LIBDIR)../ppr $(LIBDIR)../external/hsregex $(LIBDIR). -o $@
+LDARGS2 = $(LIB)fhttpd$(A) $(SSL) `for i in $(EMBED); do echo "../module/$$i/mod_$$i$(A)" ; done` $(PPR) $(REGEX) $(LIBS)
 
-DEPS = ../fpr/$(LIB)fpr$(A) ../external/hsregex/$(LIB)hsregex$(A) $(LIB)fhttpd$(A) $(RESFILE) .relink
+DEPS = ../ppr/$(LIB)ppr$(A) ../external/hsregex/$(LIB)hsregex$(A) $(LIB)fhttpd$(A) $(RESFILE) .relink
 
 all: fhttpd$(E)
 
 .c$(O):
-	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../fpr $(INCDIR). $(INCDIR)../external/stb $(INCDIR)../external/hsregex -c -o $@ $<
+	$(CC) $(CFLAGS) $(DEFINE)_FHTTPD $(INCDIR)../ppr/git/include $(INCDIR). $(INCDIR)../external/stb $(INCDIR)../external/hsregex -c -o $@ $<
 
 .relink:
 	touch $@

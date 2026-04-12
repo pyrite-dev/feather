@@ -17,7 +17,7 @@ static int sni_callback(SSL* s, int* al, void* arg) {
 	if(str == NULL) {
 		char tmp[4096];
 
-		fpr_gethostname(tmp, 4096);
+		ppr_gethostname(tmp, 4096);
 
 		host = malloc(strlen(tmp) + 1);
 		strcpy(host, tmp);

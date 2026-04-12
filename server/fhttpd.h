@@ -6,17 +6,17 @@
 #if defined(RESOURCE)
 #define FR_PLATFORM "Something"
 #else
-#include <fpr.h>
+#include <ppr.h>
 
-#if defined(FPR_IS_WIN32)
+#if defined(PPR_IS_WIN32)
 #define FR_PLATFORM "Win32"
-#elif defined(FPR_IS_PSP)
+#elif defined(PPR_IS_PSP)
 #define FR_PLATFORM "PSP"
-#elif defined(FPR_IS_PS2)
+#elif defined(PPR_IS_PS2)
 #define FR_PLATFORM "PS2"
-#elif defined(FPR_IS_NETWARE)
+#elif defined(PPR_IS_NETWARE)
 #define FR_PLATFORM "NetWare"
-#elif defined(FPR_IS_UNIX)
+#elif defined(PPR_IS_UNIX)
 #define FR_PLATFORM "Unix"
 #else
 #define FR_PLATFORM "Unknown"
@@ -28,7 +28,7 @@
 #define FR_SERVER FR_VERSION_TEXT " (" FR_PLATFORM ")"
 
 #if !defined(RESOURCE)
-#if defined(FPR_IS_WIN32) || defined(FPR_IS_NETWARE)
+#if defined(PPR_IS_WIN32) || defined(PPR_IS_NETWARE)
 #define FR_MODULE_DATA __declspec(dllexport)
 #else
 #define FR_MODULE_DATA
@@ -214,12 +214,12 @@ struct fr_context {
 #include <ctype.h>
 #include <locale.h>
 
-#if defined(FPR_IS_UNIX)
+#if defined(PPR_IS_UNIX)
 #include <unistd.h>
 #include <signal.h>
 #endif
 
-#if defined(FPR_IS_NETWARE)
+#if defined(PPR_IS_NETWARE)
 #include <nwthread.h>
 #include <nwconio.h>
 #endif
@@ -253,13 +253,13 @@ typedef struct worker	worker_t;
 
 struct port {
 	int	 port;
-	fpr_bool ssl;
-	fpr_bool ipv6;
+	ppr_bool ssl;
+	ppr_bool ipv6;
 	int	 fd;
 };
 
 struct client {
-	struct fpr_sockaddr_storage address;
+	struct ppr_sockaddr_storage address;
 #if defined(HAS_SSL)
 	SSL_CTX* ctx;
 	SSL*	 ssl;
@@ -286,7 +286,7 @@ struct clientkv {
 };
 
 struct worker {
-	fpr_bool   shutdown;
+	ppr_bool   shutdown;
 	void*	   mutex;
 	void*	   thread;
 	client_t** clients;
@@ -296,10 +296,10 @@ struct worker {
 extern char* argv0;
 
 /* core.c */
-extern fpr_bool running;
+extern ppr_bool running;
 extern char	server[];
 
-int  fhttpd_init(const char* config, fpr_bool daemonize);
+int  fhttpd_init(const char* config, ppr_bool daemonize);
 void fhttpd_loop(void);
 void fhttpd_uninit(void);
 
@@ -313,7 +313,7 @@ extern fr_config_t* config_current;
 extern port_t*	    config_ports;
 
 void	     config_init(void);
-fpr_bool     config_parse(const char* path);
+ppr_bool     config_parse(const char* path);
 void	     config_close(void);
 fr_config_t* config_vhost_match(const char* host, int port);
 int	     config_children_length(fr_config_t* config);
@@ -327,7 +327,7 @@ void   arg_free(char** args);
 int    arg_len(char** args);
 
 /* log.c */
-extern FPR_FILE* log_file;
+extern PPR_FILE* log_file;
 
 void log_init(void);
 void log_srv(const char* fmt, ...);
@@ -343,7 +343,7 @@ extern worker_t* server_workers;
 extern clientkv_t* server_clients;
 #endif
 
-fpr_bool server_init(void);
+ppr_bool server_init(void);
 void	 server_close(void);
 void	 server_loop(void);
 int	 server_read(client_t* c, void* buffer, int len);
@@ -357,9 +357,9 @@ SSL_CTX* ssl_create_context(int port);
 /* http.c */
 void	 http_init(client_t* c);
 void	 http_end(client_t* c);
-fpr_bool http_got(client_t* c, void* buffer, int size, int* last);
+ppr_bool http_got(client_t* c, void* buffer, int size, int* last);
 void	 http_req(client_t* c);
-fpr_bool http_send(client_t* c);
+ppr_bool http_send(client_t* c);
 void	 http_req_set_header(fr_request_t* req, const char* key, const char* value);
 char*	 http_req_get_header(fr_request_t* req, const char* key);
 void	 http_req_assume_handler(fr_request_t* req, fr_context_t* context);
@@ -399,31 +399,31 @@ void   util_stringarraykv_push(fr_stringarraykv_t* kv, const char* key, const ch
 int    util_stringarraykv_length(fr_stringarraykv_t* arraykv, const char* key);
 
 /* machdep_psp.c */
-#if defined(FPR_IS_PSP)
+#if defined(PPR_IS_PSP)
 void psp_init(void);
 void psp_wait(void);
 void psp_exit(int x);
 #endif
 
 /* machdep_ps2.c */
-#if defined(FPR_IS_PS2)
+#if defined(PPR_IS_PS2)
 void ps2_init(void);
 #endif
 
 /* machdep_netware.c */
-#if defined(FPR_IS_NETWARE)
+#if defined(PPR_IS_NETWARE)
 void netware_init(void);
 void netware_start(void (*main_stuff)(void* arg));
 #endif
 
 /* wait routine for exit */
-#if defined(FPR_IS_PSP)
+#if defined(PPR_IS_PSP)
 #define EXIT(x) \
 	{ \
 		psp_wait(); \
 		psp_exit((x)); \
 	}
-#elif defined(FPR_IS_PS2)
+#elif defined(PPR_IS_PS2)
 #define EXIT(x) \
 	{ \
 		while(1); \
@@ -431,7 +431,7 @@ void netware_start(void (*main_stuff)(void* arg));
 #else
 #define EXIT(x) \
 	{ \
-		fpr_uninit(); \
+		ppr_uninit(); \
 		exit((x)); \
 	}
 #endif

@@ -1,2 +1,3 @@
 #!/bin/sh
-FPR="$FPR \$(LINK)pthread"
+PPR="$PPR"
+THREAD="$THREAD \$(LINK)pthread"

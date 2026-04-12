@@ -7,15 +7,15 @@
 static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 	char**		arr = NULL;
 	int		len;
-	struct fpr_stat st;
+	struct ppr_stat st;
 	int		i;
 
 	(void)res;
 
 	if(req->path[0] != '/') return FR_MODULE_DECLINE;
 
-	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') {
-		char* p = fpr_strvacat(req->path, "/", NULL);
+	if(ppr_stat(req->path_translated, &st) == 0 && PPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') {
+		char* p = ppr_strvacat(req->path, "/", NULL);
 
 		res->status_code = 301;
 		strcpy(res->status_text, "Moved Permanently");
@@ -30,9 +30,9 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 	arr = context->config_lookup_array(context, "DirectoryIndex", &len);
 
 	for(i = 0; i < len; i++) {
-		char* p = fpr_strvacat(req->path_translated, req->path_translated[strlen(req->path_translated) - 1] == '/' ? "" : "/", arr[i], NULL);
+		char* p = ppr_strvacat(req->path_translated, req->path_translated[strlen(req->path_translated) - 1] == '/' ? "" : "/", arr[i], NULL);
 
-		if(fpr_stat(p, &st) == 0 && !FPR_S_ISDIR(st.st_mode) && (strlen(req->path_virtual) + strlen(arr[i])) <= MAX_PATH_LENGTH) {
+		if(ppr_stat(p, &st) == 0 && !PPR_S_ISDIR(st.st_mode) && (strlen(req->path_virtual) + strlen(arr[i])) <= MAX_PATH_LENGTH) {
 			strcpy(req->path_virtual, req->path);
 			strcat(req->path_virtual, arr[i]);
 
@@ -48,33 +48,33 @@ static int hook_rewrite(fr_context_t* context, fr_request_t* req, fr_response_t*
 	return FR_MODULE_DECLINE;
 }
 
-static int sort_dir(const struct fpr_dirent** d1, const struct fpr_dirent** d2) {
-	if(FPR_S_ISDIR((*d1)->d_stat.st_mode) && !FPR_S_ISDIR((*d2)->d_stat.st_mode)) return -1;
-	if(!FPR_S_ISDIR((*d1)->d_stat.st_mode) && FPR_S_ISDIR((*d2)->d_stat.st_mode)) return 1;
+static int sort_dir(const struct ppr_dirent** d1, const struct ppr_dirent** d2) {
+	if(PPR_S_ISDIR((*d1)->d_stat.st_mode) && !PPR_S_ISDIR((*d2)->d_stat.st_mode)) return -1;
+	if(!PPR_S_ISDIR((*d1)->d_stat.st_mode) && PPR_S_ISDIR((*d2)->d_stat.st_mode)) return 1;
 
-	return fpr_alphasort(d1, d2);
+	return ppr_alphasort(d1, d2);
 }
 
 static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
-	struct fpr_stat st;
+	struct ppr_stat st;
 
-	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') return FR_MODULE_DECLINE;
+	if(ppr_stat(req->path_translated, &st) == 0 && PPR_S_ISDIR(st.st_mode) && req->path[strlen(req->path) - 1] != '/') return FR_MODULE_DECLINE;
 
-	if(fpr_stat(req->path_translated, &st) == 0 && FPR_S_ISDIR(st.st_mode)) {
+	if(ppr_stat(req->path_translated, &st) == 0 && PPR_S_ISDIR(st.st_mode)) {
 		char*		    table = malloc(1);
-		struct fpr_dirent** namelist;
+		struct ppr_dirent** namelist;
 		int		    n;
 
 		table[0] = 0;
 
-		fpr_strappend(&table, "		<tr>\n");
-		fpr_strappend(&table, "			<th width=\"24\"></th>\n");
-		fpr_strappend(&table, "			<th>Name</th>\n");
-		fpr_strappend(&table, "			<th>Last modified</th>\n");
-		fpr_strappend(&table, "			<th>Size</th>\n");
-		fpr_strappend(&table, "		</tr>\n");
+		ppr_strappend(&table, "		<tr>\n");
+		ppr_strappend(&table, "			<th width=\"24\"></th>\n");
+		ppr_strappend(&table, "			<th>Name</th>\n");
+		ppr_strappend(&table, "			<th>Last modified</th>\n");
+		ppr_strappend(&table, "			<th>Size</th>\n");
+		ppr_strappend(&table, "		</tr>\n");
 
-		if((n = fpr_scandir(req->path_translated, &namelist, NULL, sort_dir)) >= 0) {
+		if((n = ppr_scandir(req->path_translated, &namelist, NULL, sort_dir)) >= 0) {
 			int i;
 			for(i = 0; i < n; i++) {
 				if(strcmp(namelist[i]->d_name, ".") != 0) {
@@ -82,8 +82,8 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 					char*	      s;
 					char	      date[64];
 					char	      size[16];
-					struct fpr_tm tm;
-					fpr_size_t    sz = namelist[i]->d_stat.st_size;
+					struct ppr_tm tm;
+					ppr_size_t    sz = namelist[i]->d_stat.st_size;
 					char*	      tmp;
 					char*	      img = NULL;
 					char*	      img_esc;
@@ -99,7 +99,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 						if(img == NULL) img = context->config_lookup(context, tmp);
 					}
 
-					if(FPR_S_ISDIR(namelist[i]->d_stat.st_mode)) {
+					if(PPR_S_ISDIR(namelist[i]->d_stat.st_mode)) {
 						if(img == NULL) img = context->config_lookup(context, "Icon_^^DIRECTORY^^");
 					}
 
@@ -110,7 +110,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 						if(arr != NULL) {
 							for(j = 0; j < len; j += 2) {
-								if(fpr_wildcard(arr[j + 0], namelist[i]->d_name)) {
+								if(ppr_wildcard(arr[j + 0], namelist[i]->d_name)) {
 									img = arr[j + 1];
 									break;
 								}
@@ -126,7 +126,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 
 						if(arr != NULL && mime != NULL) {
 							for(j = 0; j < len; j += 2) {
-								if(fpr_wildcard(arr[j + 0], mime)) {
+								if(ppr_wildcard(arr[j + 0], mime)) {
 									img = arr[j + 1];
 									break;
 								}
@@ -134,19 +134,19 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 						}
 					}
 
-					if(img != NULL) img_esc = fpr_strsafehtml(img);
+					if(img != NULL) img_esc = ppr_strsafehtml(img);
 
-					name = fpr_strvacat(namelist[i]->d_name, FPR_S_ISDIR(namelist[i]->d_stat.st_mode) ? "/" : "", NULL);
-					s    = fpr_strsafehtml(name);
+					name = ppr_strvacat(namelist[i]->d_name, PPR_S_ISDIR(namelist[i]->d_stat.st_mode) ? "/" : "", NULL);
+					s    = ppr_strsafehtml(name);
 					free(name);
 
-					fpr_gmtime(&tm, namelist[i]->d_stat.st_modtime);
+					ppr_gmtime(&tm, namelist[i]->d_stat.st_modtime);
 
 					date[0] = 0;
 					sprintf(date, "%d-%02d-%02d %02d:%02d UTC", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
 
 					size[0] = 0;
-					if(FPR_S_ISDIR(namelist[i]->d_stat.st_mode)) {
+					if(PPR_S_ISDIR(namelist[i]->d_stat.st_mode)) {
 					} else if(sz < 1024) {
 						sprintf(size, "%d", (int)sz);
 					} else if(sz < 1024 * 1024) {
@@ -169,28 +169,28 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 						}
 					}
 
-					fpr_strappend(&table, "		<tr>\n");
-					fpr_strappend(&table, "			<td width=\"24\">\n");
+					ppr_strappend(&table, "		<tr>\n");
+					ppr_strappend(&table, "			<td width=\"24\">\n");
 					if(img != NULL) {
-						fpr_strappend(&table, "				<img src=\"");
-						fpr_strappend(&table, img_esc);
-						fpr_strappend(&table, "\">\n");
+						ppr_strappend(&table, "				<img src=\"");
+						ppr_strappend(&table, img_esc);
+						ppr_strappend(&table, "\">\n");
 					}
-					fpr_strappend(&table, "			</td>\n");
-					fpr_strappend(&table, "			<td>\n");
-					fpr_strappend(&table, "				<a href=\"");
-					fpr_strappend(&table, s);
-					fpr_strappend(&table, "\">");
-					fpr_strappend(&table, strcmp(namelist[i]->d_name, "..") == 0 ? "Parent Directory" : s);
-					fpr_strappend(&table, "</a>\n");
-					fpr_strappend(&table, "			</td>\n");
-					fpr_strappend(&table, "			<td>");
-					fpr_strappend(&table, date);
-					fpr_strappend(&table, "</td>\n");
-					fpr_strappend(&table, "			<td>");
-					fpr_strappend(&table, size);
-					fpr_strappend(&table, "</td>\n");
-					fpr_strappend(&table, "		</tr>\n");
+					ppr_strappend(&table, "			</td>\n");
+					ppr_strappend(&table, "			<td>\n");
+					ppr_strappend(&table, "				<a href=\"");
+					ppr_strappend(&table, s);
+					ppr_strappend(&table, "\">");
+					ppr_strappend(&table, strcmp(namelist[i]->d_name, "..") == 0 ? "Parent Directory" : s);
+					ppr_strappend(&table, "</a>\n");
+					ppr_strappend(&table, "			</td>\n");
+					ppr_strappend(&table, "			<td>");
+					ppr_strappend(&table, date);
+					ppr_strappend(&table, "</td>\n");
+					ppr_strappend(&table, "			<td>");
+					ppr_strappend(&table, size);
+					ppr_strappend(&table, "</td>\n");
+					ppr_strappend(&table, "		</tr>\n");
 
 					free(s);
 					if(img != NULL) free(img_esc);
@@ -208,7 +208,7 @@ static int hook(fr_context_t* context, fr_request_t* req, fr_response_t* res) {
 		context->response_set_header(res, "Content-Type", "text/html");
 
 		/* clang-format off */
-		res->body = fpr_strvacat(
+		res->body = ppr_strvacat(
 			"<html>\n"									/**/
 			"	<head>\n",								/**/
 			"		<title>Index of ", req->path, "</title>\n" 			/**/

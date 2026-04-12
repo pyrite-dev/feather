@@ -21,8 +21,9 @@ PIC='-fPIC'
 RPATH='-Wl,-R$(PREFIX)/lib'
 
 SSL=''
-FPR='$(LINK)fpr'
+PPR='$(LINK)ppr'
 REGEX='$(LINK)hsregex'
+THREAD=''
 
 A='.a'
 SO='.so'
@@ -177,8 +178,8 @@ LIBDIR =  -L
 # Linker flag for SSL library
 SSL	= $SSL
 
-# Linker flag for FPR
-FPR	= $FPR $THREAD
+# Linker flag for PPR
+PPR	= $PPR $THREAD
 
 # Linker flag for RegEx
 REGEX	= $REGEX
