@@ -6,6 +6,7 @@
 /* hash */
 #include <fpr_sha256.h>
 #include <fpr_md5.h>
+#include <fpr_blake2s.h>
 
 /* misc */
 #include <fpr_url.h>

@@ -13,6 +13,8 @@
 #define FPR_IS_NETWARE
 #endif
 
+/*** Platform differences */
+
 #if defined(FPR_IS_WIN32) || defined(FPR_IS_NETWARE)
 #define fpr_newline "\r\n"
 #else
@@ -25,19 +27,36 @@
 #undef FPR_HAS_UNIX_SOCKET
 #undef FPR_USE_SOCKLEN_T
 
-#if defined(FPR_IS_UNIX) || defined(FPR_IS_PSP) || defined(FPR_IS_PS2)
-#define FPR_USE_SOCKLEN_T
-#endif
-
-#if defined(_WIN32)
+/* Windows */
+#if defined(FPR_IS_WIN32)
 #define FPR_HAS_IPV6
 #endif
 
+/* PSP/PS2 */
+#if defined(FPR_IS_PSP) || defined(FPR_IS_PS2)
+#define FPR_USE_SOCKLEN_T
+#endif
+
+/* NetWare */
+#if defined(FPR_IS_NETWARE)
+/* Nothing */
+#endif
+
+/* BSD family */
 #if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__linux__) || defined(__sun__)
 #define FPR_HAS_IPV6
 #define FPR_HAS_POLL
 #define FPR_HAS_FORK
 #define FPR_HAS_UNIX_SOCKET
+#define FPR_USE_SOCKLEN_T
+#endif
+
+/*** Compiler differences ***/
+
+#undef FPR_HAS_PACK
+
+#if defined(__WATCOMC__) || defined(__GNUC__)
+#define FPR_HAS_PACK
 #endif
 
 typedef unsigned char fpr_bool;
