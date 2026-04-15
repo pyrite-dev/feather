@@ -87,13 +87,17 @@ ppr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 				}
 			}
 		} else if(c->state == CS_GOT_METHOD) {
+			ppr_bool http09 = ppr_false;
+			
 			if(buf[i] == ' ') {
 				c->state = CS_GOT_QUERY;
 			} else if(buf[i] == '?') {
 				c->state = CS_GOT_PATH;
 			} else if(buf[i] == '\n') {
-				return ppr_false;
-			} else {
+				c->state = CS_GOT_PATH;
+				
+				http09 = ppr_true;
+			} else if(buf[i] != '\r') {
 				if(strlen(c->request.path_raw) == MAX_PATH_LENGTH) {
 					return ppr_false;
 				} else {
@@ -142,12 +146,18 @@ ppr_bool http_got(client_t* c, void* buffer, int size, int* last) {
 				}
 
 				if(reserved[j] != NULL) return ppr_false;
+				
+				if(http09){
+					strcpy(c->request.version, "HTTP/0.9");
+					
+					http_req(c);
+					
+					return ppr_true;
+				}
 			}
 		} else if(c->state == CS_GOT_PATH) {
 			if(buf[i] == ' ') {
 				c->state = CS_GOT_QUERY;
-			} else if(buf[i] == '\n') {
-				return ppr_false;
 			} else {
 				if(strlen(c->request.query) == MAX_QUERY_LENGTH) {
 					return ppr_false;
@@ -441,52 +451,54 @@ ppr_bool http_send(client_t* c) {
 		const char* h;
 		int	    i;
 
-		txt = malloc(8 + 1 + 3 + 1 + strlen(c->response.status_text) + 2 + 1);
-		sprintf(txt, "HTTP/1.1 %d %s\r\n", c->response.status_code, c->response.status_text);
-		server_write(c, txt, strlen(txt));
-		free(txt);
-
-		for(i = 0; i < shlen(c->response.headers); i++) {
-			txt = malloc(strlen(c->response.headers[i].key) + 2 + strlen(c->response.headers[i].value) + 2 + 1);
-			sprintf(txt, "%s: %s\r\n", c->response.headers[i].key, c->response.headers[i].value);
-			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
-				free(txt);
-				return ppr_false;
-			}
+		if(strcmp(c->request.version, "HTTP/0.9") != 0){
+			txt = malloc(8 + 1 + 3 + 1 + strlen(c->response.status_text) + 2 + 1);
+			sprintf(txt, "%s %d %s\r\n", c->request.version, c->response.status_code, c->response.status_text);
+			server_write(c, txt, strlen(txt));
 			free(txt);
-		}
 
-		if((h = http_req_get_header(&c->request, "connection")) != NULL) {
-			char* txt = malloc(strlen("Connection: ") + strlen(h) + 2 + 1);
-			sprintf(txt, "Connection: %s\r\n", h);
-			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+			for(i = 0; i < shlen(c->response.headers); i++) {
+				txt = malloc(strlen(c->response.headers[i].key) + 2 + strlen(c->response.headers[i].value) + 2 + 1);
+				sprintf(txt, "%s: %s\r\n", c->response.headers[i].key, c->response.headers[i].value);
+				if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+					free(txt);
+					return ppr_false;
+				}
 				free(txt);
-				return ppr_false;
 			}
-			free(txt);
-		}
 
-		if(is_chunked) {
-			char* txt = malloc(strlen("Transfer-Encoding: chunked") + 2 + 1);
-			strcpy(txt, "Transfer-Encoding: chunked\r\n");
-			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+			if((h = http_req_get_header(&c->request, "connection")) != NULL) {
+				char* txt = malloc(strlen("Connection: ") + strlen(h) + 2 + 1);
+				sprintf(txt, "Connection: %s\r\n", h);
+				if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+					free(txt);
+					return ppr_false;
+				}
 				free(txt);
-				return ppr_false;
 			}
-			free(txt);
-		}
 
-		if(c->response.body_size != -1 || (c->response.body_stream == NULL && c->response.body == NULL)) {
-			txt = malloc(128);
-			sprintf(txt, "Content-Length: %d\r\n", c->response.body_size < 0 ? 0 : c->response.body_size);
-			if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+			if(is_chunked) {
+				char* txt = malloc(strlen("Transfer-Encoding: chunked") + 2 + 1);
+				strcpy(txt, "Transfer-Encoding: chunked\r\n");
+				if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+					free(txt);
+					return ppr_false;
+				}
 				free(txt);
-				return ppr_false;
 			}
-			free(txt);
-		}
 
-		if(server_write(c, "\r\n", 2) < 2) return ppr_false;
+			if(c->response.body_size != -1 || (c->response.body_stream == NULL && c->response.body == NULL)) {
+				txt = malloc(128);
+				sprintf(txt, "Content-Length: %d\r\n", c->response.body_size < 0 ? 0 : c->response.body_size);
+				if(server_write(c, txt, strlen(txt)) < strlen(txt)) {
+					free(txt);
+					return ppr_false;
+				}
+				free(txt);
+			}
+
+			if(server_write(c, "\r\n", 2) < 2) return ppr_false;
+		}
 
 		c->state = CS_SENT_HEADER;
 
